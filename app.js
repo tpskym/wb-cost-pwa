@@ -1,5 +1,5 @@
-import {groups,fields,blankProduct,calculate,validateDB} from './calc.js?v=0.2';
-const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(1)+'%';
+import {groups,fields,blankProduct,calculate,validateDB} from './calc.js?v=0.2.1';
+const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let db,config={},selected,tab='production',saveError=false,installPrompt,recoveryRaw=null;
 try{config=JSON.parse(localStorage.getItem(CONFIG)||'{}');db=validateDB(JSON.parse(localStorage.getItem(KEY)));}catch{try{recoveryRaw=localStorage.getItem(KEY);}catch{}db={schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products:[blankProduct()]};}
 selected=db.products[0].id;
