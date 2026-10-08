@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {blankProduct,calculate,fields,validateDB} from '../calc.js';
+function sample(){const p=blankProduct();for(const [k]of fields)p.values[k]=0;Object.assign(p.values,{grams:40,kgPrice:1500,minutes:80,yield:1,printerPrice:86000,printerLife:10000,watts:200,tariff:5,labor:2,maintenance:2,box:12,outer:25,capacity:2,labelPack:877,labelCount:7000,labels:1,outerLabels:1,bubblePrice:238,bubbleYield:100,card:2,buyout:90,volume:100});return p;}
+test('known example including power and two packing capacities',()=>{const p=sample();assert.equal(calculate(p).cost.toFixed(2),'105.87');p.values.capacity=3;assert.equal(calculate(p).cost.toFixed(2),'101.68');});
+test('tax on full sales price, target margin and break even',()=>{const p=sample();p.values.commission=37;p.price=300;const r=calculate(p);assert.ok(Math.abs(r.profit-(300*.59-r.fixed))<1e-9);p.price=r.min;assert.ok(Math.abs(calculate(p).profit)<1e-9);p.price=r.target;assert.ok(Math.abs(calculate(p).margin-30)<1e-9);});
+test('unknowns flagged and 100% defect rejected',()=>{const p=sample();p.values.defect=null;assert.ok(calculate(p).missing.includes('defect'));p.values.defect=100;assert.ok(calculate(p).invalid.includes('defect'));});
+test('buyout adds unsuccessful logistics without inflating all production',()=>{const p=sample();p.values.logistics=90;p.values.reverse=30;assert.ok(Math.abs(calculate(p).salesFixed-(90+3)/.9)<1e-9);});
+test('zero buyout and invalid percentages rejected',()=>{const p=sample();p.values.buyout=0;assert.ok(calculate(p).invalid.includes('buyout'));});
+test('unreachable target returns null',()=>{const p=sample();p.values.commission=70;p.target=30;assert.equal(calculate(p).target,null);});
+test('additional fixed and percent expenses',()=>{const p=sample(),base=calculate(p);p.custom=[{id:'a',name:'Extra',amount:10,mode:'unit'},{id:'b',name:'Fee',amount:5,mode:'percent'}];const r=calculate(p);assert.equal(r.fixed,base.fixed+10);assert.ok(Math.abs(r.rate-base.rate-.05)<1e-9);});
+test('base rejects incomplete and duplicate products before import',()=>{const p=sample();assert.throws(()=>validateDB({schema:2,products:[p]}));assert.throws(()=>validateDB({schema:1,id:'a',products:[p,p]}));assert.doesNotThrow(()=>validateDB({schema:1,id:'a',products:[p]}));p.values.grams=-1;assert.throws(()=>validateDB({schema:1,id:'a',products:[p]}));});
