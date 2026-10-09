@@ -5,3 +5,5 @@
 .mobile-products{display:none}@media(max-width:850px){.mobile-products{display:flex;gap:12px;margin-bottom:15px}.mobile-products select{flex:1}.mobile-products button{white-space:nowrap}}
 
 .shipping-mode{margin-bottom:18px}.wb-summary{margin-top:22px;border-top:1px solid #e6ebdf;padding-top:18px}.wb-summary h3{font-size:14px;margin-bottom:7px}.wb-summary p{font-size:10px}.wb-summary>div{display:grid;grid-template-columns:1fr 65px 85px;gap:8px;font-size:10px;padding:9px 0;border-bottom:1px solid #eff1e9}.wb-summary b,.wb-summary small{text-align:right}.wb-summary small{color:#839079;font-size:10px}
+
+.packaging-group{min-width:0;margin:0 0 28px;padding:20px 18px 8px;border:1px solid #e0e5da;border-radius:14px}.packaging-group legend{padding:0 8px;font-size:18px;font-weight:700;color:#304139}.group-hint{margin:0 0 18px;color:#788078;font-size:13px;line-height:1.5}.packaging-group .form-grid{margin-top:0}
