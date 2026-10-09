@@ -13,3 +13,5 @@
 .calculation-section th{background:#dce8cc;font-size:17px;padding-top:18px;padding-bottom:18px}.calculation-subgroup th{background:#f0f4ea;font-size:14px}.calculation-subtotal{color:#596b50;font-weight:600}.calculation-total{background:#eaf1e0;font-weight:750}.calculation-table .calculation-subtotal th,.calculation-table .calculation-total th{text-align:left}
 
 .calculation-section td{background:#dce8cc;font-size:17px;font-weight:700}.calculation-subgroup td{background:#f0f4ea;font-weight:700}
+
+.template-bar{padding:22px;margin-bottom:20px}.template-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.template-controls label{flex:1;min-width:190px}

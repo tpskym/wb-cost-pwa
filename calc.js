@@ -62,8 +62,24 @@ export function calculate(p){
  detailRows.forEach((row,i)=>row.push(detailKeys[i]));
  return {detailRows,platformFees,platformPayout:price-platformFees,commissionCost:price*commission/100,deliveryCost:wbDelivery+price*deliveryPct/100+(b>0?(logistics+(1-b)*reverse)/b:0),totalExpenses:fixed+price*rate,totalExpensesPercent:price?(fixed+price*rate)/price*100:null,costPercent:price?cost/price*100:null,platformPercent:price?platformFees/price*100:null,missing:[...new Set(missing)],invalid:[...new Set(invalid)],production,packaging,overhead,cost,salesFixed,fixed,rate,min,target,profit,price,margin:price?profit/price*100:null,markup:cost? (price-cost)/cost*100:null,roi:fixed?profit/fixed*100:null,tax:price*tax/100,fees:price*pct/100,payout:price*(1-pct/100)-salesFixed,monthlyProfit:volume?profit*volume:null,breakVolume:price*(1-rate)-(fixed-(volume?monthly/volume:0))>0?monthly/(price*(1-rate)-(fixed-(volume?monthly/volume:0))):null,rows:[['Материал',material],['Амортизация 3D-принтера',amort],['Электричество',energy],['Труд',labor],['Обслуживание',maint],['Комплектующие и разработка',components+design],['Резерв брака',defectCost],['Упаковка и этикетки',packaging],['Накладные',overhead],['Доставка, невыкуп и прочее',salesFixed]]};
 }
+export function createTemplate(p,name){
+ const title=name.trim();if(!title)throw Error('Введите имя шаблона');
+ const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.history;
+ return {id:crypto.randomUUID(),name:title,inputs};
+}
+export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,history:p.history};}
 export function validateDB(x){
  if(!x||x.schema!==1||typeof x.id!=='string'||!Array.isArray(x.products)||!x.products.length||x.products.length>1000)throw Error('Неверный формат базы или версия файла');
+ if(!('templates' in x))x.templates=[];
+ if(!Array.isArray(x.templates)||x.templates.length>1000)throw Error('Некорректный список шаблонов');
+ const templateIds=new Set();
+ for(const t of x.templates){
+  if(!t||typeof t.id!=='string'||templateIds.has(t.id)||typeof t.name!=='string'||!t.name.trim()||!t.inputs||typeof t.inputs!=='object')throw Error('Некорректный шаблон');
+  templateIds.add(t.id);
+  const checked=applyTemplate(blankProduct(),t);
+  validateDB({schema:1,id:'template-check',products:[checked],templates:[]});
+  t.inputs=createTemplate(checked,t.name).inputs;
+ }
  const ids=new Set();
  for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);
  if(!('shippingMode' in p))p.shippingMode='rubles';
