@@ -1,5 +1,5 @@
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.17';
-import {validateDB} from './calc.js?v=0.2.17';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.18';
+import {validateDB} from './calc.js?v=0.2.18';
 const categories=['model','source-wb','source-ozon','source','ready'];
 export async function createFullBackup(database,records){
  const db=validateDB(structuredClone(database)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
@@ -7,7 +7,6 @@ export async function createFullBackup(database,records){
  for(const record of records){if(!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,productId:owners.get(record.owner),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
  const manifest={format:'workshop-full-backup',version:1,createdAt:new Date().toISOString(),database:'database.json',files};
  entries.unshift({name:'manifest.json',blob:new Blob([JSON.stringify(manifest,null,2)])},{name:'database.json',blob:new Blob([JSON.stringify(db,null,2)])});
- const total=entries.reduce((sum,e)=>sum+e.blob.size,0);if(total>500*1024*1024)throw Error('Полный архив превышает лимит 500 МБ');
  return makeZip(entries);
 }
 export async function parseFullBackup(blob){
