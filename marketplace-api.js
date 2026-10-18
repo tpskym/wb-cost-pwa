@@ -5,6 +5,13 @@ const OPERATIONS={
 };
 export function redact(text,credentials){let output=String(text);for(const value of [credentials?.wbToken,credentials?.ozonKey])if(value)output=output.split(value).join('[скрыто]');return output;}
 export function statusHint(status){return status===401?'Проверьте Client-Id и API-ключ Ozon или токен WB и нажмите «Применить ключи».':status===403?'Проверьте права ключа на работу с товарами и категориями.':status===429?'Лимит запросов. Подождите перед повтором.':status>=500?'Временная ошибка площадки. Повторите позже.':'';}
+// Role names match the Ozon Seller key settings. A 403 alone does not prove a role is absent.
+export function ozonPermissionHint(operation,confirmedMissing=false){
+ const role=['categories','attributes','values','searchValues'].includes(operation)?'Description Category':['list','info','details','create','update','status'].includes(operation)?'Product':null;
+ if(!role)return 'Не удалось проверить права ключа. Проверьте роли в настройках Ozon Seller.';
+ const path=OPERATIONS.ozon[operation][1];
+ return (confirmedMissing?'Не хватает доступа к методу ':'Проверьте доступ к методу ')+path+'. Нужная роль Ozon: «'+role+'». Откройте Ozon Seller → настройки Seller API → роли ключа, включите «'+role+'» и сохраните. Если создали новый ключ, замените его в приложении и нажмите «Применить ключи». Затем повторите запрос.';
+}
 export async function marketRequest(market,operation,credentials,body={},fetcher=fetch){
  const route=OPERATIONS[market]?.[operation];if(!route)throw Error('Недопустимая операция API');
  if(market==='wb'&&!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');
@@ -15,8 +22,8 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
  const headers={'Content-Type':'application/json',...(market==='wb'?{Authorization:credentials.wbToken}:{'Client-Id':credentials.ozonClient,'Api-Key':credentials.ozonKey})};
  let response;
  try{response=await fetcher(HOSTS[market]+path,{method,headers,...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(45000)});}catch{throw Error('Нет ответа API. Проверьте сеть и разрешения браузера. Если отправляли карточку — сначала проверьте её состояние на площадке, не повторяйте отправку автоматически.');}
- const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+'). '+statusHint(response.status));}
- if(!response.ok||data.error===true)throw Error('API '+market.toUpperCase()+': '+response.status+' · '+String(data.errorText||data.message||data.error||'Запрос отклонён').slice(0,800)+(statusHint(response.status)?' · '+statusHint(response.status):''));
+ const raw=redact(await response.text(),credentials);const hint=response.status===403&&market==='ozon'?ozonPermissionHint(operation,/missing a required role/i.test(raw)):statusHint(response.status);let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+'). '+hint);}
+ if(!response.ok||data.error===true)throw Error('API '+market.toUpperCase()+': '+response.status+' · '+String(data.errorText||data.message||data.error||'Запрос отклонён').slice(0,800)+(hint?' · '+hint:''));
  return data;
 }
 export function listBody(market,search='',cursor=null){return market==='wb'?{settings:{sort:{ascending:true},filter:{withPhoto:-1,...(search?{textSearch:search}:{})},cursor:{limit:100,...(cursor||{})}}}:{filter:{...(search?{offer_id:[search]}:{}),visibility:'ALL'},last_id:cursor||'',limit:100};}
@@ -67,7 +74,7 @@ export async function uploadWBPhoto(credentials,nmId,number,file,fetcher=fetch){
  if(!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');if(!Number.isSafeInteger(nmId)||nmId<=0||!Number.isSafeInteger(number)||number<1)throw Error('Нет идентификатора карточки или позиции фото');
  const form=new FormData();form.append('uploadfile',file,file.name||'photo.jpg');let response;
  try{response=await fetcher(HOSTS.wb+'/content/v3/media/file',{method:'POST',headers:{Authorization:credentials.wbToken,'X-Nm-Id':String(nmId),'X-Photo-Number':String(number)},body:form,credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(60000)});}catch{const error=Error('Результат загрузки фото неизвестен. Проверьте фотографии в WB перед повтором.');error.uncertain=true;throw error;}
- const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{const error=Error('Не удалось прочитать ответ загрузки WB. Проверьте фотографии перед повтором.');error.uncertain=true;throw error;}if(!response.ok||data.error===true)throw Error('WB отклонил фото: '+String(data.errorText||response.status));return data;
+ const raw=redact(await response.text(),credentials);const hint=response.status===403&&market==='ozon'?ozonPermissionHint(operation,/missing a required role/i.test(raw)):statusHint(response.status);let data;try{data=raw?JSON.parse(raw):{};}catch{const error=Error('Не удалось прочитать ответ загрузки WB. Проверьте фотографии перед повтором.');error.uncertain=true;throw error;}if(!response.ok||data.error===true)throw Error('WB отклонил фото: '+String(data.errorText||response.status));return data;
 }
 
 export function describeOzonRoles(data){const roles=data.roles||data.result?.roles||(Array.isArray(data.result)?data.result:[]);if(!Array.isArray(roles)||!roles.length)return 'Ozon не вернул список ролей в ожидаемом формате. Проверьте роли ключа в кабинете Ozon Seller.';const lines=[];for(const role of roles){lines.push('Роль: '+String(role.name||role.role_name||role.id));for(const method of role.methods||[]){const label=typeof method==='string'?method:method.path||method.name||method.method;if(label)lines.push('  '+label);}}return lines.join('\n');}
