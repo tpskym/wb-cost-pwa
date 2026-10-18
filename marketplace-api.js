@@ -39,7 +39,7 @@ export function ozonUpdateDraft(info,details){
  if(!info?.offer_id||!details)throw Error('Не удалось получить все сведения товара Ozon');
  const product={...details,...info};const keys=['offer_id','name','description_category_id','type_id','price','old_price','vat','barcode','height','width','depth','dimension_unit','weight','weight_unit','attributes','complex_attributes','pdf_list','color_image','images','currency_code'];
  const item={};for(const key of keys)if(product[key]!==undefined)item[key]=structuredClone(product[key]);
- for(const key of ['height','width','depth','dimension_unit','weight','weight_unit','attributes','complex_attributes'])if(details[key]!==undefined)item[key]=structuredClone(details[key]);
+ for(const key of ['description_category_id','type_id','height','width','depth','dimension_unit','weight','weight_unit','attributes','complex_attributes'])if(details[key]!==undefined&&(!['description_category_id','type_id'].includes(key)||Number(details[key])>0))item[key]=structuredClone(details[key]);
  item.currency_code||='RUB';item.attributes=(item.attributes||[]).map(a=>({id:a.id,complex_id:a.complex_id||0,values:(a.values||[]).map(v=>({...(v.dictionary_value_id?{dictionary_value_id:v.dictionary_value_id}:{}),...(v.value!==undefined?{value:v.value}:{})}))}));
  const imageUrl=image=>typeof image==='string'?image:image?.file_name||image?.url;
  const array=value=>Array.isArray(value)?value:value?[value]:[];const images=[...array(info.primary_image),...array(info.images||details.images)].map(imageUrl).filter(Boolean);if(images.length)item.images=[...new Set(images)];
