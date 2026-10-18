@@ -1,5 +1,5 @@
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.24';
-import {validateDB} from './calc.js?v=0.2.24';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.25';
+import {validateDB} from './calc.js?v=0.2.25';
 const categories=['model','source-wb','source-ozon','source','ready'];
 export async function createFullBackup(database,records){
  const db=validateDB(structuredClone(database)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
