@@ -41,3 +41,5 @@ main[data-workspace="cost"] .cards-only,main[data-workspace="cards"] .cost-only{
 .catalog-error{color:#a64f40;background:#fff3ef;padding:12px;border-radius:8px;white-space:pre-wrap}
 
 .app-version{font-size:12px;font-weight:600;white-space:nowrap;color:#66765e}
+
+.attribute-field{margin:20px 0;padding:20px;border:1px solid #dce3d6;border-radius:12px;background:#fff}.attribute-title{display:block;margin-bottom:12px;padding-left:10px;border-left:4px solid #778e58;font-size:16px;font-weight:700;line-height:1.4;color:#243c32}.attribute-field>small{display:block;margin:8px 0 12px}.attribute-help summary{font-weight:600;color:#53634c}.attribute-help{border:1px solid #e5eadf}.attribute-field .file-actions{margin-top:8px}
