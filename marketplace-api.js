@@ -1,13 +1,13 @@
 const HOSTS={wb:'https://content-api.wildberries.ru',ozon:'https://api-seller.ozon.ru'};
 const OPERATIONS={
- wb:{list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
- ozon:{roles:['POST','/v1/roles'],list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute'],values:['POST','/v1/description-category/attribute/values'],searchValues:['POST','/v1/description-category/attribute/values/search']}
+ wb:{warehouses:['GET','/api/v3/warehouses'],stocks:['POST','/api/v3/stocks/'],list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
+ ozon:{stocks:['POST','/v4/product/info/stocks'],quality:['POST','/v1/product/rating-by-sku'],roles:['POST','/v1/roles'],list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute'],values:['POST','/v1/description-category/attribute/values'],searchValues:['POST','/v1/description-category/attribute/values/search']}
 };
 export function redact(text,credentials){let output=String(text);for(const value of [credentials?.wbToken,credentials?.ozonKey])if(value)output=output.split(value).join('[скрыто]');return output;}
 export function statusHint(status){return status===401?'Проверьте Client-Id и API-ключ Ozon или токен WB и нажмите «Применить ключи».':status===403?'Проверьте права ключа на работу с товарами и категориями.':status===429?'Лимит запросов. Подождите перед повтором.':status>=500?'Временная ошибка площадки. Повторите позже.':'';}
 // Role names match the Ozon Seller key settings. A 403 alone does not prove a role is absent.
 export function ozonPermissionHint(operation,confirmedMissing=false){
- const role=['categories','attributes','values','searchValues'].includes(operation)?'Description Category':['list','info','details','create','update','status'].includes(operation)?'Product':null;
+ const role=operation==='quality'?'Rating':operation==='stocks'?'Stocks':['categories','attributes','values','searchValues'].includes(operation)?'Description Category':['list','info','details','create','update','status'].includes(operation)?'Product':null;
  if(!role)return 'Не удалось проверить права ключа. Проверьте роли в настройках Ozon Seller.';
  const path=OPERATIONS.ozon[operation][1];
  return (confirmedMissing?'Не хватает доступа к методу ':'Проверьте доступ к методу ')+path+'. Нужная роль Ozon: «'+role+'». Откройте Ozon Seller → настройки Seller API → роли ключа, включите «'+role+'» и сохраните. Если создали новый ключ, замените его в приложении и нажмите «Применить ключи». Затем повторите запрос.';
@@ -19,10 +19,12 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
  let [method,path]=route;
  if(market==='wb'&&operation==='attributes'){if(!Number.isSafeInteger(body.subjectID)||body.subjectID<=0)throw Error('Укажите ID предмета WB');path+=body.subjectID;}
  if(market==='wb'&&operation==='categories')path+='?limit=1000&offset='+Number(body.offset||0)+'&locale=ru'+(body.name?'&name='+encodeURIComponent(body.name):'');
+ if(market==='wb'&&operation==='stocks'){if(!Number.isSafeInteger(body.warehouseId)||body.warehouseId<=0)throw Error('Нет ID склада WB');path+=body.warehouseId;body={chrtIds:body.chrtIds};}
+ const host=market==='wb'&&['warehouses','stocks'].includes(operation)?'https://marketplace-api.wildberries.ru':HOSTS[market];
  const headers={'Content-Type':'application/json',...(market==='wb'?{Authorization:credentials.wbToken}:{'Client-Id':credentials.ozonClient,'Api-Key':credentials.ozonKey})};
  let response;
- try{response=await fetcher(HOSTS[market]+path,{method,headers,...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(45000)});}catch{throw Error('Нет ответа API. Проверьте сеть и разрешения браузера. Если отправляли карточку — сначала проверьте её состояние на площадке, не повторяйте отправку автоматически.');}
- const raw=redact(await response.text(),credentials);const hint=response.status===403&&market==='ozon'?ozonPermissionHint(operation,/missing a required role/i.test(raw)):statusHint(response.status);let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+'). '+hint);}
+ try{response=await fetcher(host+path,{method,headers,...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(45000)});}catch{throw Error('Нет ответа API. Проверьте сеть и разрешения браузера. Если отправляли карточку — сначала проверьте её состояние на площадке, не повторяйте отправку автоматически.');}
+ const raw=redact(await response.text(),credentials);const hint=response.status===403&&market==='ozon'?ozonPermissionHint(operation,/missing a required role/i.test(raw)):(market==='wb'&&response.status===403&&['warehouses','stocks'].includes(operation)?'Для остатков WB нужен токен с доступом «Маркетплейс».':statusHint(response.status));let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+'). '+hint);}
  if(!response.ok||data.error===true)throw Error('API '+market.toUpperCase()+': '+response.status+' · '+String(data.errorText||data.message||data.error||'Запрос отклонён').slice(0,800)+(hint?' · '+hint:''));
  return data;
 }
