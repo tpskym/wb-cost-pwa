@@ -25,7 +25,7 @@ jobs:
       - run: npm test
       - run: |
           mkdir public
-          cp index.html app.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
+          cp index.html app.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
