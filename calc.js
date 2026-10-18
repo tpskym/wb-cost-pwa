@@ -10,7 +10,7 @@ export const fields = [
  ['commission','Комиссия площадки','% цены','sales'],['acquiring','Эквайринг · если отдельно','% цены','sales'],['ads','Реклама','% цены','sales'],['wbDelivery','Готовая доставка из калькулятора WB','₽/продажа','sales'],['deliveryPercent','Доставка WB · доля при исходной цене','% цены','sales'],['logistics','Прямая логистика на отправку','₽','sales'],['reverse','Обратная логистика на невыкуп','₽','sales'],['delivery','Доставка общей коробки до приёмки','₽/коробка','sales'],['acceptance','Приёмка','₽/шт.','sales'],['storage','Хранение','₽/шт.','sales'],['penalties','Штрафы, прочие удержания','₽/шт.','sales'],['buyout','Плановый выкуп','%','sales'],['loss','Потеря стоимости при невыкупе','%','sales'],
  ['rent','Аренда за месяц','₽','overhead'],['software','Сервисы за месяц','₽','overhead'],['bank','Банк за месяц','₽','overhead'],['otherMonthly','Другие постоянные затраты','₽/мес.','overhead'],['volume','Продажи за месяц','шт.','overhead'],['otherUnit','Прочие затраты','₽/шт.','overhead']
 ];
-export function blankProduct(){return {id:crypto.randomUUID(),name:'Новый товар',sku:'',platform:'WB · свой склад',printer:'Bambu Lab P2S Combo',material:'PLA',values:{...Object.fromEntries(fields.map(([k])=>[k,null])),watts:200,tariff:5,yield:1,labels:1,outerLabels:1},shippingMode:'rubles',custom:[],price:null,target:30,tax:4,taxMode:'НПД',history:[]};}
+export function blankProduct(){return {id:crypto.randomUUID(),name:'Новый товар',sku:'',platform:'WB · свой склад',printer:'Bambu Lab P2S Combo',material:'PLA',colorCode:'',values:{...Object.fromEntries(fields.map(([k])=>[k,null])),watts:200,tariff:5,yield:1,labels:1,outerLabels:1},shippingMode:'rubles',custom:[],price:null,target:30,tax:4,taxMode:'НПД',history:[]};}
 export function calculate(p){
  const v=p.values, missing=[], invalid=[];
  const n=k=>{if(v[k]===null||v[k]===''||v[k]===undefined){missing.push(k);return 0;} if(!Number.isFinite(v[k])||v[k]<0){invalid.push(k);return 0;}return v[k];};
@@ -82,6 +82,8 @@ export function validateDB(x){
  }
  const ids=new Set();
  for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);
+ if(!('colorCode' in p))p.colorCode='';
+ if(typeof p.colorCode!=='string')throw Error('Некорректный код цвета');
  if(!('shippingMode' in p))p.shippingMode='rubles';
  if(!['rubles','percent','wb-total'].includes(p.shippingMode))throw Error('Некорректный режим доставки');
  if(!('wbDelivery' in p.values))p.values.wbDelivery=null;
