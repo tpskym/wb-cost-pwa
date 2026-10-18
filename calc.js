@@ -63,10 +63,10 @@ export function calculate(p){
 }
 export function createTemplate(p,name){
  const title=name.trim();if(!title)throw Error('Введите имя шаблона');
- const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.labelPdf;delete inputs.productGroup;delete inputs.variantNote;delete inputs.history;
+ const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.labelPdf;delete inputs.listingDrafts;delete inputs.productGroup;delete inputs.variantNote;delete inputs.history;
  return {id:crypto.randomUUID(),name:title,inputs};
 }
-export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,labelPdf:p.labelPdf,productGroup:p.productGroup,variantNote:p.variantNote,history:p.history};}
+export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,labelPdf:p.labelPdf,listingDrafts:p.listingDrafts,productGroup:p.productGroup,variantNote:p.variantNote,history:p.history};}
 export function validateDB(x){
  if(!x||x.schema!==1||typeof x.id!=='string'||!Array.isArray(x.products)||!x.products.length||x.products.length>1000)throw Error('Неверный формат базы или версия файла');
  if(!('templates' in x))x.templates=[];
@@ -81,6 +81,7 @@ export function validateDB(x){
  }
  const ids=new Set();
  for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);
+ if(p.listingDrafts!==undefined){if(!p.listingDrafts||typeof p.listingDrafts!=='object'||Array.isArray(p.listingDrafts))throw Error('Некорректные черновики карточек');for(const [market,draft] of Object.entries(p.listingDrafts)){if(!['wb','ozon'].includes(market)||!draft||!['create','update'].includes(draft.mode)||typeof draft.body!=='string'||(draft.photoURLs!==undefined&&(!Array.isArray(draft.photoURLs)||draft.photoURLs.some(url=>typeof url!=='string'))))throw Error('Некорректный черновик карточки');}}
  if(p.labelPdf!=null&&(typeof p.labelPdf.name!=='string'||typeof p.labelPdf.data!=='string'||p.labelPdf.data.length>2800000||!/^data:application\/pdf;base64,[A-Za-z0-9+/=]+$/.test(p.labelPdf.data)))throw Error('Некорректный PDF этикетки');
  for(const key of ['productGroup','variantNote']){if(!(key in p))p[key]='';if(typeof p[key]!=='string')throw Error('Некорректные данные группы или варианта');}
  ensureMarketplaces(p);
