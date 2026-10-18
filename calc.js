@@ -10,7 +10,7 @@ export const fields = [
  ['commission','Комиссия площадки','% цены','sales'],['acquiring','Эквайринг · если отдельно','% цены','sales'],['ads','Реклама','% цены','sales'],['wbDelivery','Готовая доставка из калькулятора WB','₽/продажа','sales'],['deliveryPercent','Доставка WB · доля при исходной цене','% цены','sales'],['logistics','Прямая логистика на отправку','₽','sales'],['reverse','Обратная логистика на невыкуп','₽','sales'],['delivery','Доставка общей коробки до приёмки','₽/коробка','sales'],['acceptance','Приёмка','₽/шт.','sales'],['storage','Хранение','₽/шт.','sales'],['penalties','Штрафы, прочие удержания','₽/шт.','sales'],['buyout','Плановый выкуп','%','sales'],['loss','Потеря стоимости при невыкупе','%','sales'],
  ['rent','Аренда за месяц','₽','overhead'],['software','Сервисы за месяц','₽','overhead'],['bank','Банк за месяц','₽','overhead'],['otherMonthly','Другие постоянные затраты','₽/мес.','overhead'],['volume','Продажи за месяц','шт.','overhead'],['otherUnit','Прочие затраты','₽/шт.','overhead']
 ];
-export function blankProduct(){return {id:crypto.randomUUID(),name:'Новый товар',sku:'',platform:'WB · свой склад',printer:'Bambu Lab P2S Combo',material:'PLA',colorCode:'',values:{...Object.fromEntries(fields.map(([k])=>[k,null])),watts:200,tariff:5,yield:1,labels:1,outerLabels:1},shippingMode:'rubles',custom:[],price:null,target:30,tax:4,taxMode:'НПД',history:[]};}
+export function blankProduct(){return {id:crypto.randomUUID(),name:'Новый товар',sku:'',productGroup:'',variantNote:'',platform:'WB · свой склад',printer:'Bambu Lab P2S Combo',material:'PLA',colorCode:'',values:{...Object.fromEntries(fields.map(([k])=>[k,null])),watts:200,tariff:5,yield:1,labels:1,outerLabels:1},shippingMode:'rubles',custom:[],price:null,target:30,tax:4,taxMode:'НПД',history:[]};}
 export function calculate(p){
  const v=p.values, missing=[], invalid=[];
  const n=k=>{if(v[k]===null||v[k]===''||v[k]===undefined){missing.push(k);return 0;} if(!Number.isFinite(v[k])||v[k]<0){invalid.push(k);return 0;}return v[k];};
@@ -64,10 +64,10 @@ export function calculate(p){
 }
 export function createTemplate(p,name){
  const title=name.trim();if(!title)throw Error('Введите имя шаблона');
- const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.history;
+ const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.productGroup;delete inputs.variantNote;delete inputs.history;
  return {id:crypto.randomUUID(),name:title,inputs};
 }
-export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,history:p.history};}
+export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,productGroup:p.productGroup,variantNote:p.variantNote,history:p.history};}
 export function validateDB(x){
  if(!x||x.schema!==1||typeof x.id!=='string'||!Array.isArray(x.products)||!x.products.length||x.products.length>1000)throw Error('Неверный формат базы или версия файла');
  if(!('templates' in x))x.templates=[];
@@ -82,6 +82,7 @@ export function validateDB(x){
  }
  const ids=new Set();
  for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);
+ for(const key of ['productGroup','variantNote']){if(!(key in p))p[key]='';if(typeof p[key]!=='string')throw Error('Некорректные данные группы или варианта');}
  if(!('colorCode' in p))p.colorCode='';
  if(typeof p.colorCode!=='string')throw Error('Некорректный код цвета');
  if(!('shippingMode' in p))p.shippingMode='rubles';
