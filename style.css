@@ -82,3 +82,5 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 .api-card .card-identifiers{margin-top:5px;color:#53664f;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 
 .barcode-status{padding:10px 12px;border-radius:8px;background:#f1f5ea;color:#53664f;font-size:12px;line-height:1.5}.barcode-status:empty{display:none}
+
+.price-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.price-tools button{font-size:12px;padding:8px 12px}.price-tools a{font-size:12px;line-height:1.5}.price-cost-result{display:block;margin-top:12px;padding:12px;border:1px solid #dce6d0;background:#f2f6ec;border-radius:9px;line-height:1.6;font-size:12px;font-weight:400}.matched-cost{display:flex;flex-direction:column;gap:3px}.matched-cost+.matched-cost{margin-top:12px;padding-top:12px;border-top:1px solid #dce6d0}.matched-cost b{font-size:15px;color:#344f38}

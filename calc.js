@@ -114,3 +114,5 @@ export function calculateManual(p){
  detailRows.push(...p.custom.filter(c=>c.mode==='unit').map(c=>[c.name,c.amount||0,'custom:'+c.id]));
  return {...base,cost,detailRows,missing:[...new Set(missing)],invalid:[...new Set(invalid)],markets,profit:active.profit,price:active.price,tax:active.tax,margin:active.margin,rows:base.rows.filter(([name])=>name!=='Доставка, невыкуп и прочее').concat([['Дополнительные затраты',extra]])};
 }
+
+export function productCostsBySku(products,sku){const key=String(sku||'').trim();if(!key)return [];return products.filter(product=>String(product.sku||'').trim()===key).map(product=>{const result=calculateManual(structuredClone(product));return {name:product.name,sku:product.sku,cost:result.invalid.length?null:result.cost,missing:result.missing.length,invalid:result.invalid.length,rows:result.rows};});}
