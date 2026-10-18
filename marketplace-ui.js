@@ -1,5 +1,5 @@
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.21';
-import {marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact} from './marketplace-api.js?v=0.2.21';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.22';
+import {marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact} from './marketplace-api.js?v=0.2.22';
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb';
 try{const saved=JSON.parse(localStorage.getItem(CREDENTIALS)||'null');if(saved){for(const k of Object.keys(credentials))if(typeof saved[k]==='string')credentials[k]=saved[k];remember=true;}}catch{}
