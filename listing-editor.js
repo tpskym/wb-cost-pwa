@@ -1,7 +1,7 @@
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.38';
-import {listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.38';
-import {wbUpdateDraft} from './marketplace-api.js?v=0.2.38';
-import {listFiles} from './attachments.js?v=0.2.38';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.39';
+import {listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.39';
+import {wbUpdateDraft} from './marketplace-api.js?v=0.2.39';
+import {listFiles} from './attachments.js?v=0.2.39';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeCurrent=()=>{};
 export function disposeListingEditor(){disposeCurrent();disposeCurrent=()=>{};}
