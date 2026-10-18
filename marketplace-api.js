@@ -4,18 +4,19 @@ const OPERATIONS={
  ozon:{list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute'],values:['POST','/v1/description-category/attribute/values'],searchValues:['POST','/v1/description-category/attribute/values/search']}
 };
 export function redact(text,credentials){let output=String(text);for(const value of [credentials?.wbToken,credentials?.ozonKey])if(value)output=output.split(value).join('[скрыто]');return output;}
+export function statusHint(status){return status===401?'Проверьте Client-Id и API-ключ Ozon или токен WB и нажмите «Применить ключи».':status===403?'Проверьте права ключа на работу с товарами и категориями.':status===429?'Лимит запросов. Подождите перед повтором.':status>=500?'Временная ошибка площадки. Повторите позже.':'';}
 export async function marketRequest(market,operation,credentials,body={},fetcher=fetch){
  const route=OPERATIONS[market]?.[operation];if(!route)throw Error('Недопустимая операция API');
- if(market==='wb'&&!credentials.wbToken)throw Error('Введите API-токен WB');
- if(market==='ozon'&&(!credentials.ozonKey||!credentials.ozonClient))throw Error('Введите Client-Id и API-ключ Ozon');
+ if(market==='wb'&&!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');
+ if(market==='ozon'&&(!credentials.ozonKey||!credentials.ozonClient))throw Error('Введите Client-Id и API-ключ Ozon и нажмите «Применить ключи»');
  let [method,path]=route;
  if(market==='wb'&&operation==='attributes'){if(!Number.isSafeInteger(body.subjectID)||body.subjectID<=0)throw Error('Укажите ID предмета WB');path+=body.subjectID;}
  if(market==='wb'&&operation==='categories')path+='?limit=1000&offset='+Number(body.offset||0)+'&locale=ru'+(body.name?'&name='+encodeURIComponent(body.name):'');
  const headers={'Content-Type':'application/json',...(market==='wb'?{Authorization:credentials.wbToken}:{'Client-Id':credentials.ozonClient,'Api-Key':credentials.ozonKey})};
  let response;
  try{response=await fetcher(HOSTS[market]+path,{method,headers,...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(45000)});}catch{throw Error('Нет ответа API. Проверьте сеть и разрешения браузера. Если отправляли карточку — сначала проверьте её состояние на площадке, не повторяйте отправку автоматически.');}
- const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+')');}
- if(!response.ok||data.error===true)throw Error('API '+market.toUpperCase()+': '+response.status+' · '+String(data.errorText||data.message||data.error||'Запрос отклонён').slice(0,800)+(response.status===429?' · Лимит запросов. Подождите перед повтором.':''));
+ const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+'). '+statusHint(response.status));}
+ if(!response.ok||data.error===true)throw Error('API '+market.toUpperCase()+': '+response.status+' · '+String(data.errorText||data.message||data.error||'Запрос отклонён').slice(0,800)+(statusHint(response.status)?' · '+statusHint(response.status):''));
  return data;
 }
 export function listBody(market,search='',cursor=null){return market==='wb'?{settings:{sort:{ascending:true},filter:{withPhoto:-1,...(search?{textSearch:search}:{})},cursor:{limit:100,...(cursor||{})}}}:{filter:{...(search?{offer_id:[search]}:{}),visibility:'ALL'},last_id:cursor||'',limit:100};}
@@ -63,7 +64,7 @@ export function validateListing(market,mode,body){
 }
 
 export async function uploadWBPhoto(credentials,nmId,number,file,fetcher=fetch){
- if(!credentials.wbToken)throw Error('Введите API-токен WB');if(!Number.isSafeInteger(nmId)||nmId<=0||!Number.isSafeInteger(number)||number<1)throw Error('Нет идентификатора карточки или позиции фото');
+ if(!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');if(!Number.isSafeInteger(nmId)||nmId<=0||!Number.isSafeInteger(number)||number<1)throw Error('Нет идентификатора карточки или позиции фото');
  const form=new FormData();form.append('uploadfile',file,file.name||'photo.jpg');let response;
  try{response=await fetcher(HOSTS.wb+'/content/v3/media/file',{method:'POST',headers:{Authorization:credentials.wbToken,'X-Nm-Id':String(nmId),'X-Photo-Number':String(number)},body:form,credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(60000)});}catch{const error=Error('Результат загрузки фото неизвестен. Проверьте фотографии в WB перед повтором.');error.uncertain=true;throw error;}
  const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{const error=Error('Не удалось прочитать ответ загрузки WB. Проверьте фотографии перед повтором.');error.uncertain=true;throw error;}if(!response.ok||data.error===true)throw Error('WB отклонил фото: '+String(data.errorText||response.status));return data;

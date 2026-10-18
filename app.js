@@ -1,8 +1,8 @@
-import {disposeListingEditor} from './listing-editor.js?v=0.2.26';
-import {mountMarketplaceUI} from './marketplace-ui.js?v=0.2.26';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.26';
-import {listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.26';
-import {groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.26';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.27';
+import {mountMarketplaceUI} from './marketplace-ui.js?v=0.2.27';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.27';
+import {listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.27';
+import {groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.27';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
 try{config=JSON.parse(localStorage.getItem(CONFIG)||'{}');db=validateDB(JSON.parse(localStorage.getItem(KEY)));}catch{try{recoveryRaw=localStorage.getItem(KEY);}catch{}db={schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products:[blankProduct()]};}
