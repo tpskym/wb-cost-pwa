@@ -1,7 +1,7 @@
-import {categoryOf,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.35';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.35';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.35';
-import {marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.35';
+import {categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.36';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.36';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.36';
+import {marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.36';
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb',selectedTab='cards';
 try{const saved=JSON.parse(localStorage.getItem(CREDENTIALS)||'null');if(saved){for(const k of Object.keys(credentials))if(typeof saved[k]==='string')credentials[k]=saved[k];remember=true;}}catch{}
@@ -52,5 +52,5 @@ export async function hydrateListingDraft(market,draft,request){
   draft.categoryLabel=found?.label||'Категория №'+category.id+' · Тип №'+category.typeId;
  }
  const result=await request('attributes',market==='wb'?{subjectID:Number(category.id)}:{description_category_id:Number(category.id),type_id:Number(category.typeId),language:'DEFAULT'});
- draft.attributeSchema=normalizeAttributes(market,result);draft.attributesLoaded=true;
+ draft.attributeSchema=normalizeAttributes(market,result);draft.attributesLoaded=true;if(market==='ozon')await fillOzonTypeAttribute(draft,request);
 }

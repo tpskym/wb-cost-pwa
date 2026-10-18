@@ -27,3 +27,22 @@ export function attributeReference(market,def){
  if(def.popular===true)facts.push(['Приоритет','Площадка отмечает характеристику как популярную']);
  return {source:market==='wb'?'Wildberries':'Ozon',description:String(def.description||'').replace(/<br\s*\/?\s*>/gi,'\n').replace(/<[^>]*>/g,''),facts};
 }
+
+// Ozon's category type_id and the required “Тип” characteristic are separate fields.
+// Only copy a value confirmed by the characteristic's own dictionary.
+export async function fillOzonTypeAttribute(draft,request){
+ const def=(draft.attributeSchema||[]).find(a=>a.name?.trim().toLowerCase()==='тип'&&!a.complexId);
+ const {item}=listingItem('ozon',draft);
+ if(!def||getAttribute('ozon',item,def).some(v=>v.dictionary_value_id||String(v.value||'').trim()))return false;
+ const category=categoryOf('ozon',draft),label=category.label?.split(' / ').at(-1);
+ if(!def.dictionary||!category.id||!category.typeId)return false;
+ const base={attribute_id:def.id,description_category_id:Number(category.id),type_id:Number(category.typeId),language:'DEFAULT',limit:100};
+ const normalize=value=>String(value||'').trim().toLowerCase().replace(/ё/g,'е');
+ let found;
+ if(label&&!label.startsWith('Категория №')){const result=await request('searchValues',{...base,value:label});const rows=result.result||[];found=rows.find(v=>Number(v.id)===Number(category.typeId));if(!found){const matches=rows.filter(v=>normalize(v.value)===normalize(label));if(matches.length===1)found=matches[0];}}
+ if(!found){let last=0;const seen=new Set();while(true){const result=await request('values',{...base,last_value_id:last});const rows=result.result||[];found=rows.find(v=>Number(v.id)===Number(category.typeId));if(!found&&label){const matches=rows.filter(v=>normalize(v.value)===normalize(label));if(matches.length===1)found=matches[0];}if(found||!result.has_next||!rows.length)break;last=rows.at(-1).id;if(seen.has(last))break;seen.add(last);}}
+ if(!found)return false;
+ // Re-read the latest draft so other fields edited while loading remain intact.
+ const latest=listingItem('ozon',draft);if(getAttribute('ozon',latest.item,def).length||JSON.stringify(categoryOf('ozon',draft))!==JSON.stringify(category))return false;
+ setAttribute('ozon',latest.item,def,[{dictionary_value_id:found.id,value:found.value}]);draft.body=JSON.stringify(latest.body);return true;
+}

@@ -1,7 +1,7 @@
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.35';
-import {listingItem,categoryOf,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.35';
-import {wbUpdateDraft} from './marketplace-api.js?v=0.2.35';
-import {listFiles} from './attachments.js?v=0.2.35';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.36';
+import {listingItem,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.36';
+import {wbUpdateDraft} from './marketplace-api.js?v=0.2.36';
+import {listFiles} from './attachments.js?v=0.2.36';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeCurrent=()=>{};
 export function disposeListingEditor(){disposeCurrent();disposeCurrent=()=>{};}
@@ -58,7 +58,7 @@ export function mountListingEditor({root,market,draft:d,owner,save,request,uploa
  else{const details=await request('details',{filter:{offer_id:[item.offer_id],visibility:'ALL'},limit:1});if(!alive)return;const source=details.result?.[0]||details.result?.items?.[0];if(!source||String(source.offer_id)!==String(item.offer_id))throw Error('Не удалось получить тип товара Ozon. Загрузите карточку заново.');const body=listingItem(market,d).body;for(const key of ['description_category_id','type_id'])if(Number(source[key])>0)item[key]=source[key];body.items[0]=item;d.body=JSON.stringify(body);save();const result=await request('categories',{language:'DEFAULT'});if(!alive)return;const found=normalizeCategories(market,result).find(c=>c.id===Number(item.description_category_id)&&c.typeId===Number(item.type_id));if(!found)throw Error('Название категории не найдено. Выберите категорию для характеристик через поиск ниже.');delete d.referenceCategory;d.categoryLabel=found.label;}
  delete d.categorySource;d.attributeSchema=[];d.attributesLoaded=false;save();$('#card-category-current').textContent=d.categoryLabel;if(market==='ozon')$('#card-type-current').textContent='Тип товара: '+d.categoryLabel.split(' / ').at(-1);drawAttributes();await loadAttributes();
  });
- async function loadAttributes(){const category=categoryOf(market,d);if(!category.id)throw Error('Сначала выберите категорию. Для старого черновика загрузите карточку площадки заново.');const result=await request('attributes',market==='wb'?{subjectID:Number(category.id)}:{description_category_id:Number(category.id),type_id:Number(category.typeId),language:'DEFAULT'});if(!alive||JSON.stringify(categoryOf(market,d))!==JSON.stringify(category))return;d.attributeSchema=normalizeAttributes(market,result);d.attributesLoaded=true;save();drawAttributes();$('#card-attribute-status').textContent='Характеристики загружены: '+d.attributeSchema.length;}
+ async function loadAttributes(){const category=categoryOf(market,d);if(!category.id)throw Error('Сначала выберите категорию. Для старого черновика загрузите карточку площадки заново.');const result=await request('attributes',market==='wb'?{subjectID:Number(category.id)}:{description_category_id:Number(category.id),type_id:Number(category.typeId),language:'DEFAULT'});if(!alive||JSON.stringify(categoryOf(market,d))!==JSON.stringify(category))return;d.attributeSchema=normalizeAttributes(market,result);d.attributesLoaded=true;save();try{if(market==='ozon')await fillOzonTypeAttribute(d,request);}finally{if(alive){save();drawAttributes();}}if(!alive)return;$('#card-attribute-status').textContent='Характеристики загружены: '+d.attributeSchema.length;}
  $('#card-load-attributes').onclick=run(loadAttributes);
  function drawAttributes(){
  const schema=d.attributeSchema||[],item=listingItem(market,d).item,rows=schema.filter(def=>!def.complexId).map(def=>({def,groupIndex:0}));
