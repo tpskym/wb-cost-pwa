@@ -1,7 +1,6 @@
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
- ['sales','Продажа и доставка','Расходы выбранной площадки'],
  ['overhead','Накладные расходы','Постоянные затраты и прочее']
 ];
 export const fields = [
@@ -84,6 +83,8 @@ export function validateDB(x){
  for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);
  if(p.labelPdf!=null&&(typeof p.labelPdf.name!=='string'||typeof p.labelPdf.data!=='string'||p.labelPdf.data.length>2800000||!/^data:application\/pdf;base64,[A-Za-z0-9+/=]+$/.test(p.labelPdf.data)))throw Error('Некорректный PDF этикетки');
  for(const key of ['productGroup','variantNote']){if(!(key in p))p[key]='';if(typeof p[key]!=='string')throw Error('Некорректные данные группы или варианта');}
+ ensureMarketplaces(p);
+ for(const key of ['wb','ozon']){const m=p.marketplaces[key];if(!m||['price','payout','tax'].some(k=>m[k]!==null&&!(typeof m[k]==='number'&&Number.isFinite(m[k])&&m[k]>=0)))throw Error('Некорректные суммы маркетплейса');}
  if(!('colorCode' in p))p.colorCode='';
  if(typeof p.colorCode!=='string')throw Error('Некорректный код цвета');
  if(!('shippingMode' in p))p.shippingMode='rubles';
@@ -95,4 +96,20 @@ export function validateDB(x){
  if(typeof p.tax!=='number'||p.tax<0||p.tax>=100||!(p.price===null||(typeof p.price==='number'&&p.price>=0))||typeof p.target!=='number'||p.target<0||p.target>=100)throw Error('Некорректные параметры цены или налога');
  }
  return x;
+}
+
+export function ensureMarketplaces(p){
+ if(!p.marketplaces){const active=p.platform?.startsWith('Ozon')?'ozon':'wb';p.marketplaces={wb:{price:null,payout:null,tax:null},ozon:{price:null,payout:null,tax:null}};p.marketplaces[active].price=p.price??null;}
+ return p.marketplaces;
+}
+export function calculateManual(p){
+ const neutral=structuredClone(p);for(const [key,,,group] of fields)if(group==='sales')neutral.values[key]=0;neutral.values.buyout=100;neutral.shippingMode='rubles';neutral.custom=[];neutral.price=0;neutral.tax=0;neutral.target=0;
+ const base=calculate(neutral),missing=[...base.missing],invalid=[...base.invalid];
+ const extra=p.custom.filter(c=>c.mode==='unit').reduce((sum,c)=>{if(c.amount===null){missing.push('custom:'+c.id);return sum;}if(!Number.isFinite(c.amount)||c.amount<0){invalid.push('custom:'+c.id);return sum;}return sum+c.amount;},0);
+ const cost=base.cost+extra,marketplaces=ensureMarketplaces(p),markets={};
+ for(const key of ['wb','ozon']){const input=marketplaces[key],complete=['price','payout','tax'].every(k=>typeof input[k]==='number'&&Number.isFinite(input[k])&&input[k]>=0);const profit=complete&&!invalid.length?input.payout-input.tax-cost:null;markets[key]={...input,profit,margin:profit!==null&&input.price>0?profit/input.price*100:null,partial:!!missing.length};}
+ const active=markets[p.platform?.startsWith('Ozon')?'ozon':'wb'];
+ const detailRows=base.detailRows.filter(row=>fields.find(f=>f[0]===row[2])?.[3]!=='sales'&&!['tax'].includes(row[2]));
+ detailRows.push(...p.custom.filter(c=>c.mode==='unit').map(c=>[c.name,c.amount||0,'custom:'+c.id]));
+ return {...base,cost,detailRows,missing:[...new Set(missing)],invalid:[...new Set(invalid)],markets,profit:active.profit,price:active.price,tax:active.tax,margin:active.margin,rows:base.rows.filter(([name])=>name!=='Доставка, невыкуп и прочее').concat([['Дополнительные затраты',extra]])};
 }
