@@ -1,7 +1,7 @@
 const HOSTS={wb:'https://content-api.wildberries.ru',ozon:'https://api-seller.ozon.ru'};
 const OPERATIONS={
  wb:{list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
- ozon:{list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute']}
+ ozon:{list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute'],values:['POST','/v1/description-category/attribute/values'],searchValues:['POST','/v1/description-category/attribute/values/search']}
 };
 export function redact(text,credentials){let output=String(text);for(const value of [credentials?.wbToken,credentials?.ozonKey])if(value)output=output.split(value).join('[скрыто]');return output;}
 export async function marketRequest(market,operation,credentials,body={},fetcher=fetch){
@@ -10,7 +10,7 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
  if(market==='ozon'&&(!credentials.ozonKey||!credentials.ozonClient))throw Error('Введите Client-Id и API-ключ Ozon');
  let [method,path]=route;
  if(market==='wb'&&operation==='attributes'){if(!Number.isSafeInteger(body.subjectID)||body.subjectID<=0)throw Error('Укажите ID предмета WB');path+=body.subjectID;}
- if(market==='wb'&&operation==='categories')path+='?limit=1000&offset=0&locale=ru'+(body.name?'&name='+encodeURIComponent(body.name):'');
+ if(market==='wb'&&operation==='categories')path+='?limit=1000&offset='+Number(body.offset||0)+'&locale=ru'+(body.name?'&name='+encodeURIComponent(body.name):'');
  const headers={'Content-Type':'application/json',...(market==='wb'?{Authorization:credentials.wbToken}:{'Client-Id':credentials.ozonClient,'Api-Key':credentials.ozonKey})};
  let response;
  try{response=await fetcher(HOSTS[market]+path,{method,headers,...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(45000)});}catch{throw Error('Нет ответа API. Проверьте сеть и разрешения браузера. Если отправляли карточку — сначала проверьте её состояние на площадке, не повторяйте отправку автоматически.');}
@@ -29,7 +29,7 @@ export function wbUpdateDraft(card){
 }
 export function ozonUpdateDraft(info,details){
  if(!info?.offer_id||!details)throw Error('Не удалось получить все сведения товара Ozon');
- const product={...details,...info};const keys=['offer_id','name','description_category_id','type_id','price','old_price','vat','barcode','height','width','depth','dimension_unit','weight','weight_unit','attributes','complex_attributes','pdf_list','color_image','images','images360','currency_code'];
+ const product={...details,...info};const keys=['offer_id','name','description_category_id','type_id','price','old_price','vat','barcode','height','width','depth','dimension_unit','weight','weight_unit','attributes','complex_attributes','pdf_list','color_image','images','currency_code'];
  const item={};for(const key of keys)if(product[key]!==undefined)item[key]=structuredClone(product[key]);
  for(const key of ['height','width','depth','dimension_unit','weight','weight_unit','attributes','complex_attributes'])if(details[key]!==undefined)item[key]=structuredClone(details[key]);
  item.currency_code||='RUB';item.attributes=(item.attributes||[]).map(a=>({id:a.id,complex_id:a.complex_id||0,values:(a.values||[]).map(v=>({...(v.dictionary_value_id?{dictionary_value_id:v.dictionary_value_id}:{}),...(v.value!==undefined?{value:v.value}:{})}))}));
@@ -60,4 +60,11 @@ export function validateListing(market,mode,body){
  }
  if(market==='ozon'&&Array.isArray(item.images)&&item.images.some(url=>{try{return new URL(url).protocol!=='https:';}catch{return true;}}))errors.push('Изображения должны иметь доступные HTTPS-ссылки');
  return [...new Set(errors)];
+}
+
+export async function uploadWBPhoto(credentials,nmId,number,file,fetcher=fetch){
+ if(!credentials.wbToken)throw Error('Введите API-токен WB');if(!Number.isSafeInteger(nmId)||nmId<=0||!Number.isSafeInteger(number)||number<1)throw Error('Нет идентификатора карточки или позиции фото');
+ const form=new FormData();form.append('uploadfile',file,file.name||'photo.jpg');let response;
+ try{response=await fetcher(HOSTS.wb+'/content/v3/media/file',{method:'POST',headers:{Authorization:credentials.wbToken,'X-Nm-Id':String(nmId),'X-Photo-Number':String(number)},body:form,credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(60000)});}catch{const error=Error('Результат загрузки фото неизвестен. Проверьте фотографии в WB перед повтором.');error.uncertain=true;throw error;}
+ const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{const error=Error('Не удалось прочитать ответ загрузки WB. Проверьте фотографии перед повтором.');error.uncertain=true;throw error;}if(!response.ok||data.error===true)throw Error('WB отклонил фото: '+String(data.errorText||response.status));return data;
 }

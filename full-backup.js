@@ -1,10 +1,10 @@
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.20';
-import {validateDB} from './calc.js?v=0.2.20';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.21';
+import {validateDB} from './calc.js?v=0.2.21';
 const categories=['model','source-wb','source-ozon','source','ready'];
 export async function createFullBackup(database,records){
  const db=validateDB(structuredClone(database)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
  const files=[],entries=[];
- for(const record of records){if(!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,productId:owners.get(record.owner),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
+ for(const record of records){if(!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:owners.get(record.owner),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
  const manifest={format:'workshop-full-backup',version:1,createdAt:new Date().toISOString(),database:'database.json',files};
  entries.unshift({name:'manifest.json',blob:new Blob([JSON.stringify(manifest,null,2)])},{name:'database.json',blob:new Blob([JSON.stringify(db,null,2)])});
  return makeZip(entries);
@@ -24,7 +24,10 @@ export async function parseFullBackup(blob){
 }
 export function stageFullRestore(parsed){
  const database=structuredClone(parsed.database);database.id=crypto.randomUUID();
- const records=parsed.files.map(f=>({id:crypto.randomUUID(),owner:database.id+':'+f.productId,name:f.name,category:f.category,createdAt:f.createdAt,blob:f.blob}));
+ const references=new Map();
+ const records=parsed.files.map(f=>{const id=crypto.randomUUID();if(f.fileId)references.set(f.productId+':'+f.fileId,id);return {id,owner:database.id+':'+f.productId,name:f.name,category:f.category,createdAt:f.createdAt,blob:f.blob};});
+ for(const product of database.products)for(const draft of Object.values(product.listingDrafts||{}))for(const photo of draft.photos||[]){const id=references.get(product.id+':'+photo.fileId);if(photo.kind==='local'&&id)photo.fileId=id;}
+
  return {database,records};
 }
 // Storage commit is last: a failed file write can never activate an incomplete database.

@@ -21,10 +21,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm ci
       - run: npm test
       - run: |
           mkdir public
-          cp index.html app.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-ui.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
+          cp index.html app.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-ui.js listing-fields.js listing-editor.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
