@@ -1,7 +1,7 @@
-import {categoryOf,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.34';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.34';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.34';
-import {marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.34';
+import {categoryOf,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.35';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.35';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.35';
+import {marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.35';
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb',selectedTab='cards';
 try{const saved=JSON.parse(localStorage.getItem(CREDENTIALS)||'null');if(saved){for(const k of Object.keys(credentials))if(typeof saved[k]==='string')credentials[k]=saved[k];remember=true;}}catch{}
