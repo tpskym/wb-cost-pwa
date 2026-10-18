@@ -1,5 +1,5 @@
-const CACHE='workshop-v39';
-const ASSETS=['./','./index.html','./style.css?v=0.2.37','./app.js?v=0.2.37','./calc.js?v=0.2.37','./attachments.js?v=0.2.37','./full-backup.js?v=0.2.37','./marketplace-api.js?v=0.2.37','./marketplace-ui.js?v=0.2.37','./listing-fields.js?v=0.2.37','./listing-editor.js?v=0.2.37','./category-catalog.js?v=0.2.37','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
+const CACHE='workshop-v40';
+const ASSETS=['./','./index.html','./style.css?v=0.2.38','./app.js?v=0.2.38','./calc.js?v=0.2.38','./attachments.js?v=0.2.38','./full-backup.js?v=0.2.38','./marketplace-api.js?v=0.2.38','./marketplace-ui.js?v=0.2.38','./listing-fields.js?v=0.2.38','./listing-editor.js?v=0.2.38','./category-catalog.js?v=0.2.38','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==self.location.origin)return;e.respondWith(fetch(e.request).then(r=>{if(r.ok)caches.open(CACHE).then(c=>c.put(e.request,r.clone()));return r;}).catch(()=>caches.match(e.request).then(r=>r||(e.request.mode==='navigate'?caches.match('./index.html'):Response.error()))));});
