@@ -74,7 +74,17 @@ export async function uploadWBPhoto(credentials,nmId,number,file,fetcher=fetch){
  if(!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');if(!Number.isSafeInteger(nmId)||nmId<=0||!Number.isSafeInteger(number)||number<1)throw Error('Нет идентификатора карточки или позиции фото');
  const form=new FormData();form.append('uploadfile',file,file.name||'photo.jpg');let response;
  try{response=await fetcher(HOSTS.wb+'/content/v3/media/file',{method:'POST',headers:{Authorization:credentials.wbToken,'X-Nm-Id':String(nmId),'X-Photo-Number':String(number)},body:form,credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(60000)});}catch{const error=Error('Результат загрузки фото неизвестен. Проверьте фотографии в WB перед повтором.');error.uncertain=true;throw error;}
- const raw=redact(await response.text(),credentials);const hint=response.status===403&&market==='ozon'?ozonPermissionHint(operation,/missing a required role/i.test(raw)):statusHint(response.status);let data;try{data=raw?JSON.parse(raw):{};}catch{const error=Error('Не удалось прочитать ответ загрузки WB. Проверьте фотографии перед повтором.');error.uncertain=true;throw error;}if(!response.ok||data.error===true)throw Error('WB отклонил фото: '+String(data.errorText||response.status));return data;
+ const raw=redact(await response.text(),credentials);let data;try{data=raw?JSON.parse(raw):{};}catch{const error=Error('Не удалось прочитать ответ загрузки WB. Проверьте фотографии перед повтором.');error.uncertain=true;throw error;}if(!response.ok||data.error===true)throw Error('WB отклонил фото: '+String(data.errorText||response.status));return data;
 }
 
 export function describeOzonRoles(data){const roles=data.roles||data.result?.roles||(Array.isArray(data.result)?data.result:[]);if(!Array.isArray(roles)||!roles.length)return 'Ozon не вернул список ролей в ожидаемом формате. Проверьте роли ключа в кабинете Ozon Seller.';const lines=[];for(const role of roles){lines.push('Роль: '+String(role.name||role.role_name||role.id));for(const method of role.methods||[]){const label=typeof method==='string'?method:method.path||method.name||method.method;if(label)lines.push('  '+label);}}return lines.join('\n');}
+
+export function ozonAccessSummary(data){
+ const roles=data.roles||data.result?.roles||(Array.isArray(data.result)?data.result:null);
+ if(!Array.isArray(roles)||!roles.length)return 'Не удалось определить, достаточно ли прав Ozon: список ролей не получен.';
+ const names=roles.map(r=>String(r.name||r.role_name||'').toLowerCase().replace(/[ _-]/g,''));
+ const methods=new Set(roles.flatMap(r=>r.methods||[]).map(m=>typeof m==='string'?m:m.path||m.name||m.method));
+ const groups=[['Product',['list','info','details','create','status']],['Description Category',['categories','attributes','values','searchValues']]];
+ const missing=groups.filter(([name,operations])=>!names.includes(name.toLowerCase().replace(/ /g,''))&&!names.includes('admin')&&!operations.every(op=>methods.has(OPERATIONS.ozon[op][1]))).map(([name])=>name);
+ return missing.length?'Для функций приложения не подтверждены права Ozon: '+missing.join(', ')+'. Проверьте эти роли в Ozon Seller.':'Прав Ozon достаточно для загрузки категорий, характеристик, создания и редактирования карточек (по списку прав ключа).';
+}
