@@ -4,7 +4,7 @@ export function normalizeCategories(market,response){
  if(market==='wb')return (response.data||[]).map(row=>({id:row.subjectID,typeId:null,label:[row.parentName,row.subjectName].filter(Boolean).join(' / ')}));
  const result=[];function visit(nodes,path=[],categoryId=null,disabled=false){for(const node of nodes||[]){const current=node.description_category_id||categoryId,title=node.category_name||node.type_name,parts=title?[...path,title]:path,blocked=disabled||node.disabled;if(node.type_id&&!blocked)result.push({id:current,typeId:node.type_id,label:parts.join(' / ')});if(node.children)visit(node.children,parts,current,blocked);}}visit(response.result);return result;
 }
-export function normalizeAttributes(market,response){return (market==='wb'?response.data||[]:response.result||[]).map(a=>({id:market==='wb'?a.charcID:a.id,name:a.name||a.charcName||'Характеристика',required:!!(a.required||a.is_required),type:market==='wb'?(a.charcType===4?'number':'string'):String(a.type||'string').toLowerCase(),multiple:market==='wb'?(a.charcType!==4&&a.maxCount!==1):!!a.is_collection,maxCount:market==='wb'?a.maxCount||0:0,dictionary:market==='ozon'&&!!a.dictionary_id,complexId:market==='ozon'?a.attribute_complex_id||0:0,unit:a.unitName||'',description:a.description||''}));}
+export function normalizeAttributes(market,response){return (market==='wb'?response.data||[]:response.result||[]).map(a=>({id:market==='wb'?a.charcID:a.id,name:a.name||a.charcName||'Характеристика',required:!!(a.required||a.is_required),type:market==='wb'?(a.charcType===4?'number':'string'):String(a.type||'string').toLowerCase(),multiple:market==='wb'?(a.charcType!==4&&a.maxCount!==1):!!a.is_collection,maxCount:market==='wb'?a.maxCount||0:0,dictionary:market==='ozon'&&!!a.dictionary_id,complexId:market==='ozon'?a.attribute_complex_id||0:0,unit:a.unitName||'',description:a.description||'',dictionaryId:a.dictionary_id||null,isAspect:a.is_aspect??null,categoryDependent:a.category_dependent??null,popular:a.popular??null,source:market}));}
 export function getAttribute(market,item,def,groupIndex=0){if(market==='wb'){const value=(item.characteristics||[]).find(a=>a.id===def.id)?.value;return value===undefined?[]:(Array.isArray(value)?value:[value]).map(value=>({value:String(value)}));}return (def.complexId?item.complex_attributes?.[groupIndex]?.attributes||[]:item.attributes||[]).find(a=>a.id===def.id&&(a.complex_id||0)===def.complexId)?.values||[];}
 export function setAttribute(market,item,def,values,groupIndex=0){
  if(market==='wb'){const list=item.characteristics??=[];const index=list.findIndex(a=>a.id===def.id);if(index>=0)list.splice(index,1);if(values.length)list.push({id:def.id,value:def.type==='number'?Number(values[0].value):values.map(v=>v.value)});}
@@ -17,3 +17,13 @@ export function isPhoto(file){return /\.(jpe?g|png|webp)$/i.test(file.name)||['i
 export function sourcePhoto(file){return {kind:'local',fileId:file.id,name:file.name,createdAt:file.createdAt,category:file.category,url:''};}
 export function photoURLs(photos){return photos.map(photo=>photo.kind==='remote'?photo.url:photo.url).filter(Boolean);}
 export function validPublicPhotoURL(value){try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password;}catch{return false;}}
+
+export function attributeReference(market,def){
+ const type={string:'Текст',number:'Число',integer:'Целое число',decimal:'Число с дробной частью',boolean:'Да / нет'}[def.type]||def.type;
+ const facts=[['Обязательность',def.required?'Обязательно для выбранной категории':'Не отмечено площадкой как обязательное'],['Формат',def.dictionary?'Выбор из справочника площадки':type],['Количество значений',def.multiple?(def.maxCount?'Не более '+def.maxCount:'Можно несколько значений'):'Одно значение']];
+ if(def.unit)facts.push(['Единица измерения',def.unit]);
+ if(def.isAspect!==null&&def.isAspect!==undefined)facts.push(['Варианты товара',def.isAspect?'Характеристика варианта (например, цвет или размер)':'Не отмечена как характеристика варианта']);
+ if(def.categoryDependent)facts.push(['Справочник','Допустимые значения зависят от категории']);
+ if(def.popular===true)facts.push(['Приоритет','Площадка отмечает характеристику как популярную']);
+ return {source:market==='wb'?'Wildberries':'Ozon',description:String(def.description||'').replace(/<br\s*\/?\s*>/gi,'\n').replace(/<[^>]*>/g,''),facts};
+}
