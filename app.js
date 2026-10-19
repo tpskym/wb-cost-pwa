@@ -1,10 +1,10 @@
-import {installNumberControls} from './number-controls.js?v=0.2.66';
-const APP_VERSION='0.2.66';
-import {disposeListingEditor} from './listing-editor.js?v=0.2.66';
-import {mountMarketplaceUI} from './marketplace-ui.js?v=0.2.66';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.66';
-import {listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.66';
-import {loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.66';
+import {installNumberControls} from './number-controls.js?v=0.2.67';
+const APP_VERSION='0.2.67';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.67';
+import {mountMarketplaceUI} from './marketplace-ui.js?v=0.2.67';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.67';
+import {listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.67';
+import {loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.67';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
