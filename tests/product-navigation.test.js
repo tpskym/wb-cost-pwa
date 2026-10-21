@@ -15,7 +15,7 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.69');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.70');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -28,4 +28,14 @@ test('variants preserve the name and build article suffixes from selected colour
  change('Красный');assert.equal($('#sku').value,'SKU-204_red');
  change('Зелёный');assert.equal($('#sku').value,'SKU-204_green');
  change('Узкое основание');assert.equal($('#variantNote').value,'Узкое основание');assert.equal($('#sku').value,'SKU-204_green');
+});
+
+test('colour pencil opens choices and selection updates the article',()=>{
+ window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+ document.querySelector('#variant-color-pick').click();
+ assert.equal(document.querySelectorAll('[data-variant-color]').length,5);
+ document.querySelector('[data-variant-color="Черный"]').click();
+ assert.equal(document.querySelector('#variantNote').value,'Черный');
+ assert.equal(document.querySelector('#sku').value,'SKU-204_black');
+ assert.equal(document.querySelector('.variant-color-dialog'),null);
 });
