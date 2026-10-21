@@ -95,3 +95,20 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 .price-detail-grid .number-control>input{height:48px;min-height:48px}.price-detail-grid .number-control>.number-control-button{min-height:48px}
 /* Keep the cost summary on the left and group actions on the right. */
 .price-context{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"article tools" "cost tools";align-items:start;gap:10px 24px}.price-context .price-platform-row{display:contents}.price-platform-row>span{grid-area:article}.price-context .price-cost-result{grid-area:cost;max-width:none;background:transparent;border:0;padding:0}.price-context .price-tools{grid-area:tools;display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:0;max-width:330px;padding-bottom:54px}.price-tools>a{text-align:center}.price-platform-row>button{grid-column:2;grid-row:2;align-self:end;justify-self:stretch;max-width:330px;margin:0;font-size:12px}.price-context .matched-cost{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 18px;align-items:center}.price-context .matched-cost>strong{grid-column:1/-1}.price-context .matched-cost>b{grid-column:2;grid-row:2/5;font-size:19px;white-space:nowrap}.price-context .matched-cost>a,.price-context .matched-cost>span,.price-context .matched-cost>small{grid-column:1}.price-context .matched-cost>small{font-size:11px}@media(max-width:1000px){.price-context{grid-template-columns:1fr;grid-template-areas:"article" "cost" "tools"}.price-context .price-tools{max-width:none;flex-direction:row;align-items:center;flex-wrap:wrap;padding-bottom:0}.price-platform-row>button{grid-column:1;grid-row:auto;max-width:none;justify-self:start}.price-context .matched-cost{grid-template-columns:1fr}.price-context .matched-cost>b{grid-column:1;grid-row:auto;white-space:normal}}
+/* A bounded, searchable catalogue for large product collections. */
+.sidebar .side-products{display:flex;flex-direction:column;min-height:0;overflow:hidden;flex:1;margin-top:24px}
+.sidebar .list-title{flex-shrink:0;margin-bottom:8px}
+#product-search{flex-shrink:0;width:100%;min-width:0;padding:10px;font-size:12px;background:#213a33;border-color:#486357;color:#f0f5ed;margin-bottom:10px}
+#product-search::placeholder{color:#afc0b3}
+.product-list{overflow:auto;min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#597568 transparent;padding-right:5px}
+.product-list::-webkit-scrollbar{width:6px}.product-list::-webkit-scrollbar-track{background:transparent}.product-list::-webkit-scrollbar-thumb{background:#597568;border-radius:8px}
+.product-list-count{font-size:10px;color:#a5b7a9;margin:0 3px 10px}
+.product-list .product{padding:9px 10px;border-radius:8px;margin:3px 0;line-height:1.35}
+.product-list .product-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px}
+.product-list .product small{margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#a5b7a9}
+.product-list .product:hover{background:#304d41;color:#fff}.product-list .product.chosen{background:#385747;box-shadow:inset 3px 0 #d5e9a3}
+.product-list .product-group{margin-bottom:6px;padding-bottom:5px}.product-list .product-group summary{font-size:12px;padding:8px 3px}
+.product-pagination{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#172c29;padding:10px 0 4px;font-size:11px;color:#d8e4d1}
+.product-pagination button{background:#28423a;border-color:#486357;color:#e8ece4;padding:8px 14px;font-size:16px}
+.sidebar .side-bottom{flex-shrink:0;padding-top:16px}
+@media(max-width:850px){.sidebar .side-products{display:none}}
