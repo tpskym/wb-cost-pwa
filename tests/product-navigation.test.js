@@ -15,7 +15,7 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.72');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.73');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -45,4 +45,15 @@ test('selecting a sidebar product preserves list scroll and keyboard focus',()=>
  const item=list.querySelectorAll('[data-product]')[3],id=item.dataset.product;item.click();
  assert.equal(document.querySelector('#product-list').scrollTop,360);
  assert.equal(document.activeElement.dataset.product,id);
+});
+test('form variant number is copied while barcode is cleared and label prompt uses all identity fields',()=>{
+ const change=(id,value)=>{const input=document.querySelector('#'+id);input.value=value;input.dispatchEvent(new window.Event('change'));};
+ change('variantNumber','3');change('barcode','2057336623159');
+ document.querySelector('#duplicate').click();
+ assert.equal(document.querySelector('#variantNumber').value,'3');assert.equal(document.querySelector('#barcode').value,'');
+ change('barcode','1234567890123');change('variantNote','Белый');
+ const name=document.querySelector('#name').value,sku=document.querySelector('#sku').value;
+ document.querySelector('#label-ai-prompt').click();
+ assert.equal(document.querySelector('#label-prompt-text').value,`${name}\nВариант 3. Цвет: Белый\n${sku}\n1234567890123`);
+ document.querySelector('[data-prompt-close]').click();
 });
