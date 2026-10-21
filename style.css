@@ -143,3 +143,9 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 .template-controls button{padding:0 14px;white-space:nowrap}
 @media(max-width:1200px){.identity .product-name-variant{grid-column:1/-1}.identity .identity-group{grid-column:span 5}.identity .variant-controls{grid-column:span 7}.identity .identity-sku,.identity .identity-barcode{grid-column:span 6}.identity .label-pdf-controls{grid-column:1/-1}.identity #delete-product{grid-column:1/-1;justify-self:end;margin-top:0}}
 @media(max-width:600px){.identity .identity-group,.identity .variant-controls,.identity .identity-sku,.identity .identity-barcode{grid-column:1/-1}.identity .product-name-variant{grid-template-columns:minmax(0,1fr) 100px}.template-controls button{white-space:normal;height:auto;min-height:40px}}
+.template-controls{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.template-create-controls,.template-use-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:18px;border:1px solid #dfe6d8;border-radius:10px;background:#f9faf6;align-items:start}
+.template-controls h3{font-size:15px;margin:0;color:#304b38}.template-controls p{font-size:12px;line-height:1.6;margin:0}.template-controls small{font-size:11px;line-height:1.6;color:#73816d}.template-controls label{min-width:0}.template-controls button{justify-self:start}
+.template-empty{padding:12px;background:#edf3e4;color:#48613f;font-size:12px;border-radius:8px;line-height:1.6}
+.template-manage{border-top:1px solid #dfe6d8;padding-top:12px;font-size:12px}.template-manage summary{cursor:pointer;color:#4c6846;font-weight:600}.template-manage p{margin:12px 0}.template-manage>div{display:flex;gap:8px;flex-wrap:wrap}.template-manage button{font-size:11px;white-space:normal}
+@media(max-width:1000px){.template-controls{grid-template-columns:1fr}}
