@@ -149,3 +149,5 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 .template-empty{padding:12px;background:#edf3e4;color:#48613f;font-size:12px;border-radius:8px;line-height:1.6}
 .template-manage{border-top:1px solid #dfe6d8;padding-top:12px;font-size:12px}.template-manage summary{cursor:pointer;color:#4c6846;font-weight:600}.template-manage p{margin:12px 0}.template-manage>div{display:flex;gap:8px;flex-wrap:wrap}.template-manage button{font-size:11px;white-space:normal}
 @media(max-width:1000px){.template-controls{grid-template-columns:1fr}}
+.template-controls{align-items:stretch}
+.template-create-controls,.template-use-controls{align-content:start}
