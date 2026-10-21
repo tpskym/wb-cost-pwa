@@ -124,3 +124,22 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 .sidebar .product-list::-webkit-scrollbar{display:none;width:0;height:0}
 .sidebar .product:focus-visible{outline:2px solid #d5e9a3;outline-offset:-2px}
 .product-name-variant{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:12px;align-items:end;min-width:0}.identity .product-name-variant input{height:40px;min-height:40px}.label-prompt-dialog textarea{width:100%;padding:14px;border:1px solid #dce1d7;border-radius:8px;font:inherit;line-height:1.6;resize:vertical}.label-prompt-dialog .confirm-actions{margin-top:16px}@media(max-width:600px){.product-name-variant{grid-column:1/-1;grid-template-columns:minmax(0,1fr) 100px}}
+/* Structured product identity and consistent template controls. */
+.identity{grid-template-columns:repeat(12,minmax(0,1fr));gap:18px 16px;align-items:end}
+.identity .product-name-variant{grid-column:span 8;grid-template-columns:minmax(0,1fr) 130px}
+.identity .identity-group{grid-column:span 4}
+.identity .variant-controls{grid-column:span 6}
+.identity .identity-sku,.identity .identity-barcode{grid-column:span 3}
+.identity .label-pdf-controls{grid-column:1/11;border-top:1px solid #e5e9df;padding-top:16px;gap:10px}
+.identity #delete-product{grid-column:11/13;align-self:center;margin-top:16px}
+.identity .label-pdf-controls button,.identity .label-pdf-controls .file-button{height:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px}
+.identity .label-pdf-controls small{margin:0}
+.template-controls{display:flex;align-items:stretch;gap:16px;flex-wrap:wrap}
+.template-create-controls,.template-use-controls{display:flex;align-items:end;flex-wrap:wrap;gap:10px;min-width:0}
+.template-create-controls{flex:1 1 420px}.template-use-controls{flex:2 1 760px}
+.template-controls label{flex:1 1 200px;min-width:180px;margin:0}
+.template-controls input,.template-controls select,.template-controls button{height:40px;min-height:40px;box-sizing:border-box}
+.template-controls select{appearance:none;background:#fff;padding:0 32px 0 11px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2345634a' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.template-controls button{padding:0 14px;white-space:nowrap}
+@media(max-width:1200px){.identity .product-name-variant{grid-column:1/-1}.identity .identity-group{grid-column:span 5}.identity .variant-controls{grid-column:span 7}.identity .identity-sku,.identity .identity-barcode{grid-column:span 6}.identity .label-pdf-controls{grid-column:1/-1}.identity #delete-product{grid-column:1/-1;justify-self:end;margin-top:0}}
+@media(max-width:600px){.identity .identity-group,.identity .variant-controls,.identity .identity-sku,.identity .identity-barcode{grid-column:1/-1}.identity .product-name-variant{grid-template-columns:minmax(0,1fr) 100px}.template-controls button{white-space:normal;height:auto;min-height:40px}}
