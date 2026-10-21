@@ -15,7 +15,7 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.71');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.72');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -38,4 +38,11 @@ test('colour pencil opens choices and selection updates the article',()=>{
  assert.equal(document.querySelector('#variantNote').value,'Черный');
  assert.equal(document.querySelector('#sku').value,'SKU-204_black');
  assert.equal(document.querySelector('.variant-color-dialog'),null);
+});
+test('selecting a sidebar product preserves list scroll and keyboard focus',()=>{
+ const search=document.querySelector('#product-search');search.value='';search.dispatchEvent(new window.Event('input'));
+ const list=document.querySelector('#product-list');list.scrollTop=360;
+ const item=list.querySelectorAll('[data-product]')[3],id=item.dataset.product;item.click();
+ assert.equal(document.querySelector('#product-list').scrollTop,360);
+ assert.equal(document.activeElement.dataset.product,id);
 });
