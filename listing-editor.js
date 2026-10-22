@@ -1,9 +1,9 @@
-import {mountPriceEditor} from './price-editor.js?v=0.2.82';
-import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.82';
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.82';
-import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.82';
-import {wbUpdateDraft} from './marketplace-api.js?v=0.2.82';
-import {listFiles} from './attachments.js?v=0.2.82';
+import {mountPriceEditor} from './price-editor.js?v=0.2.83';
+import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.83';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.83';
+import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.83';
+import {wbUpdateDraft} from './marketplace-api.js?v=0.2.83';
+import {listFiles} from './attachments.js?v=0.2.83';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeCurrent=()=>{};
 export function disposeListingEditor(){disposeCurrent();disposeCurrent=()=>{};}
@@ -100,6 +100,12 @@ export function mountListingEditor({root,market,draft:d,owner,save,request,uploa
  const preview=doc.createElement('div');preview.className='attribute-collapsed-value';field.append(preview);
  const update=()=>{const collapsed=d.collapsedAttributes?.[key]===true;body.hidden=collapsed;preview.hidden=!collapsed;button.setAttribute('aria-expanded',String(!collapsed));button.textContent=collapsed?'Развернуть':'Свернуть';button.setAttribute('aria-label',(collapsed?'Развернуть: ':'Свернуть: ')+def.name);preview.textContent=getAttribute(market,listingItem(market,d).item,def,groupIndex).map(value=>value.value||'Значение из справочника').join(' · ')||'Не заполнено';};
  button.onclick=()=>{d.collapsedAttributes??={};d.collapsedAttributes[key]=!body.hidden;save();update();};update();
+ });
+ const measurements=new Map();
+ rows.forEach(({def},index)=>{
+ const name=def.name.trim();if(!/^(?:вес|масса|высота|ширина|глубина|длина)(?:\s+(?:предмета|товара))?(?:\s+(?:упаковки|с упаковкой|без упаковки))?(?:\s*[,([][^]*)?$/i.test(name))return;
+ const control=$('#attr-'+index+(def.dictionary?'-select':'')),field=control.closest('.attribute-field'),packaging=/упаковк/i.test(name)&&!/без упаковки/i.test(name),key=packaging?'packaging':'item';
+ if(!measurements.has(key)){const group=root.ownerDocument.createElement('fieldset');group.className='attribute-measurements';const legend=root.ownerDocument.createElement('legend');legend.textContent=packaging?'Размеры и вес упаковки':'Размеры и вес предмета';group.append(legend);$('#card-attributes').insertBefore(group,field);measurements.set(key,group);}measurements.get(key).append(field);
  });
  }
  drawAttributes();

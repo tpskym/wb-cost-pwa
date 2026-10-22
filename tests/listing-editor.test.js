@@ -57,3 +57,7 @@ test('attribute blocks collapse without losing values and retain their state whe
  assert.equal(button.getAttribute('aria-expanded'),'true');button.click();assert.equal(first.$('.attribute-collapse-body').hidden,true);assert.equal(first.$('.attribute-collapsed-value').textContent,'смарт часы');assert.deepEqual(JSON.parse(draft.body)[0].variants[0].characteristics,[{id:42,value:['смарт часы']}]);disposeListingEditor();
  const second=setup('wb',draft,async()=>({}));assert.equal(second.$('.attribute-collapse-body').hidden,true);second.$('.attribute-collapse-toggle').click();assert.equal(second.$('.attribute-collapse-body').hidden,false);disposeListingEditor();
 });
+test('measurement attributes group item and packaging fields separately without losing controls',()=>{
+ const body=blankListing('wb',{name:'Товар',sku:'SKU'}),draft={mode:'create',body:JSON.stringify(body),attributesLoaded:true,attributeSchema:[{id:90630,name:'Высота предмета',type:'number'},{id:9,name:'Ширина предмета',type:'number'},{id:10,name:'Высота упаковки',type:'number'},{id:11,name:'Материал',type:'string'}]};
+ const {root,$,input}=setup('wb',draft,async()=>({}));assert.equal(root.querySelectorAll('.attribute-measurements').length,2);assert.equal($('#attr-0').closest('fieldset').querySelector('legend').textContent,'Размеры и вес предмета');assert.equal($('#attr-2').closest('fieldset').querySelector('legend').textContent,'Размеры и вес упаковки');input('#attr-0','6.5');assert.equal(JSON.parse(draft.body)[0].variants[0].characteristics[0].value,6.5);disposeListingEditor();
+});
