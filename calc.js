@@ -63,7 +63,7 @@ export function calculate(p){
 }
 export function createTemplate(p,name){
  const title=name.trim();if(!title)throw Error('Введите имя шаблона');
- const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.labelPdf;delete inputs.listingDrafts;delete inputs.productGroup;delete inputs.variantNote;delete inputs.variantNumber;delete inputs.barcode;delete inputs.history;
+ const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.labelPdf;delete inputs.listingDrafts;delete inputs.sharedListingChanges;delete inputs.productGroup;delete inputs.variantNote;delete inputs.variantNumber;delete inputs.barcode;delete inputs.history;
  return {id:crypto.randomUUID(),name:title,inputs};
 }
 export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,labelPdf:p.labelPdf,listingDrafts:p.listingDrafts,productGroup:p.productGroup,variantNote:p.variantNote,variantNumber:p.variantNumber,barcode:p.barcode,history:p.history};}

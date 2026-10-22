@@ -1,19 +1,19 @@
-import {mountPriceEditor} from './price-editor.js?v=0.2.86';
-import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.86';
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.86';
-import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.86';
-import {wbUpdateDraft} from './marketplace-api.js?v=0.2.86';
-import {listFiles} from './attachments.js?v=0.2.86';
+import {mountPriceEditor} from './price-editor.js?v=0.2.87';
+import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.87';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.87';
+import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.87';
+import {wbUpdateDraft} from './marketplace-api.js?v=0.2.87';
+import {listFiles} from './attachments.js?v=0.2.87';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeCurrent=()=>{};
 export function disposeListingEditor(){disposeCurrent();disposeCurrent=()=>{};}
-export function mountListingEditor({root,market,draft:d,owner,save,request,upload,run,report,onResponse,onReload,onOpenSettings=()=>{},lookupCost=()=>[],openCost=()=>{},onSwitchListing=()=>{}}){
+export function mountListingEditor({root,market,draft:d,owner,save,request,upload,run,report,onResponse,onReload,onOpenSettings=()=>{},lookupCost=()=>[],openCost=()=>{},onSwitchListing=()=>{},onSharedEdit=()=>{}}){
  disposeListingEditor();let alive=true,urls=[],sourceFiles=[],categoryOptions=[],catalog=null,catalogRevision=0,shownCategories=0,photoRevision=0;let refreshCategoryCatalog=async()=>{};const textValues=new Map();
  disposeCurrent=()=>{alive=false;urls.forEach(url=>URL.revokeObjectURL(url));urls=[];};
  const $=selector=>root.querySelector(selector);
  let original;try{original=listingItem(market,d);}catch(error){root.textContent=error.message;return {validate:()=>[error.message]};}
  d.photos??=(market==='wb'?d.photoURLs||[]:original.item.images||[]).map(url=>({kind:'remote',url}));
- function mutate(fn){const {body,item}=listingItem(market,d);fn(item,body);d.body=JSON.stringify(body);save();}
+ function mutate(fn){const before=JSON.parse(d.body),{body,item}=listingItem(market,d);fn(item,body);d.body=JSON.stringify(body);onSharedEdit(before,body);save();}
  const safeProductURL=value=>{try{const url=new URL(value);return url.protocol==='https:'?url.href:'';}catch{return '';}};
  const field=(label,id,value,type='text',extra='')=>`<label>${label}<input id="${id}" type="${type}" value="${esc(value)}" ${extra}></label>`;
  const {item}=original,category=categoryOf(market,d);

@@ -155,12 +155,36 @@ export function wbMergeBody(cards,targetId,selectedIds){
 }
 export async function readAllWBCards(request){const cards=[],seen=new Set();let cursor=null;for(;;){const result=await request('list',listBody('wb','',cursor));if(!Array.isArray(result.cards))throw Error('Не удалось проверить все карточки WB');cards.push(...result.cards);if(!(result.cursor?.total>=100))return cards;const next={updatedAt:result.cursor.updatedAt,nmID:result.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу карточек');seen.add(key);cursor=next;}}
 
-export function applyWBGroupPatch(original,{dimensions={},characteristics=[],fields={}}){const item=structuredClone(original);item.dimensions={...item.dimensions,...dimensions};Object.assign(item,fields);for(const attribute of characteristics){item.characteristics=(item.characteristics||[]).filter(old=>Number(old.id)!==Number(attribute.id));if(attribute.value!==null)item.characteristics.push(structuredClone(attribute));}return item;}
-export function wbGroupUpdate(cards,sourceNmID,{dimensions={},characteristics=[],fields={}}={}){
- const source=cards.find(card=>String(card.nmID)===String(sourceNmID));if(!source?.imtID)throw Error('Не найдена группа редактируемой карточки WB');
- const group=cards.filter(card=>String(card.imtID)===String(source.imtID));if(group.length<2)throw Error('В группе WB только одна карточка. Сначала объедините варианты');if(group.length>30||group.some(card=>card.subjectID!==source.subjectID))throw Error('Некорректный состав группы WB');
- for(const [key,value] of Object.entries(dimensions))if(!['length','width','height','weightBrutto'].includes(key)||!Number.isFinite(value)||value<=0)throw Error('Укажите положительные размеры и массу');
- for(const key of Object.keys(fields))if(!['title','description','brand'].includes(key)||typeof fields[key]!=='string')throw Error('Недопустимое общее поле');
- if(!Object.keys(dimensions).length&&!characteristics.length&&!Object.keys(fields).length)throw Error('Отметьте поля, которые нужно изменить во всей группе');
- return group.map(card=>{const item=applyWBGroupPatch(wbUpdateDraft(card)[0],{dimensions,characteristics,fields});const errors=validateListing('wb','update',[item]);if(errors.length)throw Error(card.vendorCode+': '+errors.join(' · '));return item;});
+function sharedCategory(market,draft){const body=JSON.parse(draft.body),item=market==='wb'?(draft.mode==='create'?body[0].variants[0]:body[0]):body.items[0];return {body,item,key:market==='wb'?String(draft.subjectID||body[0].subjectID||''):item.description_category_id+':'+item.type_id};}
+export function applySharedListingChanges(market,draft,patch){
+ if(!patch)return false;const {body,item,key}=sharedCategory(market,draft);if(key!==patch.category)return false;
+ const target=market==='wb'?(item.dimensions??={}):item;Object.assign(target,patch.dimensions);Object.assign(item,patch.fields);
+ const attrKey=market==='wb'?'characteristics':'attributes';for(const change of patch.attributes||[]){item[attrKey]=(item[attrKey]||[]).filter(attr=>Number(attr.id)!==Number(change.id));if(change.attribute)item[attrKey].push(structuredClone(change.attribute));}
+ draft.body=JSON.stringify(body);return true;
+}
+export function syncLocalListingGroup(products,source,market,beforeBody,afterBody){
+ if(!source.productGroup?.trim())return 0;const draft=source.listingDrafts?.[market];if(!draft)return 0;
+ const before=sharedCategory(market,{...draft,body:JSON.stringify(beforeBody)}),after=sharedCategory(market,{...draft,body:JSON.stringify(afterBody)});if(!after.key||before.key!==after.key)return 0;
+ const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b),patch={category:after.key,dimensions:{},fields:{},attributes:[]};
+ const dims=market==='wb'?['length','width','height','weightBrutto']:['height','width','depth','weight','dimension_unit','weight_unit'];
+ for(const key of dims){const a=market==='wb'?before.item.dimensions?.[key]:before.item[key],b=market==='wb'?after.item.dimensions?.[key]:after.item[key];if(!equal(a,b))patch.dimensions[key]=b;}
+ for(const key of market==='wb'?['brand','description']:[])if(!equal(before.item[key],after.item[key]))patch.fields[key]=after.item[key];
+ const attrKey=market==='wb'?'characteristics':'attributes',oldAttrs=before.item[attrKey]||[],newAttrs=after.item[attrKey]||[],defs=draft.attributeSchema||[];
+ for(const id of new Set([...oldAttrs,...newAttrs].map(attr=>Number(attr.id)))){const def=defs.find(def=>Number(def.id)===id);if(!def||/цвет|color|штрихкод|баркод|артикул/i.test(def.name)||id===14177449||id===88952)continue;const old=oldAttrs.find(attr=>Number(attr.id)===id),next=newAttrs.find(attr=>Number(attr.id)===id);if(!equal(old,next))patch.attributes.push({id,attribute:next?structuredClone(next):null});}
+ if(!Object.keys(patch.dimensions).length&&!Object.keys(patch.fields).length&&!patch.attributes.length)return 0;let changed=0;
+ for(const target of new Map([source,...products].map(product=>[product.id,product])).values()){
+ if(target.productGroup!==source.productGroup)continue;target.listingDrafts??={};let other=target.listingDrafts[market];
+ if(!other){if(!target.sku||target.sku===source.sku)continue;try{other=copyListingForProduct(market,draft,target);}catch{continue;}}
+ if(!applySharedListingChanges(market,other,patch))continue;target.listingDrafts[market]=other;target.sharedListingChanges??={};const previous=target.sharedListingChanges[market]?.category===patch.category?target.sharedListingChanges[market]:{category:patch.category,dimensions:{},fields:{},attributes:[]};
+ const attributes=new Map(previous.attributes.map(change=>[change.id,change]));for(const change of patch.attributes)attributes.set(change.id,change);target.sharedListingChanges[market]={category:patch.category,dimensions:{...previous.dimensions,...patch.dimensions},fields:{...previous.fields,...patch.fields},attributes:[...attributes.values()]};changed++;
+ }
+ return changed;
+}
+
+export function sharedListingChangesApplied(market,draft,patch){
+ if(!patch)return true;const {item,key}=sharedCategory(market,draft);if(key!==patch.category)return false;
+ const dimensions=market==='wb'?item.dimensions||{}:item;for(const [name,value] of Object.entries(patch.dimensions))if(String(dimensions[name]??'')!==String(value??''))return false;
+ for(const [name,value] of Object.entries(patch.fields))if(String(item[name]??'')!==String(value??''))return false;
+ const attrs=item[market==='wb'?'characteristics':'attributes']||[];for(const change of patch.attributes){const actual=attrs.find(attr=>Number(attr.id)===Number(change.id));if(!change.attribute){if(actual)return false;}else{const value=market==='wb'?'value':'values';if(JSON.stringify(actual?.[value])!==JSON.stringify(change.attribute[value]))return false;}}
+ return true;
 }
