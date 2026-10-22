@@ -200,3 +200,19 @@ export function listingGroupDifferences(products,market){
  const keys=new Set(entries.flatMap(entry=>[...entry.values.keys()])),rows=[];for(const key of keys){const cells=entries.map(entry=>entry.values.get(key)?.value??''),normalized=cells.map(value=>{if(value===''||value==null||Array.isArray(value)&&!value.length)return '';if(Array.isArray(value)&&value.every(entry=>typeof entry!=='object'))return JSON.stringify(value.map(String).sort());if(typeof value!=='object')return JSON.stringify([String(value)]);return JSON.stringify(value);});if(new Set(normalized).size>1)rows.push({key,label:entries.map(entry=>entry.values.get(key)?.label).find(Boolean),values:cells});}
  return {products:entries.map(entry=>entry.product),rows,skipped};
 }
+
+export function differenceFieldEditor(market,draft,key){
+ const {item}=sharedCategory(market,draft);if(key.startsWith('dimension:'))return {type:'number',value:market==='wb'?item.dimensions?.[key.slice(10)]??'':item[key.slice(10)]??''};
+ if(key.startsWith('attr:')){const parts=key.split(':');if(parts.length!==2)return null;const id=Number(parts[1]),def=draft.attributeSchema?.find(def=>Number(def.id)===id);if(!def||def.dictionary||def.complexId)return null;const attr=(item[market==='wb'?'characteristics':'attributes']||[]).find(attr=>Number(attr.id)===id),values=market==='wb'?attr?.value:(attr?.values||[]).map(value=>value.value||'');return {type:def.type==='number'?'number':'text',value:Array.isArray(values)?values.join('\n'):values??'',def};}
+ const allowed=market==='wb'?['title','description','brand']:['name','price','old_price','barcode'];return allowed.includes(key)?{type:['price','old_price'].includes(key)?'number':'text',value:item[key]||''}:null;
+}
+export function editDifferenceField(product,market,key,input){
+ const draft=product.listingDrafts?.[market],spec=differenceFieldEditor(market,draft,key);if(!spec)throw Error('Для этого поля используйте редактор карточки');const {body,item}=sharedCategory(market,draft),text=String(input).trim();
+ if(spec.type==='number'&&text&&(!Number.isFinite(Number(text))||(key.startsWith('dimension:')&&Number(text)<=0)))throw Error('Укажите корректное число больше нуля');
+ if(key==='price'&&!(Number(text)>0))throw Error('Цена должна быть больше нуля');if(key==='old_price'&&text&&Number(text)<0)throw Error('Цена не может быть отрицательной');
+ if(['title','name'].includes(key)&&!text)throw Error('Название не может быть пустым');
+ if(key.startsWith('dimension:')){const name=key.slice(10);if(market==='wb')(item.dimensions??={})[name]=text?Number(text):null;else item[name]=text?Number(text):null;delete product.sharedListingChanges?.[market]?.dimensions?.[name];}
+ else if(key.startsWith('attr:')){const def=spec.def,attrKey=market==='wb'?'characteristics':'attributes',values=text.split('\n').map(value=>value.trim()).filter(Boolean);if(def.required&&!values.length)throw Error('Обязательное поле');if(def.maxCount&&values.length>def.maxCount)throw Error('Слишком много значений');item[attrKey]=(item[attrKey]||[]).filter(attr=>Number(attr.id)!==Number(def.id));if(values.length)item[attrKey].push(market==='wb'?{id:def.id,value:spec.type==='number'?Number(text):values}:{id:def.id,complex_id:0,values:values.map(value=>({value}))});const patch=product.sharedListingChanges?.[market];if(patch)patch.attributes=patch.attributes.filter(change=>Number(change.id)!==Number(def.id));}
+ else{item[key]=text;delete product.sharedListingChanges?.[market]?.fields?.[key];}
+ draft.body=JSON.stringify(body);return draft;
+}
