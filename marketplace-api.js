@@ -91,3 +91,25 @@ export function ozonAccessSummary(data){
  const missing=groups.filter(([name,operations])=>!names.includes(name.toLowerCase().replace(/ /g,''))&&!names.includes('admin')&&!operations.every(op=>methods.has(OPERATIONS.ozon[op][1]))).map(([name])=>name);
  return missing.length?'Для функций приложения не подтверждены права Ozon: '+missing.join(', ')+'. Проверьте эти роли в Ozon Seller.':'Прав Ozon достаточно для карточек, категорий, остатков, контент-рейтинга и генерации баркодов (по списку прав ключа).';
 }
+
+// Verify content from WB rather than treating an accepted write as an applied update.
+export function wbContentDifferences(expected,actual){
+ const differences=[],same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),scalar=value=>String(value??'').trim();
+ for(const [key,label] of [['vendorCode','Артикул'],['title','Название'],['description','Описание'],['brand','Бренд']])if(key in expected&&scalar(expected[key])!==scalar(actual[key]))differences.push(label);
+ for(const [key,label] of [['length','Длина'],['width','Ширина'],['height','Высота'],['weightBrutto','Масса']])if(key in (expected.dimensions||{})&&Number(expected.dimensions[key])!==Number(actual.dimensions?.[key]))differences.push(label);
+ const attrs=list=>(list||[]).map(a=>[String(a.id),[...(Array.isArray(a.value)?a.value:[a.value])].map(scalar).sort()]).sort((a,b)=>a[0].localeCompare(b[0]));
+ if(!same(attrs(expected.characteristics),attrs(actual.characteristics)))differences.push('Характеристики');
+ const sizes=list=>(list||[]).map(s=>[String(s.chrtID),scalar(s.techSize),scalar(s.wbSize),[...(s.skus||[])].map(String).sort()]).sort((a,b)=>a[0].localeCompare(b[0]));
+ if(!same(sizes(expected.sizes),sizes(actual.sizes)))differences.push('Размеры / штрихкоды');
+ if('kizMarked' in expected&&!!expected.kizMarked!==!!actual.kizMarked)differences.push('Маркировка');
+ return differences;
+}
+export async function verifyWBContent(request,body){
+ const expected=body?.[0];if(!expected?.nmID)throw Error('Для проверки нужна отправленная карточка с nmID');
+ let cursor=null;const seen=new Set();
+ for(;;){const response=await request('list',listBody('wb',String(expected.nmID),cursor));if(!Array.isArray(response.cards))throw Error('Не удалось прочитать карточку WB');
+ const card=response.cards.find(card=>String(card.nmID)===String(expected.nmID));if(card)return {card,differences:wbContentDifferences(expected,card)};
+ if(!(response.cursor?.total>=100))return {card:null,differences:[]};
+ const next={updatedAt:response.cursor.updatedAt,nmID:response.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу при проверке карточки');seen.add(key);cursor=next;
+ }
+}
