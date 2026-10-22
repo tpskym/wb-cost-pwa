@@ -188,3 +188,15 @@ export function sharedListingChangesApplied(market,draft,patch){
  const attrs=item[market==='wb'?'characteristics':'attributes']||[];for(const change of patch.attributes){const actual=attrs.find(attr=>Number(attr.id)===Number(change.id));if(!change.attribute){if(actual)return false;}else{const value=market==='wb'?'value':'values';if(JSON.stringify(actual?.[value])!==JSON.stringify(change.attribute[value]))return false;}}
  return true;
 }
+
+export function listingGroupDifferences(products,market){
+ const entries=[],skipped=[];for(const product of products){const draft=product.listingDrafts?.[market];if(!draft){skipped.push(product);continue;}try{const {item}=sharedCategory(market,draft),values=new Map(),put=(key,label,value)=>values.set(key,{label,value:value??''});
+ for(const [key,label] of market==='wb'?[['title','Название'],['description','Описание'],['brand','Бренд']]:[['name','Название'],['price','Цена'],['old_price','Зачёркнутая цена'],['barcode','Штрихкод'],['vat','НДС'],['dimension_unit','Единица габаритов'],['weight_unit','Единица массы']])put(key,label,item[key]);
+ for(const [key,label] of market==='wb'?[['length','Длина упаковки'],['width','Ширина упаковки'],['height','Высота упаковки'],['weightBrutto','Масса с упаковкой, кг']]:[['depth','Длина упаковки'],['width','Ширина упаковки'],['height','Высота упаковки'],['weight','Масса с упаковкой']])put('dimension:'+key,label,market==='wb'?item.dimensions?.[key]:item[key]);
+ if(market==='wb')put('sizes','Размеры и штрихкоды',(item.sizes||[]).map(size=>({размер:size.techSize||'',российский:size.wbSize||'',штрихкоды:size.skus||[]})));
+ const schema=draft.attributeSchema||[];const addAttr=(attr,group='')=>{const def=schema.find(def=>Number(def.id)===Number(attr.id));put('attr:'+group+attr.id,(group?'Группа '+group+' · ':'')+(def?.name||attr.name||'Характеристика '+attr.id),market==='wb'?attr.value:(attr.values||[]).map(value=>value.value||String(value.dictionary_value_id||'')));};for(const attr of item[market==='wb'?'characteristics':'attributes']||[])addAttr(attr);for(const [index,group] of (item.complex_attributes||[]).entries())for(const attr of group.attributes||[])addAttr(attr,(index+1)+':');
+ put('photos','Фотографии',market==='wb'?(draft.photos?.map(photo=>photo.url||photo.name)||draft.photoURLs||[]):item.images||[]);entries.push({product,values});
+ }catch{skipped.push(product);}}
+ const keys=new Set(entries.flatMap(entry=>[...entry.values.keys()])),rows=[];for(const key of keys){const cells=entries.map(entry=>entry.values.get(key)?.value??''),normalized=cells.map(value=>{if(value===''||value==null||Array.isArray(value)&&!value.length)return '';if(Array.isArray(value)&&value.every(entry=>typeof entry!=='object'))return JSON.stringify(value.map(String).sort());if(typeof value!=='object')return JSON.stringify([String(value)]);return JSON.stringify(value);});if(new Set(normalized).size>1)rows.push({key,label:entries.map(entry=>entry.values.get(key)?.label).find(Boolean),values:cells});}
+ return {products:entries.map(entry=>entry.product),rows,skipped};
+}
