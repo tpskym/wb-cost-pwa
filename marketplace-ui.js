@@ -1,10 +1,10 @@
-import {readOzonPrice} from './price-editor.js?v=0.2.80';
-import {readWBPrice} from './wb-prices.js?v=0.2.80';
-import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.80';
-import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.80';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.80';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.80';
-import {copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.80';
+import {readOzonPrice} from './price-editor.js?v=0.2.81';
+import {readWBPrice} from './wb-prices.js?v=0.2.81';
+import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.81';
+import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.81';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.81';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.81';
+import {copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.81';
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb',selectedTab='cards';
 try{const saved=JSON.parse(localStorage.getItem(CREDENTIALS)||'null');if(saved){for(const k of Object.keys(credentials))if(typeof saved[k]==='string')credentials[k]=saved[k];remember=true;}}catch{}

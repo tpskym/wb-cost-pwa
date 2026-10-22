@@ -1,9 +1,9 @@
-import {mountPriceEditor} from './price-editor.js?v=0.2.80';
-import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.80';
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.80';
-import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.80';
-import {wbUpdateDraft} from './marketplace-api.js?v=0.2.80';
-import {listFiles} from './attachments.js?v=0.2.80';
+import {mountPriceEditor} from './price-editor.js?v=0.2.81';
+import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.81';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.81';
+import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.81';
+import {wbUpdateDraft} from './marketplace-api.js?v=0.2.81';
+import {listFiles} from './attachments.js?v=0.2.81';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeCurrent=()=>{};
 export function disposeListingEditor(){disposeCurrent();disposeCurrent=()=>{};}
@@ -91,6 +91,15 @@ export function mountListingEditor({root,market,draft:d,owner,save,request,uploa
  const open=async filter=>{saved=getAttribute(market,listingItem(market,d).item,def,groupIndex);$('#'+id+'-search').value='';select.innerHTML='<option value="">Не выбрано</option>'+saved.map((v,i)=>`<option value="saved-${i}" selected>${esc(v.value||'Выбранное значение')}</option>`).join('');status.textContent=filter?'Введите фильтр и нажмите «Найти»':'';more.hidden=true;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');if(filter)$('#'+id+'-search').focus();else await load(false);};
  root.querySelector(`[data-dict="${index}"]`).onclick=run(()=>open(false));root.querySelector(`[data-dict-load="${index}"]`).onclick=run(()=>load(false));more.onclick=run(()=>load(true));$('#'+id+'-search').onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();root.querySelector(`[data-dict-load="${index}"]`).click();}};
 
+ });
+ rows.forEach(({def,groupIndex},index)=>{
+ const control=$('#attr-'+index+(def.dictionary?'-select':'')),field=control.closest('.attribute-field'),title=field.querySelector('.attribute-title-row'),doc=root.ownerDocument,key=def.complexId+':'+groupIndex+':'+def.id;
+ const header=doc.createElement('div');header.className='attribute-collapse-header';header.append(title);
+ const body=doc.createElement('div');body.className='attribute-collapse-body';body.id='attribute-body-'+index;while(field.firstChild)body.append(field.firstChild);field.append(header,body);
+ const button=doc.createElement('button');button.type='button';button.className='attribute-collapse-toggle';button.setAttribute('aria-controls',body.id);header.append(button);
+ const preview=doc.createElement('div');preview.className='attribute-collapsed-value';field.append(preview);
+ const update=()=>{const collapsed=d.collapsedAttributes?.[key]===true;body.hidden=collapsed;preview.hidden=!collapsed;button.setAttribute('aria-expanded',String(!collapsed));button.textContent=collapsed?'Развернуть':'Свернуть';button.setAttribute('aria-label',(collapsed?'Развернуть: ':'Свернуть: ')+def.name);preview.textContent=getAttribute(market,listingItem(market,d).item,def,groupIndex).map(value=>value.value||'Значение из справочника').join(' · ')||'Не заполнено';};
+ button.onclick=()=>{d.collapsedAttributes??={};d.collapsedAttributes[key]=!body.hidden;save();update();};update();
  });
  }
  drawAttributes();
