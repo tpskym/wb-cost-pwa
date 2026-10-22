@@ -1,10 +1,10 @@
-import {readOzonPrice} from './price-editor.js?v=0.2.90';
-import {readWBPrice} from './wb-prices.js?v=0.2.90';
-import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.90';
-import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.90';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.90';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.90';
-import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.90';
+import {readOzonPrice} from './price-editor.js?v=0.2.91';
+import {readWBPrice} from './wb-prices.js?v=0.2.91';
+import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.91';
+import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.91';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.91';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.91';
+import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.91';
 const sharedEditSelections=new Map();
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb',selectedTab='cards';

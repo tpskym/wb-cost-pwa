@@ -216,3 +216,5 @@ export function editDifferenceField(product,market,key,input){
  else{item[key]=text;delete product.sharedListingChanges?.[market]?.fields?.[key];}
  draft.body=JSON.stringify(body);return draft;
 }
+
+export function wbBarcodeRemovalErrors(baseline,sizes){const errors=[];for(const original of baseline||[]){const size=(sizes||[]).find(size=>String(size.chrtID)===String(original.chrtID)),removed=(original.skus||[]).filter(code=>!(size?.skus||[]).includes(code));if(removed.length)errors.push('WB не позволяет удалить или заменить уже привязанные штрихкоды через API: '+removed.join(', ')+'. Верните их в список; добавлять новые штрихкоды можно.');}return errors;}
