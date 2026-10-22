@@ -162,3 +162,4 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 #card-attributes .attribute-measurements .attribute-field{padding:12px;background:#fff}
 #card-attributes>[data-add-complex]{grid-column:1/-1}
 @media(max-width:1000px){#card-attributes{grid-template-columns:1fr}}
+.wb-merge-dialog{width:min(740px,calc(100vw - 32px))}.wb-merge-dialog select{height:44px}.wb-merge-dialog #wb-merge-options{max-height:40vh;overflow:auto;border-top:1px solid #e1e6da;margin-top:16px}.wb-merge-dialog .wb-merge-option{display:flex;align-items:center;gap:12px;padding:12px;margin:0;border-bottom:1px solid #e1e6da;cursor:pointer}.wb-merge-option input{width:20px;height:20px;flex-shrink:0}.wb-merge-option small{display:block;margin-top:5px;color:#73816d}

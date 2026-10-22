@@ -1,6 +1,6 @@
 const HOSTS={wb:'https://content-api.wildberries.ru',ozon:'https://api-seller.ozon.ru'};
 const OPERATIONS={
- wb:{prices:['GET','/api/v2/list/goods/filter'],setPrice:['POST','/api/v2/upload/task'],barcodes:['POST','/content/v2/barcodes'],warehouses:['GET','/api/v3/warehouses'],stocks:['POST','/api/v3/stocks/'],list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
+ wb:{merge:['POST','/content/v2/cards/moveNm'],prices:['GET','/api/v2/list/goods/filter'],setPrice:['POST','/api/v2/upload/task'],barcodes:['POST','/content/v2/barcodes'],warehouses:['GET','/api/v3/warehouses'],stocks:['POST','/api/v3/stocks/'],list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
  ozon:{prices:['POST','/v5/product/info/prices'],setPrice:['POST','/v1/product/import/prices'],barcodes:['POST','/v1/barcode/generate'],stocks:['POST','/v4/product/info/stocks'],quality:['POST','/v1/product/rating-by-sku'],roles:['POST','/v1/roles'],list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute'],values:['POST','/v1/description-category/attribute/values'],searchValues:['POST','/v1/description-category/attribute/values/search']}
 };
 export function redact(text,credentials){let output=String(text);for(const value of [credentials?.wbToken,credentials?.ozonKey])if(value)output=output.split(value).join('[скрыто]');return output;}
@@ -16,6 +16,7 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
  const route=OPERATIONS[market]?.[operation];if(!route)throw Error('Недопустимая операция API');
  if(market==='wb'&&!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');
  if(market==='ozon'&&(!credentials.ozonKey||!credentials.ozonClient))throw Error('Введите Client-Id и API-ключ Ozon и нажмите «Применить ключи»');
+ if(market==='wb'&&operation==='merge'){if(!Number.isSafeInteger(body.targetIMT)||body.targetIMT<=0||!Array.isArray(body.nmIDs)||!body.nmIDs.length||body.nmIDs.length>30||body.nmIDs.some(id=>!Number.isSafeInteger(id)||id<=0))throw Error('Некорректная группа WB: нужны существующая группа и от 1 до 30 nmID');}
  if(market==='wb'&&['create','update'].includes(operation))body=prepareWBContent(body,operation);
  let [method,path]=route;
  if(market==='wb'&&operation==='attributes'){if(!Number.isSafeInteger(body.subjectID)||body.subjectID<=0)throw Error('Укажите ID предмета WB');path+=body.subjectID;}
@@ -143,3 +144,13 @@ export function copyListingForProduct(market,source,target){
  }
  return draft;
 }
+
+export function wbMergeBody(cards,targetId,selectedIds){
+ const target=cards.find(card=>String(card.nmID)===String(targetId));if(!target||!Number.isSafeInteger(target.imtID)||target.imtID<=0)throw Error('Не удалось получить группу основной карточки WB');
+ const selected=[...new Set(selectedIds.map(String))].map(id=>cards.find(card=>String(card.nmID)===id));if(!selected.length||selected.some(card=>!card))throw Error('Выберите существующие карточки для объединения');
+ if(!target.subjectID||selected.some(card=>Number(card.subjectID)!==Number(target.subjectID)))throw Error('Объединять можно только карточки одного предмета WB');
+ const moving=selected.filter(card=>card.imtID!==target.imtID),group=new Set([...cards.filter(card=>card.imtID===target.imtID),...moving].map(card=>String(card.nmID)));
+ if(group.size>30)throw Error('В группе WB может быть не более 30 карточек');if(!moving.length)throw Error('Выбранные карточки уже находятся в одной группе');
+ return {targetIMT:target.imtID,nmIDs:moving.map(card=>Number(card.nmID))};
+}
+export async function readAllWBCards(request){const cards=[],seen=new Set();let cursor=null;for(;;){const result=await request('list',listBody('wb','',cursor));if(!Array.isArray(result.cards))throw Error('Не удалось проверить все карточки WB');cards.push(...result.cards);if(!(result.cursor?.total>=100))return cards;const next={updatedAt:result.cursor.updatedAt,nmID:result.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу карточек');seen.add(key);cursor=next;}}
