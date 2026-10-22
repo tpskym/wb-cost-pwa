@@ -154,3 +154,13 @@ export function wbMergeBody(cards,targetId,selectedIds){
  return {targetIMT:target.imtID,nmIDs:moving.map(card=>Number(card.nmID))};
 }
 export async function readAllWBCards(request){const cards=[],seen=new Set();let cursor=null;for(;;){const result=await request('list',listBody('wb','',cursor));if(!Array.isArray(result.cards))throw Error('Не удалось проверить все карточки WB');cards.push(...result.cards);if(!(result.cursor?.total>=100))return cards;const next={updatedAt:result.cursor.updatedAt,nmID:result.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу карточек');seen.add(key);cursor=next;}}
+
+export function applyWBGroupPatch(original,{dimensions={},characteristics=[],fields={}}){const item=structuredClone(original);item.dimensions={...item.dimensions,...dimensions};Object.assign(item,fields);for(const attribute of characteristics){item.characteristics=(item.characteristics||[]).filter(old=>Number(old.id)!==Number(attribute.id));if(attribute.value!==null)item.characteristics.push(structuredClone(attribute));}return item;}
+export function wbGroupUpdate(cards,sourceNmID,{dimensions={},characteristics=[],fields={}}={}){
+ const source=cards.find(card=>String(card.nmID)===String(sourceNmID));if(!source?.imtID)throw Error('Не найдена группа редактируемой карточки WB');
+ const group=cards.filter(card=>String(card.imtID)===String(source.imtID));if(group.length<2)throw Error('В группе WB только одна карточка. Сначала объедините варианты');if(group.length>30||group.some(card=>card.subjectID!==source.subjectID))throw Error('Некорректный состав группы WB');
+ for(const [key,value] of Object.entries(dimensions))if(!['length','width','height','weightBrutto'].includes(key)||!Number.isFinite(value)||value<=0)throw Error('Укажите положительные размеры и массу');
+ for(const key of Object.keys(fields))if(!['title','description','brand'].includes(key)||typeof fields[key]!=='string')throw Error('Недопустимое общее поле');
+ if(!Object.keys(dimensions).length&&!characteristics.length&&!Object.keys(fields).length)throw Error('Отметьте поля, которые нужно изменить во всей группе');
+ return group.map(card=>{const item=applyWBGroupPatch(wbUpdateDraft(card)[0],{dimensions,characteristics,fields});const errors=validateListing('wb','update',[item]);if(errors.length)throw Error(card.vendorCode+': '+errors.join(' · '));return item;});
+}
