@@ -16,6 +16,7 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
  const route=OPERATIONS[market]?.[operation];if(!route)throw Error('Недопустимая операция API');
  if(market==='wb'&&!credentials.wbToken)throw Error('Введите API-токен WB и нажмите «Применить ключи»');
  if(market==='ozon'&&(!credentials.ozonKey||!credentials.ozonClient))throw Error('Введите Client-Id и API-ключ Ozon и нажмите «Применить ключи»');
+ if(market==='wb'&&['create','update'].includes(operation))body=prepareWBContent(body,operation);
  let [method,path]=route;
  if(market==='wb'&&operation==='attributes'){if(!Number.isSafeInteger(body.subjectID)||body.subjectID<=0)throw Error('Укажите ID предмета WB');path+=body.subjectID;}
  if(market==='wb'&&operation==='categories')path+='?limit=1000&offset='+Number(body.offset||0)+'&locale=ru'+(body.name?'&name='+encodeURIComponent(body.name):'');
@@ -31,12 +32,20 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
 }
 export function listBody(market,search='',cursor=null){return market==='wb'?{settings:{sort:{ascending:true},filter:{withPhoto:-1,...(search?{textSearch:search}:{})},cursor:{limit:100,...(cursor||{})}}}:{filter:{...(search?{offer_id:[search]}:{}),visibility:'ALL'},last_id:cursor||'',limit:100};}
 export function blankListing(market,product){return market==='wb'?[{subjectID:null,variants:[{vendorCode:product.sku||'',title:product.name,description:'',brand:'',dimensions:{length:null,width:null,height:null,weightBrutto:null},characteristics:[],sizes:[{techSize:'0',skus:[]}]}]}]:{items:[{offer_id:product.sku||'',name:product.name,description_category_id:null,type_id:null,price:String(product.marketplaces?.ozon?.price||''),currency_code:'RUB',vat:'0',barcode:'',height:null,width:null,depth:null,dimension_unit:'mm',weight:null,weight_unit:'g',attributes:[],images:[]}]};}
+// WB no longer accepts legacy packed-weight characteristics (grams / kilograms).
+export function prepareWBContent(body,mode='update',schema=[]){
+ const result=structuredClone(body),obsolete=new Set([88952,90630]);
+ for(const def of schema){const name=String(def.name||'').toLowerCase();if(/(?:вес|масса).*с упаковкой/.test(name)&&!/без упаковки/.test(name))obsolete.add(Number(def.id));}
+ const items=mode==='create'?result.flatMap(group=>group.variants||[]):result;
+ for(const item of items){if(Array.isArray(item.characteristics))item.characteristics=item.characteristics.filter(attr=>!obsolete.has(Number(attr.id)));if(item.dimensions){item.dimensions=Object.fromEntries(['length','width','height','weightBrutto'].filter(key=>key in item.dimensions).map(key=>[key,item.dimensions[key]]));}}
+ return result;
+}
 export function wbUpdateDraft(card){
  if(!card?.nmID||!Array.isArray(card.sizes)||!card.sizes.length||card.sizes.some(s=>!s.chrtID))throw Error('У карточки нет nmID или chrtID размеров. Автоматическое обновление заблокировано');
  const keys=['nmID','vendorCode','brand','title','description','dimensions','characteristics','sizes','wholesale','kizMarked'];const result={};for(const key of keys)if(key in card)result[key]=structuredClone(card[key]);
  // Do not copy read-only size names/IDs from responses into write requests.
  result.sizes=card.sizes.map(size=>Object.fromEntries(['chrtID','techSize','wbSize','skus'].filter(key=>key in size).map(key=>[key,structuredClone(size[key])])));
- return [result];
+ return prepareWBContent([result]);
 }
 export function ozonUpdateDraft(info,details){
  if(!info?.offer_id||!details)throw Error('Не удалось получить все сведения товара Ozon');
