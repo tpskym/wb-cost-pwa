@@ -122,3 +122,24 @@ export async function verifyWBContent(request,body){
  const next={updatedAt:response.cursor.updatedAt,nmID:response.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу при проверке карточки');seen.add(key);cursor=next;
  }
 }
+
+export function copyListingForProduct(market,source,target){
+ const body=JSON.parse(source.body),old=market==='wb'?(source.mode==='create'?body[0]?.variants?.[0]:body[0]):body.items?.[0];
+ if(!old)throw Error('Исходная карточка повреждена');
+ const sourceSku=old[market==='wb'?'vendorCode':'offer_id'];if(!target.sku?.trim())throw Error('Сначала заполните артикул нового варианта в себестоимости');if(target.sku.trim()===String(sourceSku).trim())throw Error('Артикул нового варианта должен отличаться от исходной карточки');
+ const item=structuredClone(old),draft={mode:'create'};
+ for(const key of ['subjectID','categoryLabel','referenceCategory','attributeSchema','attributesLoaded'])if(source[key]!==undefined)draft[key]=structuredClone(source[key]);
+ if(market==='wb'){
+ const subjectID=source.subjectID||body[0]?.subjectID;if(!subjectID)throw Error('В исходной карточке нет категории WB. Загрузите её заново');draft.subjectID=subjectID;
+ for(const key of ['nmID','imtID','nmUUID','subjectID','photos','video','createdAt','updatedAt'])delete item[key];item.vendorCode=target.sku.trim();
+ item.sizes=(item.sizes||[{techSize:'0'}]).map((size,index)=>({...Object.fromEntries(['techSize','wbSize'].filter(key=>key in size).map(key=>[key,size[key]])),skus:index===0&&target.barcode?[target.barcode]:[]}));
+ for(const def of draft.attributeSchema||[])if(/^цвет(?: товара)?$/i.test(def.name.trim())){item.characteristics=(item.characteristics||[]).filter(attr=>Number(attr.id)!==Number(def.id));if(target.variantNote)item.characteristics.push({id:def.id,value:[target.variantNote]});}
+ draft.body=JSON.stringify(prepareWBContent([{subjectID,variants:[item]}],'create',draft.attributeSchema),null,2);draft.photos=[];draft.photoURLs=[];
+ }else{
+ item.offer_id=target.sku.trim();item.barcode=target.barcode||'';item.images=[];delete item.color_image;delete item.pdf_list;
+ for(const key of ['id','product_id','sku','sources','statuses','errors','created_at','updated_at'])delete item[key];
+ for(const def of draft.attributeSchema||[])if(/^цвет(?: товара)?$/i.test(def.name.trim()))item.attributes=(item.attributes||[]).filter(attr=>Number(attr.id)!==Number(def.id));
+ draft.body=JSON.stringify({items:[item]},null,2);
+ }
+ return draft;
+}
