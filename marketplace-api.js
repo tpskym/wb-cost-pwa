@@ -32,9 +32,9 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
 }
 export function listBody(market,search='',cursor=null){return market==='wb'?{settings:{sort:{ascending:true},filter:{withPhoto:-1,...(search?{textSearch:search}:{})},cursor:{limit:100,...(cursor||{})}}}:{filter:{...(search?{offer_id:[search]}:{}),visibility:'ALL'},last_id:cursor||'',limit:100};}
 export function blankListing(market,product){return market==='wb'?[{subjectID:null,variants:[{vendorCode:product.sku||'',title:product.name,description:'',brand:'',dimensions:{length:null,width:null,height:null,weightBrutto:null},characteristics:[],sizes:[{techSize:'0',skus:[]}]}]}]:{items:[{offer_id:product.sku||'',name:product.name,description_category_id:null,type_id:null,price:String(product.marketplaces?.ozon?.price||''),currency_code:'RUB',vat:'0',barcode:'',height:null,width:null,depth:null,dimension_unit:'mm',weight:null,weight_unit:'g',attributes:[],images:[]}]};}
-// WB no longer accepts legacy packed-weight characteristics (grams / kilograms).
+// Remove legacy packed weight only; 90630 is item height and must be retained.
 export function prepareWBContent(body,mode='update',schema=[]){
- const result=structuredClone(body),obsolete=new Set([88952,90630]);
+ const result=structuredClone(body),obsolete=new Set([88952]);
  for(const def of schema){const name=String(def.name||'').toLowerCase();if(/(?:вес|масса).*с упаковкой/.test(name)&&!/без упаковки/.test(name))obsolete.add(Number(def.id));}
  const items=mode==='create'?result.flatMap(group=>group.variants||[]):result;
  for(const item of items){if(Array.isArray(item.characteristics))item.characteristics=item.characteristics.filter(attr=>!obsolete.has(Number(attr.id)));if(item.dimensions){item.dimensions=Object.fromEntries(['length','width','height','weightBrutto'].filter(key=>key in item.dimensions).map(key=>[key,item.dimensions[key]]));}}

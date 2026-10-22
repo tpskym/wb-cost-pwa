@@ -20,8 +20,8 @@ test('Ozon copy uses a new offer and clears colour dictionary and old media',()=
 });
 test('WB item height and packaging height both survive copy and outbound preparation',async()=>{
  const {prepareWBContent,marketRequest}=await import('../marketplace-api.js');
- const height={id:12345,value:6.5},sourceWithHeight={...source,attributeSchema:[...source.attributeSchema,{id:12345,name:'Высота предмета',type:'number'}],body:JSON.stringify([{...item,characteristics:[...item.characteristics,height]}])};
+ const height={id:90630,value:6.5},sourceWithHeight={...source,attributeSchema:[...source.attributeSchema,{id:90630,name:'Высота предмета',type:'number'}],body:JSON.stringify([{...item,characteristics:[...item.characteristics,height]}])};
  const copied=copyListingForProduct('wb',sourceWithHeight,target),body=prepareWBContent(JSON.parse(copied.body),'create',copied.attributeSchema);
- assert.equal(body[0].variants[0].dimensions.height,7);assert.deepEqual(body[0].variants[0].characteristics.find(attr=>attr.id===12345),height);
- await marketRequest('wb','create',{wbToken:'test'},body,async(url,options)=>{const sent=JSON.parse(options.body)[0].variants[0];assert.equal(sent.dimensions.height,7);assert.equal(sent.characteristics.find(attr=>attr.id===12345).value,6.5);return new Response(JSON.stringify({error:false}));});
+ assert.equal(body[0].variants[0].dimensions.height,7);assert.deepEqual(body[0].variants[0].characteristics.find(attr=>attr.id===90630),height);
+ await marketRequest('wb','create',{wbToken:'test'},body,async(url,options)=>{const sent=JSON.parse(options.body)[0].variants[0];assert.equal(sent.dimensions.height,7);assert.equal(sent.characteristics.find(attr=>attr.id===90630).value,6.5);return new Response(JSON.stringify({error:false}));});
 });
