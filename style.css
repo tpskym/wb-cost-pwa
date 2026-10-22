@@ -166,3 +166,4 @@ input[type=number]{appearance:textfield;-moz-appearance:textfield}input[type=num
 #card-description{min-height:300px;resize:vertical;line-height:1.5}
 @media(max-width:650px){#card-description{min-height:260px}}
 .group-sync-note{padding:12px 14px;border:1px solid #dce5d4;border-radius:8px;background:#f1f5e9;color:#48613f;font-size:12px;line-height:1.6}
+.group-sync-note>strong{display:block;margin-bottom:10px;overflow-wrap:anywhere}.group-sync-note>p{margin:10px 0 0;font-size:12px}.shared-edit-dialog{width:min(680px,calc(100vw - 32px))}.shared-edit-options{max-height:50vh;overflow:auto;display:grid;gap:8px;margin:16px 0}.shared-edit-options>label{display:flex;align-items:center;gap:12px;margin:0;padding:12px;border:1px solid #dce4d5;border-radius:8px;cursor:pointer}.shared-edit-options input{width:20px;height:20px;flex-shrink:0}.shared-edit-options small{display:block;color:#73816d;margin-top:5px}

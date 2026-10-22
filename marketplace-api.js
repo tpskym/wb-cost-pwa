@@ -162,8 +162,8 @@ export function applySharedListingChanges(market,draft,patch){
  const attrKey=market==='wb'?'characteristics':'attributes';for(const change of patch.attributes||[]){item[attrKey]=(item[attrKey]||[]).filter(attr=>Number(attr.id)!==Number(change.id));if(change.attribute)item[attrKey].push(structuredClone(change.attribute));}
  draft.body=JSON.stringify(body);return true;
 }
-export function syncLocalListingGroup(products,source,market,beforeBody,afterBody){
- if(!source.productGroup?.trim())return 0;const draft=source.listingDrafts?.[market];if(!draft)return 0;
+export function syncLocalListingGroup(products,source,market,beforeBody,afterBody,selectedIds=[]){
+ const selected=new Set(selectedIds.map(String));if(!selected.has(String(source.id))||selected.size<2||!source.productGroup?.trim())return 0;const draft=source.listingDrafts?.[market];if(!draft)return 0;
  const before=sharedCategory(market,{...draft,body:JSON.stringify(beforeBody)}),after=sharedCategory(market,{...draft,body:JSON.stringify(afterBody)});if(!after.key||before.key!==after.key)return 0;
  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b),patch={category:after.key,dimensions:{},fields:{},attributes:[]};
  const dims=market==='wb'?['length','width','height','weightBrutto']:['height','width','depth','weight','dimension_unit','weight_unit'];
@@ -173,7 +173,7 @@ export function syncLocalListingGroup(products,source,market,beforeBody,afterBod
  for(const id of new Set([...oldAttrs,...newAttrs].map(attr=>Number(attr.id)))){const def=defs.find(def=>Number(def.id)===id);if(!def||/цвет|color|штрихкод|баркод|артикул/i.test(def.name)||id===14177449||id===88952)continue;const old=oldAttrs.find(attr=>Number(attr.id)===id),next=newAttrs.find(attr=>Number(attr.id)===id);if(!equal(old,next))patch.attributes.push({id,attribute:next?structuredClone(next):null});}
  if(!Object.keys(patch.dimensions).length&&!Object.keys(patch.fields).length&&!patch.attributes.length)return 0;let changed=0;
  for(const target of new Map([source,...products].map(product=>[product.id,product])).values()){
- if(target.productGroup!==source.productGroup)continue;target.listingDrafts??={};let other=target.listingDrafts[market];
+ if(!selected.has(String(target.id))||target.productGroup!==source.productGroup)continue;target.listingDrafts??={};let other=target.listingDrafts[market];
  if(!other){if(!target.sku||target.sku===source.sku)continue;try{other=copyListingForProduct(market,draft,target);}catch{continue;}}
  if(!applySharedListingChanges(market,other,patch))continue;target.listingDrafts[market]=other;target.sharedListingChanges??={};const previous=target.sharedListingChanges[market]?.category===patch.category?target.sharedListingChanges[market]:{category:patch.category,dimensions:{},fields:{},attributes:[]};
  const attributes=new Map(previous.attributes.map(change=>[change.id,change]));for(const change of patch.attributes)attributes.set(change.id,change);target.sharedListingChanges[market]={category:patch.category,dimensions:{...previous.dimensions,...patch.dimensions},fields:{...previous.fields,...patch.fields},attributes:[...attributes.values()]};changed++;
