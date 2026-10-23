@@ -19,3 +19,11 @@ test('download always reads the exact platform card and never writes or modifies
 test('HTML responses and oversized files are not presented as downloaded media',async()=>{
  const result=await buildRemoteMediaArchive({market:'ozon',article:'SKU',media:[{url:'https://cdn.example.com/page',kind:'video',label:'Видео'}]},{fetcher:async()=>new Response('<html></html>',{headers:{'content-type':'text/html'}})});assert.equal(result.downloaded,0);const entries=await readZip(result.blob);assert.equal(entries.size,3);
 });
+test('rich content images include desktop mobile and nested sources, excluding product links and video',async()=>{
+ const {richContentImages}=await import('../remote-media.js');const content={content:[{widgetName:'raTextImage',blocks:[{img:{src:'https://cdn.example.com/desktop.jpg',srcMobile:'https://cdn.example.com/mobile.webp'},link:'https://example.com/product'}]},{widgetName:'raVideo',src:'https://cdn.example.com/video.mp4',poster:'https://cdn.example.com/poster.jpg'},{images:['https://cdn.example.com/desktop.jpg','https://cdn.example.com/extra.jpg']}]};
+ assert.deepEqual(richContentImages(JSON.stringify(content)),['https://cdn.example.com/desktop.jpg','https://cdn.example.com/mobile.webp','https://cdn.example.com/poster.jpg','https://cdn.example.com/extra.jpg']);assert.deepEqual(richContentImages('{bad-json'),[]);
+ const media=collectRemoteMedia('ozon',{}, {attributes:[{id:99,values:[{value:JSON.stringify(content)}]}]},[{id:99,name:'Рич-контент JSON'}]);assert.equal(media.length,4);assert.ok(media.every(file=>file.kind==='rich-content'));
+});
+test('rich images get a separate archive folder and WB links can be supplied manually',async()=>{
+ const {addManualRichImages}=await import('../remote-media.js'),source=addManualRichImages({market:'wb',article:'SKU',media:[]},'https://cdn.example.com/rich.png\nhttps://cdn.example.com/rich.png');assert.equal(source.media.length,1);const result=await buildRemoteMediaArchive(source,{fetcher:async()=>new Response('rich-image',{headers:{'content-type':'image/png'}})}),entries=await readZip(result.blob);assert.ok([...entries.keys()].some(path=>path.startsWith('rich-content/')));assert.throws(()=>addManualRichImages(source,'javascript:alert(1)'),/HTTPS/);
+});
