@@ -9,7 +9,7 @@ const posting=(status='delivered')=>({posting_number:'123-1',status,substatus:'p
 test('orders network has a closed read-only allowlist and uses current Ozon APIs',async()=>{
  const credentials={wbToken:'wb-test',ozonKey:'oz-test',ozonClient:'client'};let calls=0;
  for(const [op,path] of [['ozonFbs','/v4/posting/fbs/list'],['ozonFbo','/v3/posting/fbo/list'],['wbStatuses','/api/v3/orders/status'],['wbOrders','/api/v3/orders']])await orderRequest(op,credentials,{limit:100},async(url,options)=>{calls++;assert.equal(new URL(url).pathname,path);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');assert.ok(['GET','POST'].includes(options.method));return Response.json({});});
- await assert.rejects(()=>orderRequest('cancel',credentials,{},()=>{calls++;}),/Недопустимая/);assert.equal(calls,4);await assert.rejects(()=>orderRequest('ozonFbs',{},{}),/Ключи/);
+ await assert.rejects(()=>orderRequest('cancel',credentials,{},()=>{calls++;}),/Недопустимая/);assert.equal(calls,4);await assert.rejects(()=>orderRequest('ozonFbs',{},{}),/API и доступы/);
 });
 test('Ozon preserves quantity object prices received and marketplace buyout as separate fields',()=>{
  const row=normalizeOzonPostings([posting()],'ozon-fbo')[0];assert.equal(row.price,395.5);assert.equal(row.quantity,2);assert.equal(row.status,'Доставлен');assert.equal(row.substatus,'Получен в ПВЗ');assert.equal(row.buyoutByMarketplace,false);assert.equal(row.rawStatus,'delivered / posting_received');assert.equal('payout' in row,false);assert.equal(normalizeOzonPostings([posting('new_status')],'ozon-fbo')[0].status,'Неизвестный статус: new_status');
@@ -34,4 +34,7 @@ test('failed refresh retains the previous snapshot and never adds manual sales o
 });
 test('all four schemes refresh independently and retain manual sales',async()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root'),database={products:[],sales:[{id:'manual'}],orderSnapshots:[]};let saves=0,opened=false;mountMarketplaceOrders({root,database,save:()=>saves++,onOpenApi:()=>opened=true,requester:async op=>op==='wbOrders'?{orders:[],next:0}:op.startsWith('wbReport')?[]:{postings:[posting()],has_next:false,cursor:''}});await root.querySelector('#orders-refresh').onclick();assert.equal(database.orderSnapshots.length,4);assert.equal(saves,4);assert.deepEqual(database.sales,[{id:'manual'}]);assert.equal(root.querySelectorAll('tbody tr').length,2);root.querySelector('#orders-open-keys').click();assert.equal(opened,true);
+});
+test('WB cursor larger than JavaScript safe integer is read and sent without rounding',async()=>{
+ const exact='946674000000000001',response=await orderRequest('wbOrders',{wbToken:'cursor-test'}, {},async()=>new Response('{"next":'+exact+',"orders":[{"id":1}]}'));assert.equal(response.next,exact);let calls=0;await loadOrderSource('wb-fbs',period(),async(op,body)=>{if(op==='wbStatuses')return {orders:[{id:1,supplierStatus:'new',wbStatus:'waiting'}]};calls++;if(calls===1)return {...response,orders:[{id:1,article:'AW',createdAt:date()}]};assert.equal(body.next,exact);return {orders:[],next:'0'};},()=>{},async()=>{});assert.equal(calls,2);
 });

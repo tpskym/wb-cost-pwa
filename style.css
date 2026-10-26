@@ -183,3 +183,9 @@ main:not([data-workspace="filament"]) .filament-only,main[data-workspace="filame
 .marketplace-orders #orders-progress{white-space:pre-line}.marketplace-orders table small{display:block;margin-top:.35rem;color:var(--muted)}.marketplace-orders #orders-sync-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 1rem}.marketplace-orders #orders-sync-status p{font-size:.88rem}
 
 .marketplace-orders{padding:28px}.marketplace-orders h2{margin-top:0}.marketplace-orders .orders-period{grid-template-columns:repeat(3,minmax(0,1fr))}.marketplace-orders .orders-period label:first-child{grid-column:auto}@media(max-width:800px){.marketplace-orders{padding:18px}.marketplace-orders .orders-period{grid-template-columns:1fr}}
+
+main:not([data-workspace="stocks"]) .stocks-only,main[data-workspace="stocks"] .cost-only,main[data-workspace="stocks"] .cards-only,main[data-workspace="stocks"] .product-files,main[data-workspace="stocks"] .mobile-products,main[data-workspace="api"] .cost-only,main[data-workspace="api"] .product-files,main[data-workspace="api"] .mobile-products{display:none!important}.sidebar:has(.nav[data-space="api"].active) .side-products,.sidebar:has(.nav[data-space="stocks"].active) .side-products{display:none}.listing-template-panel{padding:20px;border:1px solid #dce1d7;border-radius:12px}.listing-template-panel label{margin:12px 0}.listing-template-panel select,.listing-template-panel input{min-height:44px;width:100%}[data-template-key][hidden]{display:none!important}
+
+.warehouse-stocks{padding:24px}.warehouse-stocks small{display:block;color:#788078}.warehouse-stocks #stock-status{white-space:pre-line}.warehouse-stocks #stock-updated{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}.warehouse-stocks .sales-form-grid label:first-child{grid-column:auto}.warehouse-stocks h2{margin-top:0}
+
+.marketplace-tabs[hidden]{display:none!important}
