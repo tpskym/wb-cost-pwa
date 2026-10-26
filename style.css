@@ -238,3 +238,5 @@ main[data-workspace="stocks"] .warehouse-stocks,main[data-workspace="sales"] .ma
 .stock-data-table .stock-product-cell{min-width:390px;max-width:none}.table-product-copy{min-width:max-content}.table-product-copy .stock-sku{white-space:nowrap;overflow-wrap:normal;word-break:normal;font-size:13px}.table-product-copy .stock-product-name,.table-product-copy .stock-barcode{max-width:300px;white-space:normal;overflow-wrap:anywhere}.order-data-table{table-layout:auto;min-width:1180px}.order-data-table .stock-product-cell{min-width:390px;max-width:none}
 
 .table-product-copy>small,.stock-data-table .stock-scheme{display:block}.table-product-copy>small{margin-top:4px;line-height:1.45}
+
+.stock-number .stock-replenish-note{display:block;white-space:nowrap;margin-top:7px;padding:4px 6px;border-radius:6px;background:#fff0cb;color:#805b1d;font-size:10px;font-weight:650;line-height:1.4}
