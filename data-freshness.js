@@ -16,6 +16,15 @@ export function updateFreshness(root,now=Date.now()){
   item.dataset.freshnessState=state;
   item.querySelector('.freshness-reminder').hidden=state!=='stale';
  }
+
+ const results=root.querySelector('.table-results');
+ if(results){
+  let alert=results.querySelector('.table-freshness-alert');
+  if(!alert){alert=(root.ownerDocument||root).createElement('div');alert.className='table-freshness-alert';alert.setAttribute('role','status');results.prepend(alert);}
+  const stale=!!root.querySelector('[data-freshness-state="stale"]');
+  alert.textContent=(root.querySelector('#stock-table')?'Остатки WB / Ozon':'Продажи')+' · Пора обновить';
+  alert.hidden=!stale;
+ }
 }
 export function mountFreshness(root){
  updateFreshness(root);

@@ -21,3 +21,13 @@ test('time turns stale without redrawing the table and a new timestamp resets th
  assert.equal(root.querySelector('.freshness-reminder').hidden,true);
  assert.match(renderFreshness(null,now),/Ещё не обновлялось/);
 });
+test('stale reminder is prominent above the main table and clears after a successful refresh',()=>{
+ for(const [id,label] of [['stock-table','Остатки WB / Ozon'],['orders-table','Продажи']]){
+ const stamp='2026-10-26T09:00:00Z',now=Date.parse(stamp),root=new JSDOM('<aside>'+renderFreshness(stamp,now)+'</aside><div class="table-results"><div id="'+id+'"></div></div>').window.document;
+ updateFreshness(root,now+21*60*1000);
+ const alert=root.querySelector('.table-results').firstElementChild;
+ assert.equal(alert.textContent,label+' · Пора обновить');assert.equal(alert.hidden,false);
+ updateFreshness(root,now);assert.equal(alert.hidden,true);
+ assert.equal(root.querySelectorAll('.table-freshness-alert').length,1);
+ }
+});
