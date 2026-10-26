@@ -189,3 +189,5 @@ main:not([data-workspace="stocks"]) .stocks-only,main[data-workspace="stocks"] .
 .warehouse-stocks{padding:24px}.warehouse-stocks small{display:block;color:#788078}.warehouse-stocks #stock-status{white-space:pre-line}.warehouse-stocks #stock-updated{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}.warehouse-stocks .sales-form-grid label:first-child{grid-column:auto}.warehouse-stocks h2{margin-top:0}
 
 .marketplace-tabs[hidden]{display:none!important}
+
+.attribute-measurements[hidden]{display:none!important}
