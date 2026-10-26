@@ -260,3 +260,7 @@ main[data-workspace="stocks"]{max-width:none;padding-left:24px;padding-right:20p
 @media(max-width:550px){.print-model-toolbar{grid-template-columns:1fr}.print-model-toolbar>label:first-child{grid-column:auto}.product-files .packaging-group{padding:14px}.product-files .attachment-list li>span{flex-basis:100%}}
 
 .sidebar .workspace-nav .nav{display:grid;grid-template-columns:20px minmax(0,1fr) 7px;align-items:center;column-gap:12px;min-height:44px;line-height:1.35}.sidebar .workspace-nav .nav>.nav-icon{display:flex;align-items:center;justify-content:center;width:20px;height:20px;font-size:0;line-height:1}.sidebar .workspace-nav .nav-icon svg{display:block;width:19px;height:19px;flex:none}.sidebar .workspace-nav .nav>span:not(.nav-icon){font-size:13px;line-height:1.35;min-width:0;text-align:left}.sidebar .workspace-nav .nav.active::after{grid-column:3;align-self:center;justify-self:center;margin:0}
+
+.stock-addition{border-top:1px solid #dfe6d7;padding-top:10px;margin-top:10px}.stock-addition label{font-size:11px}.stock-addition input{height:36px;padding:8px;width:100%;font-size:12px;margin-top:5px}.stock-addition button{font-size:11px;min-height:34px;padding:7px 9px;margin:8px 5px 0 0;white-space:normal}.stock-addition small,.stock-addition p{font-size:10px;line-height:1.5;margin-top:6px}.stock-addition-preview{color:#6d805c}.stock-add-refresh-hint{color:#93836b;margin-top:8px}.stock-warehouse-details .stock-addition label{display:block}
+
+.stock-side-by-side .stock-product-cell{vertical-align:top}

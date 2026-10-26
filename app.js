@@ -1,16 +1,16 @@
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.128';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.128';
-import {mountFilamentStock} from './filament-stock.js?v=0.2.128';
-import {mountSales} from './sales.js?v=0.2.128';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.128';
-import {actionIcon} from './listing-fields.js?v=0.2.128';
-import {installNumberControls} from './number-controls.js?v=0.2.128';
-const APP_VERSION='0.2.128';
-import {disposeListingEditor} from './listing-editor.js?v=0.2.128';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.128';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.128';
-import {assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.128';
-import {productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.128';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.130';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.130';
+import {mountFilamentStock} from './filament-stock.js?v=0.2.130';
+import {mountSales} from './sales.js?v=0.2.130';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.130';
+import {actionIcon} from './listing-fields.js?v=0.2.130';
+import {installNumberControls} from './number-controls.js?v=0.2.130';
+const APP_VERSION='0.2.130';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.130';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.130';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.130';
+import {assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.130';
+import {productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.130';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
@@ -18,7 +18,7 @@ try{config=JSON.parse(localStorage.getItem(CONFIG)||'{}');db=validateDB(JSON.par
 db.templates??=[];db.sales??=[];db.filamentStock??=[];selected=db.products[0].id;
 function product(){return db.products.find(p=>p.id===selected)||db.products[0];}
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('visible');setTimeout(()=>$('#toast').classList.remove('visible'),5000);}
-function save(){if(recoveryRaw){toast('Сохранение заблокировано: сначала скачайте повреждённую базу через «Экспорт базы», затем загрузите исправную копию.');return;}db.revision++;db.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(db));saveError=false;$('#saved').textContent='Сохранено на устройстве · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}catch{saveError=true;$('#saved').textContent='Ошибка сохранения! Скачайте копию';toast('Не удалось сохранить данные: скачайте резервную копию.');}}
+function save(){if(recoveryRaw){toast('Сохранение заблокировано: сначала скачайте повреждённую базу через «Экспорт базы», затем загрузите исправную копию.');return false;}db.revision++;db.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(db));saveError=false;$('#saved').textContent='Сохранено на устройстве · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});return true;}catch{saveError=true;$('#saved').textContent='Ошибка сохранения! Скачайте копию';toast('Не удалось сохранить данные: скачайте резервную копию.');return false;}}
 function backup(){try{localStorage.setItem(KEY+'-backup',localStorage.getItem(KEY)||JSON.stringify(db));}catch{throw Error('Не удалось создать резервную копию. Сначала скачайте текущую базу.');}}
 function download(data,name){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function exportDB(){if(recoveryRaw){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([recoveryRaw],{type:'application/json'}));a.download='workshop-recovery.json';a.click();return;}download(db,'workshop-'+new Date().toISOString().slice(0,10)+'.json');}
