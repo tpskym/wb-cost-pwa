@@ -1,5 +1,5 @@
-import {makeZip,safeFilename} from './attachments.js?v=0.2.123';
-import {listBody} from './marketplace-api.js?v=0.2.123';
+import {makeZip,safeFilename} from './attachments.js?v=0.2.124';
+import {listBody} from './marketplace-api.js?v=0.2.124';
 const array=value=>Array.isArray(value)?value:value?[value]:[];
 function publicURL(value){try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&!/^(localhost|127\.|10\.|192\.168\.|169\.254\.|\[?::1\]?)/i.test(url.hostname)?url.href:null;}catch{return null;}}
 export function richContentImages(value){
