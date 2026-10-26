@@ -240,3 +240,9 @@ main[data-workspace="stocks"] .warehouse-stocks,main[data-workspace="sales"] .ma
 .table-product-copy>small,.stock-data-table .stock-scheme{display:block}.table-product-copy>small{margin-top:4px;line-height:1.45}
 
 .stock-number .stock-replenish-note{display:block;white-space:nowrap;margin-top:7px;padding:4px 6px;border-radius:6px;background:#fff0cb;color:#805b1d;font-size:10px;font-weight:650;line-height:1.4}
+
+/* Use the full workspace width for stocks; keep the summary at the right edge. */
+main[data-workspace="stocks"]{max-width:none;padding-left:24px;padding-right:20px}.warehouse-stocks .table-browser{grid-template-columns:200px minmax(0,1fr) 300px;gap:16px}.warehouse-stocks .restock-panel{padding:14px}
+@media(min-width:1600px){.warehouse-stocks .table-browser{grid-template-columns:200px minmax(0,1fr) 320px}}
+@media(max-width:1200px) and (min-width:851px){.warehouse-stocks .table-browser{grid-template-columns:180px minmax(0,1fr)}.warehouse-stocks .restock-panel{grid-column:2}}
+@media(max-width:850px){main[data-workspace="stocks"]{padding-left:15px;padding-right:15px}.warehouse-stocks .table-browser{grid-template-columns:1fr}.warehouse-stocks .restock-panel{grid-column:auto}}
