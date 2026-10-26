@@ -227,3 +227,5 @@ main[data-workspace="stocks"] .warehouse-stocks,main[data-workspace="sales"] .ma
 .stock-targets-visible .stock-product-cell{position:sticky;left:0;z-index:1;background:#fff}.stock-targets-visible thead th:first-child{left:0;z-index:3}
 
 .stock-platform-heading .stock-copy-targets{float:right;margin-left:14px;padding:7px 11px;font-size:11px;white-space:normal}.stock-platform-heading .stock-copy-targets:hover{background:#dfead2}
+
+.stock-summary-table .restock-needed{background:#fff5df}.stock-summary-table .restock-needed th{border-left:3px solid #d4a143;padding-left:9px}.stock-summary-table .restock-needed-quantity{display:inline-block;padding:5px 7px;border-radius:7px;background:#f2d792;color:#5d4114;font-weight:800;white-space:nowrap}.stock-summary-table .restock-needed th>strong{color:#59451f}
