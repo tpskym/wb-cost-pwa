@@ -1,16 +1,16 @@
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.114';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.114';
-import {mountFilamentStock} from './filament-stock.js?v=0.2.114';
-import {mountSales} from './sales.js?v=0.2.114';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.114';
-import {actionIcon} from './listing-fields.js?v=0.2.114';
-import {installNumberControls} from './number-controls.js?v=0.2.114';
-const APP_VERSION='0.2.114';
-import {disposeListingEditor} from './listing-editor.js?v=0.2.114';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.114';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.114';
-import {listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.114';
-import {productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.114';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.115';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.115';
+import {mountFilamentStock} from './filament-stock.js?v=0.2.115';
+import {mountSales} from './sales.js?v=0.2.115';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.115';
+import {actionIcon} from './listing-fields.js?v=0.2.115';
+import {installNumberControls} from './number-controls.js?v=0.2.115';
+const APP_VERSION='0.2.115';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.115';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.115';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.115';
+import {listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.115';
+import {productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.115';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
@@ -59,7 +59,7 @@ function productList(p){
  const query=productQuery.trim().toLocaleLowerCase('ru'),matches=db.products.filter(q=>[q.name,q.sku,q.productGroup,q.variantNote,q.colorCode].filter(Boolean).join(' ').toLocaleLowerCase('ru').includes(query));
  const pages=Math.max(1,Math.ceil(matches.length/productPageSize));productPage=Math.min(productPage,pages-1);
  const visible=matches.slice(productPage*productPageSize,(productPage+1)*productPageSize),names=[...new Set(visible.map(q=>q.productGroup||''))];
- return `<div class="product-list-count">${matches.length?'Показано '+(productPage*productPageSize+1)+'–'+(productPage*productPageSize+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<button class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc([q.name,q.variantNote,q.colorCode,q.sku].filter(Boolean).join(' · '))}" ${q.id===p.id?'aria-current="true"':''}><span><span class="product-name">${esc(q.name)}</span>${q.variantNote||q.colorCode?`<small>${esc([q.variantNote,q.colorCode].filter(Boolean).join(' · '))}</small>`:''}<small>${esc(q.sku||'Без артикула')}</small></span></button>`).join('')}</details>`).join('')+`<div class="product-pagination" ${pages===1?'hidden':''}><button data-product-page="-1" ${productPage===0?'disabled':''} aria-label="Предыдущие товары">←</button><span>${productPage+1} / ${pages}</span><button data-product-page="1" ${productPage===pages-1?'disabled':''} aria-label="Следующие товары">→</button></div>`;
+ return `<div class="product-list-count">${matches.length?'Показано '+(productPage*productPageSize+1)+'–'+(productPage*productPageSize+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<button class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc([q.sku,q.name,q.variantNote,q.colorCode].filter(Boolean).join(' · '))}" ${q.id===p.id?'aria-current="true"':''}><span class="product-label"><strong class="product-sku">${esc(q.sku||'Без артикула')}</strong><small class="product-name">${esc(q.name)}</small>${q.variantNote||q.colorCode?`<small>${esc([q.variantNote,q.colorCode].filter(Boolean).join(' · '))}</small>`:''}</span></button>`).join('')}</details>`).join('')+`<div class="product-pagination" ${pages===1?'hidden':''}><button data-product-page="-1" ${productPage===0?'disabled':''} aria-label="Предыдущие товары">←</button><span>${productPage+1} / ${pages}</span><button data-product-page="1" ${productPage===pages-1?'disabled':''} aria-label="Следующие товары">→</button></div>`;
 }
 function bindProductList(){
  const list=$('#product-list');
