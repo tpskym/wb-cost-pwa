@@ -1,6 +1,6 @@
-import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.126';
-import {blankProduct} from './calc.js?v=0.2.126';
-import {marketRequest,readAllWBCards,listBody,redact} from './marketplace-api.js?v=0.2.126';
+import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.128';
+import {blankProduct} from './calc.js?v=0.2.128';
+import {marketRequest,readAllWBCards,listBody,redact} from './marketplace-api.js?v=0.2.128';
 const schemes={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'},num=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rowLabel=n=>n%100>=11&&n%100<=14?'строк':n%10===1?'строка':n%10>=2&&n%10<=4?'строки':'строк';
