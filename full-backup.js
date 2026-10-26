@@ -1,5 +1,5 @@
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.125';
-import {validateDB} from './calc.js?v=0.2.125';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.126';
+import {validateDB} from './calc.js?v=0.2.126';
 const categories=['model','source-wb','source-ozon','source','ready'];
 export async function createFullBackup(database,records){
  const db=validateDB(structuredClone(database)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
@@ -26,6 +26,7 @@ export function stageFullRestore(parsed){
  const database=structuredClone(parsed.database);database.id=crypto.randomUUID();
  const references=new Map();
  const records=parsed.files.map(f=>{const id=crypto.randomUUID();if(f.fileId)references.set(f.productId+':'+f.fileId,id);return {id,owner:database.id+':'+f.productId,name:f.name,category:f.category,createdAt:f.createdAt,blob:f.blob};});
+ for(const product of database.products){const ref=product.printModel;if(ref){const id=references.get(ref.ownerId+':'+ref.fileId);if(id)product.printModel={...ref,fileId:id};else delete product.printModel;}}
  for(const product of database.products)for(const draft of Object.values(product.listingDrafts||{}))for(const photo of draft.photos||[]){const id=references.get(product.id+':'+photo.fileId);if(photo.kind==='local'&&id)photo.fileId=id;}
 
  return {database,records};
