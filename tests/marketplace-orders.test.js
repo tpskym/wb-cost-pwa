@@ -1,0 +1,37 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {orderRequest,orderPeriod,normalizeWBFbs,normalizeWBReports,normalizeOzonPostings,loadOrderSource,mountMarketplaceOrders} from '../marketplace-orders.js';
+import {blankProduct,validateDB} from '../calc.js';
+import {createFullBackup,parseFullBackup} from '../full-backup.js';
+const from=new Date(Date.now()-5*86400000).toISOString().slice(0,10),to=new Date().toISOString().slice(0,10),period=()=>orderPeriod(from,to),date=()=>new Date(Date.now()-86400000).toISOString();
+const posting=(status='delivered')=>({posting_number:'123-1',status,substatus:'posting_received',created_at:date(),products:[{offer_id:'AW',sku:44,name:'Подставка',quantity:2,price:{amount:'395.50',currency:'RUB'},is_marketplace_buyout:false}]});
+test('orders network has a closed read-only allowlist and uses current Ozon APIs',async()=>{
+ const credentials={wbToken:'wb-test',ozonKey:'oz-test',ozonClient:'client'};let calls=0;
+ for(const [op,path] of [['ozonFbs','/v4/posting/fbs/list'],['ozonFbo','/v3/posting/fbo/list'],['wbStatuses','/api/v3/orders/status'],['wbOrders','/api/v3/orders']])await orderRequest(op,credentials,{limit:100},async(url,options)=>{calls++;assert.equal(new URL(url).pathname,path);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');assert.ok(['GET','POST'].includes(options.method));return Response.json({});});
+ await assert.rejects(()=>orderRequest('cancel',credentials,{},()=>{calls++;}),/Недопустимая/);assert.equal(calls,4);await assert.rejects(()=>orderRequest('ozonFbs',{},{}),/Ключи/);
+});
+test('Ozon preserves quantity object prices received and marketplace buyout as separate fields',()=>{
+ const row=normalizeOzonPostings([posting()],'ozon-fbo')[0];assert.equal(row.price,395.5);assert.equal(row.quantity,2);assert.equal(row.status,'Доставлен');assert.equal(row.substatus,'Получен в ПВЗ');assert.equal(row.buyoutByMarketplace,false);assert.equal(row.rawStatus,'delivered / posting_received');assert.equal('payout' in row,false);assert.equal(normalizeOzonPostings([posting('new_status')],'ozon-fbo')[0].status,'Неизвестный статус: new_status');
+});
+test('WB assembly statuses do not infer delivery from missing status and prices are converted from kopecks',()=>{
+ const rows=normalizeWBFbs([{id:1,price:39500,currencyCode:643},{id:2,price:100,currencyCode:643},{id:3,price:200,currencyCode:643}],[{id:1,supplierStatus:'confirm',wbStatus:'waiting'},{id:2,supplierStatus:'complete',wbStatus:'sold'}]);assert.equal(rows[0].price,395);assert.match(rows[0].status,/ожидает отгрузки/);assert.match(rows[1].status,/выкуплен/);assert.equal(rows[2].status,'Статус не получен');
+});
+test('WB report merges purchases returns and orders once and excludes seller-warehouse duplicates',()=>{
+ const orders=[{srid:'a',supplierArticle:'AW',date:date(),finishedPrice:395,warehouseType:'Склад WB'},{srid:'b',date:date(),warehouseType:'Склад продавца'}],sales=[{srid:'a',saleID:'S1',date:'2026-10-25T10:00:00'},{srid:'a',saleID:'R1',date:'2026-10-26T10:00:00'}];const rows=normalizeWBReports(orders,sales);assert.equal(rows.length,1);assert.equal(rows[0].status,'Возврат');assert.equal(rows[0].orderedAt,orders[0].date);assert.equal('payout' in rows[0],false);
+});
+test('new Ozon cursor pagination deduplicates products and rejects repeated cursors',async()=>{
+ let calls=0;const rows=await loadOrderSource('ozon-fbs',period(),async(op,body)=>{assert.equal(op,'ozonFbs');assert.equal(body.limit,100);assert.deepEqual(body.with,{analytics_data:false,financial_data:false});calls++;return {postings:[posting()],cursor:'page-2',has_next:calls===1};},()=>{},async()=>{});assert.equal(rows.length,1);assert.equal(calls,2);await assert.rejects(()=>loadOrderSource('ozon-fbs',period(),async()=>({postings:[posting()],cursor:'same',has_next:true}),()=>{},async()=>{}),/курсор/);
+});
+test('WB FBS loads all pages and reads statuses in batches without writes',async()=>{
+ const calls=[],rows=await loadOrderSource('wb-fbs',period(),async(op,body)=>{calls.push(op);if(op==='wbOrders')return body.next===0?{next:2,orders:[{id:9,article:'AW',createdAt:date(),price:39500,currencyCode:643}]}:{next:0,orders:[]};assert.deepEqual(body.orders,[9]);return {orders:[{id:9,supplierStatus:'confirm',wbStatus:'waiting'}]};},()=>{},async()=>{});assert.deepEqual(calls,['wbOrders','wbOrders','wbStatuses']);assert.equal(rows.length,1);
+});
+test('order snapshots migrate validate and round-trip in the full archive',async()=>{
+ const db=validateDB({schema:1,id:'db',products:[blankProduct()]});assert.deepEqual(db.orderSnapshots,[]);db.orderSnapshots=[{source:'ozon-fbo',from,to,updatedAt:date(),rows:normalizeOzonPostings([posting()],'ozon-fbo')}];validateDB(db);const zip=await createFullBackup(db,[]),parsed=await parseFullBackup(zip.blob||zip);assert.deepEqual(parsed.database.orderSnapshots,db.orderSnapshots);assert.throws(()=>validateDB({...db,orderSnapshots:[{...db.orderSnapshots[0],rows:[{...db.orderSnapshots[0].rows[0],price:NaN}]}]}),/строка заказа/);
+});
+test('failed refresh retains the previous snapshot and never adds manual sales or renders executable markup',async()=>{
+ const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root'),db={products:[],sales:[],orderSnapshots:[{source:'ozon-fbo',from,to,updatedAt:date(),rows:normalizeOzonPostings([{...posting(),products:[{...posting().products[0],name:'<script>alert(1)</script>'}]}],'ozon-fbo')}]};let saves=0;mountMarketplaceOrders({root,database:db,save:()=>saves++,requester:async()=>{throw Error('HTTP 403');}});const source=root.querySelector('#orders-source');source.value='ozon-fbo';source.oninput();await root.querySelector('#orders-refresh').onclick();assert.equal(db.orderSnapshots[0].rows.length,1);assert.equal(db.sales.length,0);assert.equal(saves,0);assert.match(root.querySelector('#orders-progress').textContent,/403/);assert.equal(root.querySelector('script'),null);assert.equal(root.querySelectorAll('tbody input').length,0);
+});
+test('all four schemes refresh independently and retain manual sales',async()=>{
+ const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root'),database={products:[],sales:[{id:'manual'}],orderSnapshots:[]};let saves=0,opened=false;mountMarketplaceOrders({root,database,save:()=>saves++,onOpenApi:()=>opened=true,requester:async op=>op==='wbOrders'?{orders:[],next:0}:op.startsWith('wbReport')?[]:{postings:[posting()],has_next:false,cursor:''}});await root.querySelector('#orders-refresh').onclick();assert.equal(database.orderSnapshots.length,4);assert.equal(saves,4);assert.deepEqual(database.sales,[{id:'manual'}]);assert.equal(root.querySelectorAll('tbody tr').length,2);root.querySelector('#orders-open-keys').click();assert.equal(opened,true);
+});

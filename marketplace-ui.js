@@ -1,16 +1,18 @@
-import {renderRemoteMediaLinks,addManualRichImages,loadRemoteMedia,buildRemoteMediaArchive} from './remote-media.js?v=0.2.102';
-import {readOzonPrice} from './price-editor.js?v=0.2.102';
-import {readWBPrice} from './wb-prices.js?v=0.2.102';
-import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.102';
-import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.102';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.102';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.102';
-import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.102';
+import {renderRemoteMediaLinks,addManualRichImages,loadRemoteMedia,buildRemoteMediaArchive} from './remote-media.js?v=0.2.103';
+import {readOzonPrice} from './price-editor.js?v=0.2.103';
+import {readWBPrice} from './wb-prices.js?v=0.2.103';
+import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.103';
+import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.103';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.103';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.103';
+import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.103';
 const sharedEditSelections=new Map();
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb',selectedTab='cards';
 try{const saved=JSON.parse(localStorage.getItem(CREDENTIALS)||'null');if(saved){for(const k of Object.keys(credentials))if(typeof saved[k]==='string')credentials[k]=saved[k];remember=true;}}catch{}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function activateMarketplaceSettings(){selectedTab='settings';}
+export function getMarketplaceCredentials(){return {...credentials};}
 function storeKeys(){if(remember)localStorage.setItem(CREDENTIALS,JSON.stringify(credentials));else localStorage.removeItem(CREDENTIALS);}
 export function mountMarketplaceUI({container,product:p,owner,save,toast,lookupCost=()=>[],openCost=()=>{},initialMarket=null,lookupListing=()=>null,openListing=()=>{},autoOpenSku='',listingSources=()=>[],onCardLoaded=()=>false,listingProducts=()=>[]}){
  if(['wb','ozon'].includes(initialMarket)){selectedMarket=initialMarket;selectedTab='cards';}
