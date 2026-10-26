@@ -1,4 +1,4 @@
-import {listingItem,categoryOf} from './listing-fields.js?v=0.2.110';
+import {listingItem,categoryOf} from './listing-fields.js?v=0.2.111';
 export function descriptionLength(market,draft,def={}){
  const explicit=Number(def.maxLength);if(Number.isSafeInteger(explicit)&&explicit>0)return {limit:explicit,source:'Лимит из API поля'};
  const match=String(def.description||'').match(/(?:до|не более|максимум)\s*(\d[\d\s]*)\s*(?:символ|знак)/i);if(match)return {limit:Number(match[1].replace(/\s/g,'')),source:'Лимит из описания поля API'};
