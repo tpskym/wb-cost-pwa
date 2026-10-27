@@ -26,8 +26,17 @@ test('stale reminder is prominent above the main table and clears after a succes
  const stamp='2026-10-26T09:00:00Z',now=Date.parse(stamp),root=new JSDOM('<aside>'+renderFreshness(stamp,now)+'</aside><div class="table-results"><div id="'+id+'"></div></div>').window.document;
  updateFreshness(root,now+21*60*1000);
  const alert=root.querySelector('.table-results').firstElementChild;
- assert.equal(alert.textContent,label+' · Пора обновить');assert.equal(alert.hidden,false);
+ assert.equal(alert.querySelector('.freshness-alert-title').textContent,label+' · Пора обновить');assert.equal(alert.hidden,false);
  updateFreshness(root,now);assert.equal(alert.hidden,true);
  assert.equal(root.querySelectorAll('.table-freshness-alert').length,1);
+ }
+});
+
+test('banner refresh uses the existing action in both sections and prevents repeat requests',async()=>{
+ for(const id of ['stock','orders']){
+ const doc=new JSDOM('<button id="'+id+'-refresh">Основная кнопка</button>'+renderFreshness('2026-10-26T09:00:00Z')+'<div class="table-results"><div id="'+id+'-table"></div></div>').window.document;
+ updateFreshness(doc);const primary=doc.querySelector('#'+id+'-refresh'),button=doc.querySelector('.freshness-refresh');let calls=0,finish;primary.onclick=async()=>{calls++;primary.disabled=true;await new Promise(resolve=>finish=resolve);primary.disabled=false;};
+ const pending=button.onclick();assert.equal(calls,1);assert.equal(button.disabled,true);await button.onclick();assert.equal(calls,1);finish();await pending;assert.equal(button.disabled,false);assert.equal(button.textContent,'Обновить');assert.equal(primary.textContent,'Основная кнопка');assert.equal(primary.isConnected,true);
+ primary.disabled=true;await button.onclick();assert.equal(calls,1);
  }
 });
