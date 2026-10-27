@@ -1,5 +1,5 @@
-import {listingItem,confirmAction} from './listing-fields.js?v=0.2.140';
-import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.140';
+import {listingItem,confirmAction} from './listing-fields.js?v=0.2.141';
+import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.141';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const roundPrice=value=>Math.round((value+Number.EPSILON)*100)/100;
 export function discountPercent(base,net){return base>0&&Number.isFinite(net)?roundPrice((1-net/base)*100):null;}
