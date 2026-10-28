@@ -24,11 +24,11 @@ export function updateFreshness(root,now=Date.now()){
    alert=(root.ownerDocument||root).createElement('div');alert.className='table-freshness-alert';alert.setAttribute('role','status');
    const text=(root.ownerDocument||root).createElement('span'),button=(root.ownerDocument||root).createElement('button');
    text.className='freshness-alert-title';button.type='button';button.className='freshness-refresh';button.textContent='Обновить';
-   button.onclick=async()=>{const primary=root.querySelector('#stock-refresh, #orders-refresh');if(!primary||primary.disabled||button.disabled)return;button.disabled=true;button.textContent='Обновление…';try{await primary.onclick?.();}finally{button.disabled=!!primary.disabled;button.textContent='Обновить';}};
+   button.onclick=async()=>{const primary=root.querySelector('#stock-refresh, #orders-refresh, #prices-refresh');if(!primary||primary.disabled||button.disabled)return;button.disabled=true;button.textContent='Обновление…';try{await primary.onclick?.();}finally{button.disabled=!!primary.disabled;button.textContent='Обновить';}};
    alert.append(text,button);results.prepend(alert);
   }
   const stale=!!root.querySelector('[data-freshness-state="stale"]');
-  alert.querySelector('.freshness-alert-title').textContent=(root.querySelector('#stock-table')?'Остатки WB / Ozon':'Продажи')+' · Пора обновить';
+  alert.querySelector('.freshness-alert-title').textContent=(root.querySelector('#stock-table')?'Остатки WB / Ozon':root.querySelector('#prices-rows')?'Цены WB / Ozon':'Продажи')+' · Пора обновить';
   alert.hidden=!stale;
  }
 }

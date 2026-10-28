@@ -1,10 +1,10 @@
-import {listingItem,confirmAction} from './listing-fields.js?v=0.2.142';
-import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.142';
+import {listingItem,confirmAction} from './listing-fields.js?v=0.2.143';
+import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.143';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const roundPrice=value=>Math.round((value+Number.EPSILON)*100)/100;
 export function discountPercent(base,net){return base>0&&Number.isFinite(net)?roundPrice((1-net/base)*100):null;}
 export function discountedPrice(base,percent){return Number.isFinite(base)&&Number.isFinite(percent)?roundPrice(base*(1-percent/100)):null;}
-export async function readOzonPrice(request,offer){const response=await request('prices',{filter:{offer_id:[offer],visibility:'ALL'},limit:100,cursor:''});const item=response.items?.find(item=>item.offer_id===offer);if(!item?.price)throw Error('Ozon не вернул подробные цены для этого артикула');return item.price;}
+export async function readOzonPrice(request,offer){const response=await request('prices',{filter:{offer_id:[offer],visibility:'ALL'},limit:100,cursor:''});const item=(response.items||response.result?.items)?.find(item=>item.offer_id===offer);if(!item?.price)throw Error('Ozon не вернул подробные цены для этого артикула');return item.price;}
 export function ozonPriceBody(item,base,price,min){if(!(Number.isFinite(price)&&price>0))throw Error('Укажите цену Ozon больше нуля');if(!Number.isFinite(base)||base<0||base>0&&base<=price)throw Error('Цена до скидки должна быть выше текущей цены; 0 — без зачёркнутой цены');if(!Number.isFinite(min)||min<0||min>price)throw Error('Минимальная цена должна быть от 0 до текущей цены');return {prices:[{offer_id:item.offer_id,price:price.toFixed(2),old_price:base.toFixed(2),min_price:min.toFixed(2),currency_code:item.currency_code||'RUB'}]};}
 export function mountPriceEditor({root,market,draft:d,save,request,run,report,isAlive=()=>true}){
  const doc=root.ownerDocument,$=selector=>root.querySelector(selector),wb=market==='wb';const item=listingItem(market,d).item;
