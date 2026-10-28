@@ -1,5 +1,5 @@
-import {confirmAction} from './listing-fields.js?v=0.2.146';
-import {marketRequest,redact,readAllWBCards,listBody} from './marketplace-api.js?v=0.2.146';
+import {confirmAction} from './listing-fields.js?v=0.2.147';
+import {marketRequest,redact,readAllWBCards,listBody} from './marketplace-api.js?v=0.2.147';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const additionKey=target=>[target.market,target.sku,target.warehouseId,target.chrtId||''].join(':');
 export const pendingAddition=(records,target)=>[...records].reverse().find(r=>additionKey(r.target)===additionKey(target)&&['sending','accepted','unknown'].includes(r.status));
