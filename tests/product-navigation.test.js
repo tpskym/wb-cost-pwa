@@ -15,7 +15,7 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.145');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.146');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -60,3 +60,4 @@ test('form variant number is copied while barcode is cleared and label prompt us
 test('sidebar switches preserve page position and invoke selection only once',()=>{
  const previousScroll=window.scrollTo;Object.defineProperty(window,'scrollY',{configurable:true,value:540});const calls=[];window.scrollTo=options=>calls.push(options);const list=document.querySelector('#product-list');list.scrollTop=200;list.querySelectorAll('[data-product]')[2].click();assert.equal(calls.length,1);assert.equal(calls[0].top,540);assert.equal(document.querySelector('#product-list').scrollTop,200);window.scrollTo=previousScroll;
 });
+test('activating another product keeps the scrolled catalogue and loaded thumbnails in the DOM',()=>{const catalogue=document.querySelector('.product-catalogue'),list=document.querySelector('#product-list'),buttons=[...list.querySelectorAll('[data-product]')],target=buttons.find(b=>!b.classList.contains('chosen')),image=buttons[0].querySelector('[data-product-image]');list.scrollTop=730;target.click();assert.equal(document.querySelector('.product-catalogue'),catalogue);assert.equal(document.querySelector('#product-list'),list);assert.equal(list.scrollTop,730);assert.equal(buttons[0].querySelector('[data-product-image]'),image);assert.equal(target.classList.contains('chosen'),true);assert.equal(target.getAttribute('aria-current'),'true');assert.equal(document.querySelectorAll('[data-product][aria-current="true"]').length,1);assert.equal(document.querySelector('#sku').value,target.querySelector('.product-sku').textContent);});
