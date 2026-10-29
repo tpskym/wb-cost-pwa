@@ -1,4 +1,4 @@
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.150';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.151';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -104,6 +104,7 @@ export function validateDB(x){
  for(const key of ['wb','ozon']){const m=p.marketplaces[key];if(!m||['price','payout','tax'].some(k=>m[k]!==null&&!(typeof m[k]==='number'&&Number.isFinite(m[k])&&m[k]>=0)))throw Error('Некорректные суммы маркетплейса');}
  if(!('colorCode' in p))p.colorCode='';
  if(typeof p.colorCode!=='string')throw Error('Некорректный код цвета');
+ if(p.filamentSlots===undefined)p.filamentSlots=[{filamentId:'',code:p.colorCode,material:'',colorName:'',originalColorName:''},...Array.from({length:2},()=>({filamentId:'',code:'',material:'',colorName:'',originalColorName:''}))];if(!Array.isArray(p.filamentSlots)||p.filamentSlots.length!==3||p.filamentSlots.some(slot=>!slot||!['filamentId','code','material','colorName','originalColorName'].every(k=>typeof slot[k]==='string'&&slot[k].length<=500)))throw Error('Некорректные цвета материала');
  if(!('shippingMode' in p))p.shippingMode='rubles';
  if(!['rubles','percent','wb-total'].includes(p.shippingMode))throw Error('Некорректный режим доставки');
  if(!('wbDelivery' in p.values))p.values.wbDelivery=null;
