@@ -64,3 +64,13 @@ ${labelProductData(p,stock)}`).join('\n\n')}
 
 Не придумывай отсутствующие значения: сначала уточни их. Выдай ZIP со всеми этикетками. На самих этикетках не печатай номера блоков, задания и пояснения.`;
 }
+
+export function previewProductLabel(label,{document:doc=globalThis.document,onClose=()=>{}}={}){
+ if(!label?.data?.startsWith('data:application/pdf;base64,'))throw Error('Сначала загрузите PDF этикетки этого товара');
+ const bytes=Uint8Array.from(atob(label.data.split(',')[1]),c=>c.charCodeAt(0));
+ const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+ const dialog=doc.createElement('dialog');dialog.className='label-preview-dialog';dialog.setAttribute('aria-label','Предпросмотр этикетки');
+ const head=doc.createElement('div');head.className='modal-head';const title=doc.createElement('h2');title.textContent='Предпросмотр этикетки';const close=doc.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Закрыть предпросмотр');head.append(title,close);
+ const name=doc.createElement('p');name.textContent=label.name||'Этикетка.pdf';const frame=doc.createElement('iframe');frame.title='PDF этикетки';frame.src=url+'#view=Fit';const fallback=doc.createElement('a');fallback.href=url;fallback.target='_blank';fallback.rel='noopener';fallback.textContent='Открыть PDF в отдельной вкладке';dialog.append(head,name,frame,fallback);
+ close.onclick=()=>dialog.close();dialog.addEventListener('close',()=>{frame.remove();URL.revokeObjectURL(url);dialog.remove();onClose();},{once:true});doc.body.append(dialog);try{dialog.showModal();}catch(error){URL.revokeObjectURL(url);dialog.remove();throw error;}return dialog;
+}

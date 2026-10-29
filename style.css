@@ -315,3 +315,5 @@ main:not([data-workspace="prices"]) .prices-only,main[data-workspace="prices"] .
 .release-version-row{display:flex;align-items:center;gap:10px;margin-top:7px}.release-version-row .release-history-button{margin:0}
 
 .release-update-notice{position:sticky;top:0;z-index:30;background:#e4f1be;border:2px solid #8ca853;border-left-width:6px;box-shadow:0 4px 16px #2437321a;font-weight:600;min-height:62px}.release-update-notice>button:first-of-type{background:#314b2c;border-color:#314b2c;color:#fff}.release-version-row .release-history-button.has-unread-release{background:#ddebaf;color:#243b25;border-color:#ddebaf;font-weight:700}.release-version-row .release-history-button.has-unread-release::before{content:'●';margin-right:6px;color:#50722b}
+
+.label-preview-dialog{width:min(800px,95vw);max-height:90vh;padding:20px}.label-preview-dialog>p{font-size:12px;overflow-wrap:anywhere}.label-preview-dialog iframe{display:block;width:100%;height:62vh;border:1px solid #dce1d7;border-radius:8px;background:#f5f6f2;margin-bottom:12px}.label-preview-dialog>a{font-size:12px}
