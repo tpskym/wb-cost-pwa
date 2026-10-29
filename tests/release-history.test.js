@@ -1,0 +1,8 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {mountReleaseHistory,releases} from '../release-history.js';
+test('version notice persists until viewed, disappears after reading and returns for a new version',()=>{
+ const dom=new JSDOM('<button id="history">История</button><main></main>',{url:'https://example.com'});globalThis.document=dom.window.document;dom.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};dom.window.HTMLDialogElement.prototype.close=function(){this.onclose();};const root=document.querySelector('main'),button=document.querySelector('button'),storage=dom.window.localStorage,mount=version=>mountReleaseHistory({root,button,storage,version});mount('0.2.159');assert.ok(root.querySelector('[role="status"]'));root.querySelector('button').click();assert.equal(root.querySelector('[role="status"]'),null);assert.match(document.querySelector('dialog').textContent,/0.2.158/);document.querySelector('dialog button').click();mount('0.2.159');assert.equal(root.children.length,0);mount('0.2.160');assert.match(root.textContent,/0.2.160/);root.querySelector('[aria-label]').click();assert.equal(storage.getItem('workshop-release-seen'),'0.2.160');assert.equal(root.children.length,0);
+});
+test('release list has unique versions and newest first',()=>{assert.equal(releases[0][0],'0.2.159');assert.equal(new Set(releases.map(r=>r[0])).size,releases.length);});
