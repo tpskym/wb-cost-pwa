@@ -1,7 +1,7 @@
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.153';
-import {marketRequest} from './marketplace-api.js?v=0.2.153';
-import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.153';
-import {redact} from './marketplace-api.js?v=0.2.153';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.154';
+import {marketRequest} from './marketplace-api.js?v=0.2.154';
+import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.154';
+import {redact} from './marketplace-api.js?v=0.2.154';
 export const orderSources={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'};
 const routes={wbOrders:['wb','GET','https://marketplace-api.wildberries.ru/api/v3/orders','Маркетплейс'],wbStatuses:['wb','POST','https://marketplace-api.wildberries.ru/api/v3/orders/status','Маркетплейс'],wbReportOrders:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/orders','Статистика'],wbReportSales:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/sales','Статистика'],ozonFbs:['ozon','POST','https://api-seller.ozon.ru/v4/posting/fbs/list','Posting FBS read-only'],ozonFbo:['ozon','POST','https://api-seller.ozon.ru/v3/posting/fbo/list','Posting FBO']};
 const lastRequest=new Map();
