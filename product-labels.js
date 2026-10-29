@@ -31,7 +31,7 @@ export function openStockLabelDialog({database,sku,quantity=0,notify=()=>{},docu
 
 export function labelDesignPrompt(product,stock=[]){
  const colours=(product.filamentSlots||[]).map(slot=>stock.find(row=>row.id===slot.filamentId)?.colorName||slot.colorName||'').filter(Boolean);
- const colour=colours.length?colours.join(' / '):'не указан — уточнить у пользователя';
+ const colour=colours.length?colours.map(name=>name.trim().toLocaleLowerCase('ru-RU')).filter(Boolean).join('-'):'не указан — уточнить у пользователя';
  return `Создай готовую к печати этикетку товара в PDF. Размер страницы строго 58 × 40 мм (ширина × высота), горизонтальная ориентация, одна страница, масштаб 100%. Не добавляй поля печати за пределами этого размера.
 
 Макет: белый фон, только чёрный текст, без рамок, изображений, логотипов, штрихкода и QR-кода. Все строки выровнены по центру. Безопасные поля внутри страницы — не менее 2 мм. Используй шрифт без засечек с поддержкой кириллицы и встрой его в PDF.
