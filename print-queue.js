@@ -1,7 +1,7 @@
-import {blankProduct} from './calc.js?v=0.2.149';
-import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition} from './stock-additions.js?v=0.2.149';
+import {blankProduct} from './calc.js?v=0.2.150';
+import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition} from './stock-additions.js?v=0.2.150';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-import {enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.149';
+import {enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.150';
 const integer=(n)=>{if(!Number.isSafeInteger(n)||n<1||n>1000000)throw Error('Введите целое число от 1 до 1000000');return n;};
 export function openEnqueueDialog({database,sku='',quantity=1,market='',save,notify=()=>{},document:doc=globalThis.document}){
  const dialog=doc.createElement('dialog');dialog.className='print-queue-dialog';dialog.innerHTML='<form><div class="modal-head"><h2>Добавить в очередь печати</h2><button type="button" data-close aria-label="Закрыть">×</button></div><label>Конкретный вариант<select name="product"></select></label><label>Деталей для печати<input name="quantity" type="number" min="1" max="1000000" step="1" required></label><p class="queue-hint"></p><p data-status role="status"></p><button type="submit">Добавить в очередь</button></form>';
