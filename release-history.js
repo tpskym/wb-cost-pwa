@@ -1,5 +1,6 @@
 // Add a release here whenever the application version changes. Keep older entries unchanged.
 export const releases=[
+ ['0.2.161',['Заметная закреплённая плашка обновления и выделение кнопки «История» до просмотра изменений.']],
  ['0.2.160',['История дополнена прошлыми изменениями из чата и Git начиная с v0.2.84.']],
  ['0.2.159',['Кнопка «История» рядом с версией приложения.','Уведомление об обновлении со ссылкой на изменения.']],
  ['0.2.158',['Промпт для этикеток всей группы: отдельные PDF 58 × 40 мм в ZIP.']],
@@ -80,7 +81,7 @@ const SEEN='workshop-release-seen';
 export function mountReleaseHistory({root,button,version,storage=localStorage}){
  if(!root||!button)return;
  let seen;try{seen=storage.getItem(SEEN);}catch{}
- const acknowledge=()=>{try{storage.setItem(SEEN,version);}catch{}root.querySelector('.release-update-notice')?.remove();};
+ const acknowledge=()=>{try{storage.setItem(SEEN,version);}catch{}root.querySelector('.release-update-notice')?.remove();button.classList.remove('has-unread-release');button.textContent='История';button.removeAttribute('title');};
  const open=()=>{
   document.querySelector('.release-history-dialog')?.remove();
   const dialog=document.createElement('dialog');dialog.className='release-history-dialog';dialog.setAttribute('aria-label','История изменений');
@@ -90,5 +91,5 @@ export function mountReleaseHistory({root,button,version,storage=localStorage}){
   close.onclick=()=>dialog.close();dialog.onclose=()=>{dialog.remove();button.focus({preventScroll:true});};document.body.append(dialog);dialog.showModal();acknowledge();
  };
  button.onclick=open;
- if(seen!==version){const notice=document.createElement('div');notice.className='release-update-notice';notice.setAttribute('role','status');const text=document.createElement('span');text.textContent=`Приложение обновлено до v${version}. Можно посмотреть, что изменилось.`;const view=document.createElement('button');view.type='button';view.textContent='Посмотреть изменения';view.onclick=open;const dismiss=document.createElement('button');dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Скрыть уведомление об обновлении');dismiss.onclick=acknowledge;notice.append(text,view,dismiss);root.prepend(notice);}
+ if(seen!==version){button.classList.add('has-unread-release');button.textContent='История · новое';button.title='Приложение обновлено — посмотреть изменения';const notice=document.createElement('div');notice.className='release-update-notice';notice.setAttribute('role','status');const text=document.createElement('span');text.textContent=`Обновление установлено · v${version}. Посмотрите, что изменилось.`;const view=document.createElement('button');view.type='button';view.textContent='Посмотреть изменения';view.onclick=open;const dismiss=document.createElement('button');dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Скрыть уведомление об обновлении');dismiss.onclick=acknowledge;notice.append(text,view,dismiss);root.prepend(notice);}
 }
