@@ -394,3 +394,5 @@ main:not([data-workspace="prices"]) .prices-only,main[data-workspace="prices"] .
 .rolling-point-number{font:700 10px Arial,sans-serif;fill:#456a38}.rolling-value-badge{filter:drop-shadow(0 1px 2px #4b6b3e18)}.chart-wb-count text{font:700 11px Arial,sans-serif;fill:#76518c}.chart-wb-count{pointer-events:none}
 
 .orders-shared-statistics .orders-stats-note{font-size:11px;line-height:1.5;margin:9px 0 15px;color:#6a7564}
+
+.orders-line-number{font:700 10px Arial,sans-serif}.orders-line-badge{filter:drop-shadow(0 1px 2px #43577312)}
