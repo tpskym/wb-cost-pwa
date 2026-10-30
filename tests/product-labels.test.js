@@ -21,7 +21,7 @@ test('stock summary exposes the correct article label and suggested print count'
 test('stock label opens the exact article PDF directly without a quantity form or automatic printing',()=>{
  const dom=setup(),database={products:[{sku:'white',productGroup:'Watch',labelPdf:label},{sku:'black',productGroup:'Watch'}]},before=structuredClone(database);let message='';
  assert.equal(openStockLabelDialog({database,sku:'black',document:dom.window.document,notify:text=>{message=text;}}),null);assert.match(message,/PDF/);
- const dialog=openStockLabelDialog({database,sku:'white',quantity:4,document:dom.window.document});assert.ok(dialog.querySelector('iframe'));assert.equal(dialog.querySelector('input'),null);assert.equal(dialog.querySelector('form'),null);assert.equal(dialog.querySelector('p').textContent,'white.pdf');assert.deepEqual(database,before);dialog.querySelector('button').click();assert.equal(dom.window.document.querySelector('dialog'),null);
+ let opened='';assert.equal(openStockLabelDialog({database,sku:'white',quantity:4,document:dom.window.document,open:url=>{opened=url;return {};}}),null);assert.match(opened,/^blob:/);assert.equal(dom.window.document.querySelector('dialog'),null);assert.deepEqual(database,before);
 });
 test('opening the stored PDF does not invoke print on its initial load; popup blocking is reported',()=>{
  const create=URL.createObjectURL,revoke=URL.revokeObjectURL;let registered=0,printed=0,revoked=0,blob;

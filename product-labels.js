@@ -14,9 +14,9 @@ export function printProductLabel(label,{open=url=>window.open(url,'_blank'),not
  notify('Открыт PDF этикетки. Запустите печать из просмотрщика PDF после загрузки документа.');
  return preview;
 }
-export function openStockLabelDialog({database,sku,notify=()=>{},document:doc=globalThis.document}){
+export function openStockLabelDialog({database,sku,notify=()=>{},document:doc=globalThis.document,open=url=>doc.defaultView.open(url,'_blank')}){
  const product=database.products.find(p=>p.sku?.trim()===sku.trim());
- try{return previewProductLabel(product?.labelPdf,{document:doc});}catch(error){notify(error.message);return null;}
+ try{printProductLabel(product?.labelPdf,{open,notify});}catch(error){notify(error.message);}return null;
 }
 
 function labelProductData(product,stock=[]){
