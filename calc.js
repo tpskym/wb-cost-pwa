@@ -1,4 +1,4 @@
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.195';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.196';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -145,3 +145,5 @@ export function variantSkuForColor(sku,color){const key=String(color||'').trim()
 export function productLabelPrompt(p){return `${p.name||''}\nВариант ${p.variantNumber||''}. Цвет: ${p.variantNote||''}\n${p.sku||''}\n${p.barcode||''}`;}
 
 export function paginateProductGroups(products,pageSize=20){const groups=new Map();for(const product of products){const key=product.productGroup?.trim()?'group:'+product.productGroup:'product:'+product.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(product);}const pages=[];let page=[];for(const group of groups.values()){if(page.length&&page.length+group.length>pageSize){pages.push(page);page=[];}page.push(...group);if(page.length>=pageSize){pages.push(page);page=[];}}if(page.length)pages.push(page);return pages.length?pages:[[]];}
+
+export function catalogueProductBatches(products,size=20){const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'ru',{numeric:true,sensitivity:'base'});return paginateProductGroups([...products].sort((a,b)=>compare(a.productGroup||a.sku,b.productGroup||b.sku)||compare(a.sku,b.sku)||compare(a.id,b.id)),size);}

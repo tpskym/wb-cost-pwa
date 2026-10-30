@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {indexedDB} from 'fake-indexeddb';
 import {blankProduct} from '../calc.js';
-test('large sidebar catalogue pages twenty products and searches the whole collection',async()=>{
+test('large catalogue appends products on scroll, preserves rows, and searches the whole collection',async()=>{
  const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
  Object.assign(globalThis,{document:dom.window.document,window:dom.window,localStorage:dom.window.localStorage,location:dom.window.location,history:dom.window.history,indexedDB,confirm:()=>true});dom.window.scrollTo=()=>{};
  const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,productGroup:'Каталог '+Math.floor(i/5)}));
@@ -11,11 +11,11 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  await import('../app.js');
  const $=s=>document.querySelector(s);
  assert.equal(document.querySelectorAll('[data-product]').length,20);
- $('[data-product-page="1"]').click();assert.equal($('[data-product]').dataset.product,products[20].id);
+ assert.equal($('[data-product-page]'),null);const list=$('#product-list'),first=$('[data-product]');Object.defineProperty(list,'clientHeight',{configurable:true,value:400});Object.defineProperty(list,'scrollHeight',{configurable:true,value:1000});list.scrollTop=650;list.dispatchEvent(new dom.window.Event('scroll'));assert.equal(document.querySelectorAll('[data-product]').length,40);assert.equal($('[data-product]'),first);assert.equal(list.scrollTop,650);assert.equal(list.querySelectorAll('[data-product]')[20].dataset.product,products[20].id);
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.195');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.196');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;

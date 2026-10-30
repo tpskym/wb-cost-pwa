@@ -1,10 +1,10 @@
-import {mainPhoto,tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.195';
-import {listFiles} from './attachments.js?v=0.2.195';
-import {marketRequest,readAllWBCards,redact} from './marketplace-api.js?v=0.2.195';
-import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.195';
-import {readOzonPrice,ozonPriceBody,discountedPrice} from './price-editor.js?v=0.2.195';
-import {confirmAction} from './listing-fields.js?v=0.2.195';
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.195';
+import {mainPhoto,tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.196';
+import {listFiles} from './attachments.js?v=0.2.196';
+import {marketRequest,readAllWBCards,redact} from './marketplace-api.js?v=0.2.196';
+import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.196';
+import {readOzonPrice,ozonPriceBody,discountedPrice} from './price-editor.js?v=0.2.196';
+import {confirmAction} from './listing-fields.js?v=0.2.196';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.196';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>v===null||v===undefined?'—':new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(Number(v));
 const number=v=>v===null||v===undefined||v===''||!Number.isFinite(Number(v))?null:Number(v);
