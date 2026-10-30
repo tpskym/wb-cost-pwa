@@ -1,4 +1,4 @@
-import {marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.174';
+import {marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.175';
 const errorText=error=>typeof error==='string'?error:JSON.stringify(error);
 export async function loadWBCreationErrors(request){
  const batches=[],seen=new Set();let cursor={limit:100};
