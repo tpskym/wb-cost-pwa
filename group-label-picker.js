@@ -1,5 +1,5 @@
-import {listFiles} from './attachments.js?v=0.2.186';
-import {tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.186';
+import {listFiles} from './attachments.js?v=0.2.187';
+import {tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.187';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function openGroupLabelPicker({database,product,onGenerate,document:doc=globalThis.document,loadFiles=listFiles,onClose=()=>{}}){
  const members=product.productGroup?.trim()?database.products.filter(p=>p.productGroup===product.productGroup):[product],dialog=doc.createElement('dialog'),urls=[];dialog.className='group-label-picker';dialog.setAttribute('aria-labelledby','group-label-picker-title');
