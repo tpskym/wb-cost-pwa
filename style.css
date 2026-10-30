@@ -420,3 +420,5 @@ main:not([data-workspace="prices"]) .prices-only,main[data-workspace="prices"] .
 .queue-order-controls{display:flex;align-items:center;gap:8px;margin-top:12px}.queue-order-controls button{padding:7px 12px;font-size:13px;border-radius:10px;background:#f3f6ee;border-color:#d2dcc7;color:#40583c}.queue-order-controls button:hover:not(:disabled){background:#e3edda;border-color:#829d6e}.queue-order-controls button:disabled{opacity:.4}.queue-order-controls span{font-size:12px;color:#788273;font-variant-numeric:tabular-nums}
 
 .stock-queued-note{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;padding:8px 10px;margin:8px 0;background:#edf5e6;border:1px solid #d1e1c2;border-radius:10px;color:#48663b}.stock-queued-note span{font-size:11px;opacity:.8}
+
+.stock-market-total .stock-replenish-note.queue-covered{background:#edf5e6;color:#48663b;border:1px solid #d1e1c2}.stock-summary-card.restock-needed.queue-covered{background:#f5f9f0;border-color:#d1e1c2;border-left-color:#91ac7d}.stock-summary-card.queue-covered .stock-card-destinations{color:#718167}
