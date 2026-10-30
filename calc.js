@@ -1,4 +1,4 @@
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.194';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.195';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -69,6 +69,8 @@ export function createTemplate(p,name){
 }
 export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,labelPdf:p.labelPdf,listingDrafts:p.listingDrafts,productGroup:p.productGroup,variantNote:p.variantNote,variantNumber:p.variantNumber,barcode:p.barcode,stockTargets:p.stockTargets,printModel:p.printModel,history:p.history};}
 export function validateDB(x){
+ if(x?.catalogueCards!==undefined){if(!x.catalogueCards||typeof x.catalogueCards!=='object'||Array.isArray(x.catalogueCards))throw Error('Некорректные сведения о карточках');for(const [market,snapshot] of Object.entries(x.catalogueCards))if(!['wb','ozon'].includes(market)||!snapshot||!Array.isArray(snapshot.skus)||snapshot.skus.some(sku=>typeof sku!=='string')||typeof snapshot.complete!=='boolean'||typeof snapshot.updatedAt!=='string')throw Error('Некорректный снимок карточек');}
+
  if(!x||x.schema!==1||typeof x.id!=='string'||!Array.isArray(x.products)||!x.products.length||x.products.length>1000)throw Error('Неверный формат базы или версия файла');
  validatePrintQueue(x);
  x.stockAdditions??=[];if(!Array.isArray(x.stockAdditions)||x.stockAdditions.length>100000)throw Error('Некорректный журнал пополнений');for(const r of x.stockAdditions)if(!r||typeof r.id!=='string'||typeof r.createdAt!=='string'||!['sending','accepted','confirmed','unknown','rejected','resolved'].includes(r.status)||!['before','quantity','after'].every(k=>Number.isSafeInteger(r[k])&&r[k]>=0&&r[k]<=1000000)||r.quantity<1||r.before+r.quantity!==r.after||!r.target||!['wb','ozon'].includes(r.target.market)||typeof r.target.sku!=='string'||typeof r.target.warehouse!=='string'||!Number.isSafeInteger(r.target.warehouseId)||r.target.warehouseId<=0||(r.target.market==='wb'&&(!Number.isSafeInteger(r.target.chrtId)||r.target.chrtId<=0)))throw Error('Повреждён журнал пополнения');

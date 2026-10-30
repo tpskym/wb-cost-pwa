@@ -15,7 +15,7 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.194');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.195');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -79,4 +79,7 @@ test('colour options follow the selected group and reset an unavailable selectio
  const coloured=db.products.find(p=>p.variantNote||p.colorCode);assert.ok(coloured);choose(coloured.productGroup||'__ungrouped__');$('#catalogue-colour-filter').value=coloured.variantNote||coloured.colorCode;$('#catalogue-colour-filter').dispatchEvent(new window.Event('change'));
  const other=groups.find(group=>!db.products.some(p=>(p.productGroup||'__ungrouped__')===group&&(p.variantNote||p.colorCode)===(coloured.variantNote||coloured.colorCode)));assert.ok(other);choose(other);assert.equal($('#catalogue-colour-filter').value,'');assert.ok(document.querySelectorAll('#product-list [data-product]').length>0);
  $('[data-catalogue-reset]').click();assert.ok([...$('#catalogue-colour-filter').options].some(o=>o.value===(coloured.variantNote||coloured.colorCode)));
+});
+test('catalogue displays four saved status badges without refreshing marketplaces',()=>{
+ const row=document.querySelector('#product-list [data-product]');assert.ok(row);assert.equal(row.querySelectorAll('.catalogue-status').length,4);assert.match(row.textContent,/WB/);assert.match(row.textContent,/Ozon/);assert.match(row.textContent,/Этикетка/);assert.match(row.textContent,/Модель/);assert.ok(document.querySelector('#catalogue-refresh'));assert.match(document.querySelector('#catalogue-refresh-status').textContent,/сохранённым/);
 });
