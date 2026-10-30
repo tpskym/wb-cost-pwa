@@ -10,23 +10,13 @@ export function printProductLabel(label,{open=url=>window.open(url,'_blank'),not
  const bytes=Uint8Array.from(atob(label.data.split(',')[1]),c=>c.charCodeAt(0));
  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),preview=open(url);
  if(!preview){URL.revokeObjectURL(url);throw Error('Разрешите открытие новой вкладки для печати этикетки');}
- preview.addEventListener('load',()=>{try{preview.focus();preview.print();}catch{}},{once:true});
  const timer=setTimeout(()=>URL.revokeObjectURL(url),300000);timer.unref?.();
- notify('Открыта этикетка. Выберите число копий в окне печати. Если оно не появилось, нажмите значок принтера или Ctrl+P / ⌘P.');
+ notify('Открыт PDF этикетки. Запустите печать из просмотрщика PDF после загрузки документа.');
  return preview;
 }
-export function openStockLabelDialog({database,sku,quantity=0,notify=()=>{},document:doc=globalThis.document}){
- doc.querySelector('#stock-label-dialog')?.remove();
- const dialog=doc.createElement('dialog');dialog.id='stock-label-dialog';dialog.className='stock-label-dialog';
- dialog.innerHTML='<div class="modal-head"><h2>Этикетка товара</h2><button type="button" data-label-close aria-label="Закрыть">×</button></div><strong class="label-article"></strong><p class="label-quantity"></p><p class="label-file-name"></p><div class="label-actions"><button type="button" data-label-print>Печатать этикетку</button></div><p class="label-help">Этикетка сохраняется только для этого артикула. Число копий выберите в окне печати.</p><p class="label-status" role="status"></p>';
- const $=s=>dialog.querySelector(s),find=()=>database.products.find(p=>p.sku?.trim()===sku.trim());
- $('.label-article').textContent=sku;
- $('.label-quantity').textContent=quantity>0?'Нужно допечатать '+quantity+' шт. Для них выберите '+quantity+' копий этикетки.':'Откройте этикетку и выберите нужное число копий.';
- const draw=()=>{const label=find()?.labelPdf;$('.label-file-name').textContent=label?.name||'Добавьте PDF этикетки в себестоимости рядом с моделью для печати';$('[data-label-print]').disabled=!label;};
- $('[data-label-close]').onclick=()=>dialog.close();
- dialog.addEventListener('close',()=>dialog.remove(),{once:true});
- $('[data-label-print]').onclick=()=>{try{printProductLabel(find()?.labelPdf,{notify:message=>{$('.label-status').textContent=message;notify(message);}});}catch(error){$('.label-status').textContent=error.message;}};
- doc.body.append(dialog);draw();dialog.showModal();return dialog;
+export function openStockLabelDialog({database,sku,notify=()=>{},document:doc=globalThis.document}){
+ const product=database.products.find(p=>p.sku?.trim()===sku.trim());
+ try{return previewProductLabel(product?.labelPdf,{document:doc});}catch(error){notify(error.message);return null;}
 }
 
 function labelProductData(product,stock=[]){
@@ -71,6 +61,6 @@ export function previewProductLabel(label,{document:doc=globalThis.document,onCl
  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
  const dialog=doc.createElement('dialog');dialog.className='label-preview-dialog';dialog.setAttribute('aria-label','Предпросмотр этикетки');
  const head=doc.createElement('div');head.className='modal-head';const title=doc.createElement('h2');title.textContent='Предпросмотр этикетки';const close=doc.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Закрыть предпросмотр');head.append(title,close);
- const name=doc.createElement('p');name.textContent=label.name||'Этикетка.pdf';const frame=doc.createElement('iframe');frame.title='PDF этикетки';frame.src=url+'#view=Fit';const fallback=doc.createElement('a');fallback.href=url;fallback.target='_blank';fallback.rel='noopener';fallback.textContent='Открыть PDF в отдельной вкладке';dialog.append(head,name,frame,fallback);
+ const name=doc.createElement('p');name.textContent=label.name||'Этикетка.pdf';const frame=doc.createElement('iframe');frame.title='PDF этикетки';frame.src=url+'#view=Fit';const fallback=doc.createElement('a');fallback.href=url;fallback.target='_blank';fallback.rel='noopener';fallback.textContent='Открыть PDF для печати';dialog.append(head,name,frame,fallback);
  close.onclick=()=>dialog.close();dialog.addEventListener('close',()=>{frame.remove();URL.revokeObjectURL(url);dialog.remove();onClose();},{once:true});doc.body.append(dialog);try{dialog.showModal();}catch(error){URL.revokeObjectURL(url);dialog.remove();throw error;}return dialog;
 }

@@ -18,18 +18,17 @@ test('stock summary exposes the correct article label and suggested print count'
  assert.equal(doc.querySelector('[data-label-sku="white"]').dataset.labelQuantity,'4');
  assert.equal(doc.querySelector('[data-label-sku="black"]').textContent,'Нет этикетки');
 });
-test('stocks only print the saved exact-article label and offer no upload controls',()=>{
- const dom=setup(),database={products:[{sku:'white',productGroup:'Watch',labelPdf:label},{sku:'black',productGroup:'Watch'}]},before=structuredClone(database);
- let dialog=openStockLabelDialog({database,sku:'black',quantity:4,document:dom.window.document});
- assert.equal(dialog.querySelector('input[type="file"]'),null);assert.equal(dialog.querySelector('[data-label-print]').disabled,true);assert.match(dialog.querySelector('.label-file-name').textContent,/себестоимости/);
- dialog=openStockLabelDialog({database,sku:'white',quantity:4,document:dom.window.document});assert.match(dialog.querySelector('.label-quantity').textContent,/4 копий/);assert.equal(dialog.querySelector('.label-file-name').textContent,'white.pdf');assert.equal(dialog.querySelector('[data-label-print]').disabled,false);assert.deepEqual(database,before);
- dialog.querySelector('[data-label-close]').click();assert.equal(dom.window.document.querySelector('dialog'),null);
+test('stock label opens the exact article PDF directly without a quantity form or automatic printing',()=>{
+ const dom=setup(),database={products:[{sku:'white',productGroup:'Watch',labelPdf:label},{sku:'black',productGroup:'Watch'}]},before=structuredClone(database);let message='';
+ assert.equal(openStockLabelDialog({database,sku:'black',document:dom.window.document,notify:text=>{message=text;}}),null);assert.match(message,/PDF/);
+ const dialog=openStockLabelDialog({database,sku:'white',quantity:4,document:dom.window.document});assert.ok(dialog.querySelector('iframe'));assert.equal(dialog.querySelector('input'),null);assert.equal(dialog.querySelector('form'),null);assert.equal(dialog.querySelector('p').textContent,'white.pdf');assert.deepEqual(database,before);dialog.querySelector('button').click();assert.equal(dom.window.document.querySelector('dialog'),null);
 });
-test('printing opens the stored PDF and invokes print after loading; popup blocking is reported',()=>{
- const create=URL.createObjectURL,revoke=URL.revokeObjectURL;let callback,printed=0,revoked=0,blob;
+test('opening the stored PDF does not invoke print on its initial load; popup blocking is reported',()=>{
+ const create=URL.createObjectURL,revoke=URL.revokeObjectURL;let registered=0,printed=0,revoked=0,blob;
  URL.createObjectURL=b=>{blob=b;return 'blob:label';};URL.revokeObjectURL=()=>revoked++;
- try{printProductLabel(label,{open:url=>{assert.equal(url,'blob:label');return {addEventListener:(event,fn)=>{assert.equal(event,'load');callback=fn;},focus:()=>{},print:()=>printed++};}});assert.equal(blob.type,'application/pdf');callback();assert.equal(printed,1);assert.throws(()=>printProductLabel(label,{open:()=>null}),/Разрешите/);assert.equal(revoked,1);}finally{URL.createObjectURL=create;URL.revokeObjectURL=revoke;}
+ try{printProductLabel(label,{open:url=>{assert.equal(url,'blob:label');return {addEventListener:()=>{registered++;},focus:()=>{},print:()=>printed++};}});assert.equal(blob.type,'application/pdf');assert.equal(registered,0);assert.equal(printed,0);assert.throws(()=>printProductLabel(label,{open:()=>null}),/Разрешите/);assert.equal(revoked,1);}finally{URL.createObjectURL=create;URL.revokeObjectURL=revoke;}
 });
+
 
  test('label design prompt uses 58 by 40 mm and Russian spool names in slot order',async()=>{const {labelDesignPrompt}=await import('../product-labels.js');const text=labelDesignPrompt({name:'Органайзер',variantNumber:'7',sku:'org_white_black',variantNote:'wrong',filamentSlots:[{filamentId:'w',colorName:'Старое'},{filamentId:'b',colorName:'Чёрный'}]},[{id:'w',colorName:'Белый',originalColorName:'Jade white'}]);assert.match(text,/58 × 40 мм/);assert.match(text,/Название: Органайзер/);assert.match(text,/Вариант: 7/);assert.match(text,/Цвет: белый-чёрный/);assert.match(text,/Артикул: org_white_black/);assert.doesNotMatch(text,/Jade white|wrong|Старое/);});
 

@@ -1,9 +1,9 @@
-import {queueOutstanding} from './print-queue-state.js?v=0.2.175';
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.175';
-import {renderStockAddition,mountStockAdditions} from './stock-additions.js?v=0.2.175';
-import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.175';
-import {blankProduct} from './calc.js?v=0.2.175';
-import {marketRequest,readAllWBCards,listBody,redact} from './marketplace-api.js?v=0.2.175';
+import {queueOutstanding} from './print-queue-state.js?v=0.2.176';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.176';
+import {renderStockAddition,mountStockAdditions} from './stock-additions.js?v=0.2.176';
+import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.176';
+import {blankProduct} from './calc.js?v=0.2.176';
+import {marketRequest,readAllWBCards,listBody,redact} from './marketplace-api.js?v=0.2.176';
 const schemes={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'},num=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rowLabel=n=>n%100>=11&&n%100<=14?'строк':n%10===1?'строка':n%10>=2&&n%10<=4?'строки':'строк';
