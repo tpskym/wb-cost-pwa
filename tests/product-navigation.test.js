@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.196');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.197');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -82,4 +82,12 @@ test('colour options follow the selected group and reset an unavailable selectio
 });
 test('catalogue displays four saved status badges without refreshing marketplaces',()=>{
  const row=document.querySelector('#product-list [data-product]');assert.ok(row);assert.equal(row.querySelectorAll('.catalogue-status').length,4);assert.match(row.textContent,/WB/);assert.match(row.textContent,/Ozon/);assert.match(row.textContent,/Этикетка/);assert.match(row.textContent,/Модель/);assert.ok(document.querySelector('#catalogue-refresh'));assert.match(document.querySelector('#catalogue-refresh-status').textContent,/сохранённым/);
+});
+test('presence filters combine and reset without calling the API',async()=>{
+ const choose=(key,value)=>{const input=document.querySelector('[data-catalogue-presence="'+key+'"]');input.value=value;input.dispatchEvent(new window.Event('change'));};
+ choose('wb','yes');assert.equal(document.querySelectorAll('#product-list [data-product]').length,0);choose('wb','unknown');assert.ok(document.querySelectorAll('#product-list [data-product]').length);choose('label','yes');assert.equal(document.querySelectorAll('#product-list [data-product]').length,0);document.querySelector('[data-catalogue-reset]').click();assert.ok(document.querySelectorAll('#product-list [data-product]').length);assert.ok([...document.querySelectorAll('[data-catalogue-presence]')].every(input=>input.value===''));
+ const model=document.querySelector('[data-catalogue-presence="model"]');model.value='no';await model.onchange();assert.ok(document.querySelectorAll('#product-list [data-product]').length);model.value='yes';await model.onchange();assert.equal(document.querySelectorAll('#product-list [data-product]').length,0);document.querySelector('[data-catalogue-reset]').click();
+});
+test('large group picker searches by article and applies the chosen group',()=>{
+ document.querySelector('[data-catalogue-group-picker]').click();const dialog=document.querySelector('.catalogue-group-picker');assert.ok(dialog);const search=dialog.querySelector('[data-group-picker-search]');search.value='SKU-204';search.dispatchEvent(new window.Event('input'));const choices=[...dialog.querySelectorAll('[data-pick-catalogue-group]')],choice=choices.find(button=>button.dataset.pickCatalogueGroup);assert.ok(choice);assert.ok(choice.querySelector('[data-product-image]'));const group=choice.dataset.pickCatalogueGroup;choice.click();assert.equal(document.querySelector('.catalogue-group-picker'),null);assert.equal(document.querySelector('#catalogue-group-filter').value,group);assert.equal(document.querySelector('[data-catalogue-group-picker] span').textContent,group);assert.ok([...document.querySelectorAll('#product-list [data-group]')].every(node=>node.dataset.group===group));document.querySelector('[data-catalogue-reset]').click();
 });
