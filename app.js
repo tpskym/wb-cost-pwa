@@ -1,25 +1,27 @@
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.198';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.198';
-import {openCostReport} from './cost-report.js?v=0.2.198';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.198';
-import {mountReleaseHistory} from './release-history.js?v=0.2.198';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.198';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.198';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.198';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.198';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.198';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.198';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.198';
-import {mountSales} from './sales.js?v=0.2.198';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.198';
-import {actionIcon} from './listing-fields.js?v=0.2.198';
-import {installNumberControls} from './number-controls.js?v=0.2.198';
-const APP_VERSION='0.2.198';
-import {disposeListingEditor} from './listing-editor.js?v=0.2.198';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.198';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.198';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.198';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.198';
+import {installImagePreview} from './image-preview.js?v=0.2.199';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.199';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.199';
+import {openCostReport} from './cost-report.js?v=0.2.199';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.199';
+import {mountReleaseHistory} from './release-history.js?v=0.2.199';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.199';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.199';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.199';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.199';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.199';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.199';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.199';
+import {mountSales} from './sales.js?v=0.2.199';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.199';
+import {actionIcon} from './listing-fields.js?v=0.2.199';
+import {installNumberControls} from './number-controls.js?v=0.2.199';
+const APP_VERSION='0.2.199';
+installImagePreview(document);
+import {disposeListingEditor} from './listing-editor.js?v=0.2.199';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.199';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.199';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.199';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.199';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
@@ -50,13 +52,10 @@ async function restoreFullArchive(file){
 }
 function changeDB(x){validateDB(x);backup();recoveryRaw=null;db=x;selected=db.products[0].id;save();render();}
 function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
-function openProductImagePreview(source){
- if(!source.src||source.hidden)return;const dialog=document.createElement('dialog');dialog.className='product-image-preview';dialog.setAttribute('aria-label','Просмотр изображения товара');const close=document.createElement('button');close.type='button';close.className='product-image-preview-close';close.textContent='×';close.setAttribute('aria-label','Закрыть просмотр');const image=document.createElement('img');image.src=source.src;image.alt='Изображение товара';dialog.append(close,image);document.body.append(dialog);close.onclick=()=>dialog.close();dialog.onclick=event=>{if(event.target===dialog)dialog.close();};dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
-}
 const productImageUrls=new Map();
 async function hydrateProductImages(scope=document){
  for(const img of scope.querySelectorAll('[data-product-image]')){
-  try{const file=(await listFiles(db.id+':'+img.dataset.productImage)).filter(f=>f.category==='product-image').sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];if(!img.isConnected)continue;const previous=productImageUrls.get(img);if(previous)URL.revokeObjectURL(previous);productImageUrls.delete(img);if(!file){img.hidden=true;img.removeAttribute('src');continue;}const url=URL.createObjectURL(file.blob);productImageUrls.set(img,url);img.src=url;img.hidden=false;img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','Открыть изображение товара');img.title='Открыть изображение';img.onclick=event=>{event.stopPropagation();openProductImagePreview(img);};img.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();openProductImagePreview(img);}};}catch{img.hidden=true;}
+  try{const file=(await listFiles(db.id+':'+img.dataset.productImage)).filter(f=>f.category==='product-image').sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];if(!img.isConnected)continue;const previous=productImageUrls.get(img);if(previous)URL.revokeObjectURL(previous);productImageUrls.delete(img);if(!file){img.hidden=true;img.removeAttribute('src');continue;}const url=URL.createObjectURL(file.blob);productImageUrls.set(img,url);img.src=url;img.hidden=false;}catch{img.hidden=true;}
  }
  for(const [img,url] of productImageUrls)if(!img.isConnected){URL.revokeObjectURL(url);productImageUrls.delete(img);}
 }

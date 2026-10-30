@@ -1,4 +1,4 @@
-import {calculateManual} from './calc.js?v=0.2.198';
+import {calculateManual} from './calc.js?v=0.2.199';
 const money=n=>Number.isFinite(n)?n.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽':'—';
 export function costReportData(products){return products.map(p=>({product:structuredClone(p),result:calculateManual(structuredClone(p))}));}
 // Embed rendered pages to preserve Cyrillic fonts without external font downloads.
