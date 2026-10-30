@@ -1,4 +1,4 @@
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.191';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.192';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -141,3 +141,5 @@ export function variantSkuPrefix(sku){const value=String(sku||'').trim(),index=v
 export function variantSkuForColor(sku,color){const key=String(color||'').trim().toLocaleLowerCase('ru').replaceAll('ё','е'),entry=Object.entries(variantColors).find(([name])=>name.toLocaleLowerCase('ru')===key);return entry?variantSkuPrefix(sku)+entry[1]:null;}
 
 export function productLabelPrompt(p){return `${p.name||''}\nВариант ${p.variantNumber||''}. Цвет: ${p.variantNote||''}\n${p.sku||''}\n${p.barcode||''}`;}
+
+export function paginateProductGroups(products,pageSize=20){const groups=new Map();for(const product of products){const key=product.productGroup?.trim()?'group:'+product.productGroup:'product:'+product.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(product);}const pages=[];let page=[];for(const group of groups.values()){if(page.length&&page.length+group.length>pageSize){pages.push(page);page=[];}page.push(...group);if(page.length>=pageSize){pages.push(page);page=[];}}if(page.length)pages.push(page);return pages.length?pages:[[]];}

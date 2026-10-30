@@ -6,7 +6,7 @@ import {blankProduct} from '../calc.js';
 test('large sidebar catalogue pages twenty products and searches the whole collection',async()=>{
  const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
  Object.assign(globalThis,{document:dom.window.document,window:dom.window,localStorage:dom.window.localStorage,location:dom.window.location,history:dom.window.history,indexedDB,confirm:()=>true});dom.window.scrollTo=()=>{};
- const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,productGroup:'Каталог'}));
+ const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,productGroup:'Каталог '+Math.floor(i/5)}));
  localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products,templates:[]}));
  await import('../app.js');
  const $=s=>document.querySelector(s);
@@ -15,7 +15,7 @@ test('large sidebar catalogue pages twenty products and searches the whole colle
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.191');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.192');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -67,3 +67,5 @@ test('clearing calculation history affects only selected product, confirms and k
 test('label panel opens a ready to copy design prompt with label dimensions',()=>{document.querySelector('#label-design-prompt').click();assert.match(document.querySelector('#label-prompt-title').textContent,/58 × 40/);assert.match(document.querySelector('#label-prompt-text').value,/Создай готовую к печати этикетку/);assert.match(document.querySelector('#label-prompt-text').value,/Артикул: /);document.querySelector('[data-prompt-close]').click();assert.equal(document.querySelector('.label-prompt-dialog'),null);});
 
 test('group label prompt button opens group task beside individual label prompt',()=>{document.querySelector('#label-group-prompt').click();assert.ok(document.querySelector('.group-label-picker'));assert.ok(document.querySelectorAll('[data-member]:checked').length);document.querySelector('[data-generate]').click();assert.equal(document.querySelector('.group-label-picker'),null);assert.match(document.querySelector('#label-prompt-title').textContent,/всей группы/);assert.match(document.querySelector('#label-prompt-text').value,/Сформируй этикетки для всей группы/);document.querySelector('[data-prompt-close]').click();});
+
+test('creating more than ten variants keeps the complete group together and the new item visible',()=>{const before=JSON.parse(localStorage.getItem('workshop-db-v1')),currentId=document.querySelector('#mobile-product').value,group=before.products.find(p=>p.id===currentId).productGroup;for(let i=0;i<12;i++)document.querySelector('#duplicate').click();const db=JSON.parse(localStorage.getItem('workshop-db-v1')),members=db.products.filter(p=>p.productGroup===group),groups=[...document.querySelectorAll('#product-list [data-group]')].filter(item=>item.dataset.group===group);assert.equal(groups.length,1);assert.equal(groups[0].querySelectorAll('[data-product]').length,members.length);assert.ok(groups[0].querySelector('.chosen'));assert.equal(document.querySelectorAll('#product-list .chosen').length,1);});
