@@ -1,13 +1,13 @@
-import {skuCopyButton} from './sku-copy.js?v=0.2.203';
-import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.203';
-import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.203';
-import {openPrintCompletion} from './print-completion.js?v=0.2.203';
-import {listFiles} from './attachments.js?v=0.2.203';
-import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.203';
-import {blankProduct} from './calc.js?v=0.2.203';
-import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition} from './stock-additions.js?v=0.2.203';
+import {skuCopyButton} from './sku-copy.js?v=0.2.204';
+import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.204';
+import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.204';
+import {openPrintCompletion} from './print-completion.js?v=0.2.204';
+import {listFiles} from './attachments.js?v=0.2.204';
+import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.204';
+import {blankProduct} from './calc.js?v=0.2.204';
+import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition} from './stock-additions.js?v=0.2.204';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-import {movePrintJob,mergeActivePrintJobs,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.203';
+import {movePrintJob,mergeActivePrintJobs,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.204';
 const integer=(n)=>{if(!Number.isSafeInteger(n)||n<1||n>1000000)throw Error('Введите целое число от 1 до 1000000');return n;};
 export function openEnqueueDialog({database,sku='',quantity=1,market='',save,notify=()=>{},document:doc=globalThis.document}){
  const dialog=doc.createElement('dialog');dialog.className='print-queue-dialog enqueue-dialog';dialog.setAttribute('aria-label','Добавить в очередь печати');
