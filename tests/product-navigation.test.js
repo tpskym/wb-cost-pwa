@@ -31,7 +31,7 @@ test('variants preserve the name and build article suffixes from selected colour
 });
 
 test('colour pencil opens choices and selection updates the article',()=>{
- window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+ window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new window.Event('close'));};
  document.querySelector('#variant-color-pick').click();
  assert.equal(document.querySelectorAll('[data-variant-color]').length,5);
  document.querySelector('[data-variant-color="Черный"]').click();
