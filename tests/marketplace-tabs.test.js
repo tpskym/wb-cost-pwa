@@ -4,7 +4,7 @@ import {JSDOM} from 'jsdom';
 import {indexedDB} from 'fake-indexeddb';
 import {blankListing} from '../marketplace-api.js';
 import {readCatalog} from '../category-catalog.js';
-import {disposeListingEditor} from '../listing-editor.js?v=0.2.178';
+import {disposeListingEditor} from '../listing-editor.js?v=0.2.179';
 globalThis.indexedDB=indexedDB;
 test('API settings owns keys and bulk catalogs, card editor keeps characteristics and unsaved input during tab switches',async()=>{
  const dom=new JSDOM('<div id="api"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'}),container=dom.window.document.querySelector('#api');globalThis.localStorage=dom.window.localStorage;globalThis.confirm=()=>true;
