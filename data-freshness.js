@@ -29,7 +29,9 @@ export function updateFreshness(root,now=Date.now()){
    alert.append(text,button);results.prepend(alert);
   }
   const outdated=[...root.querySelectorAll('[data-freshness-state="stale"], [data-freshness-state="missing"]')],labels=[...new Set(outdated.map(item=>item.dataset.freshnessLabel).filter(Boolean))],stale=outdated.length>0;
-  alert.querySelector('.freshness-alert-title').textContent=(root.querySelector('#stock-table')?'Остатки WB / Ozon':root.querySelector('#prices-rows')?'Цены WB / Ozon':'Продажи')+(labels.length?' · Обновите: '+labels.join(', '):' · Пора обновить');
+  const title=alert.querySelector('.freshness-alert-title'),doc=root.ownerDocument||root,heading=doc.createElement('span');
+  heading.className='freshness-alert-heading';heading.textContent=(root.querySelector('#stock-table')?'Остатки WB / Ozon':root.querySelector('#prices-rows')?'Цены WB / Ozon':'Продажи')+(labels.length?' · Обновите: ':' · Пора обновить');title.replaceChildren(heading);
+  if(labels.length){const list=doc.createElement('span');list.className='freshness-schemes';labels.forEach((label,index)=>{if(index)list.append(doc.createTextNode(', '));const chip=doc.createElement('span');chip.className='freshness-scheme';chip.textContent=label;list.append(chip);});title.append(list);}
   alert.hidden=!stale;
  }
 }
