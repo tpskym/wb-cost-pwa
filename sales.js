@@ -1,5 +1,5 @@
-import {mountMarketplaceOrders} from './marketplace-orders.js?v=0.2.199';
-import {calculateManual} from './calc.js?v=0.2.199';
+import {mountMarketplaceOrders} from './marketplace-orders.js?v=0.2.200';
+import {calculateManual} from './calc.js?v=0.2.200';
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const rub=value=>value===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'}).format(value),round=value=>Math.round((value+Number.EPSILON)*100)/100;
 export function saleAmounts(sale){const revenue=round(sale.quantity*sale.unitPrice),cost=sale.costPerUnit===null?null:round(sale.quantity*sale.costPerUnit);return {revenue,cost,difference:sale.payout===null?null:round(revenue-sale.payout),result:sale.payout===null||cost===null?null:round(sale.payout-cost)};}

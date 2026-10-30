@@ -1,9 +1,10 @@
-import {replenishmentPlan} from './warehouse-stocks.js?v=0.2.199';
-import {recordPrinted,remainingQuantity} from './print-queue-state.js?v=0.2.199';
-import {addNewParts,pendingAddition} from './stock-additions.js?v=0.2.199';
-import {marketRequest,redact} from './marketplace-api.js?v=0.2.199';
-import {tableProductPhoto,productMainPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.199';
-import {listFiles} from './attachments.js?v=0.2.199';
+import {skuCopyButton} from './sku-copy.js?v=0.2.200';
+import {replenishmentPlan} from './warehouse-stocks.js?v=0.2.200';
+import {recordPrinted,remainingQuantity} from './print-queue-state.js?v=0.2.200';
+import {addNewParts,pendingAddition} from './stock-additions.js?v=0.2.200';
+import {marketRequest,redact} from './marketplace-api.js?v=0.2.200';
+import {tableProductPhoto,productMainPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.200';
+import {listFiles} from './attachments.js?v=0.2.200';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function allocatePrintCompletion(quantity,needs){let left=quantity;const result={ozon:0,wb:0};for(const market of ['ozon','wb']){result[market]=Math.min(left,Math.max(0,needs[market]||0));left-=result[market];}return {...result,unallocated:left};}
 export function openPrintCompletion({database,job,quantity,save,getCredentials=()=>({}),getTargets=()=>[],drawQueue=()=>{},onLabel,requester,document:doc=globalThis.document}){
@@ -13,7 +14,7 @@ export function openPrintCompletion({database,job,quantity,save,getCredentials=(
  for(const state of Object.values(states))if(state.targets.length===1)state.index='0';
  const dialog=doc.createElement('dialog');dialog.className='print-completion-dialog';dialog.setAttribute('aria-label','Распределить напечатанные детали');
  const photoRow=[...(database.stockSnapshots||[]),...(database.orderSnapshots||[])].flatMap(s=>s.rows).find(r=>r.sku===job.sku&&r.imageUrl),imageUrl=photoRow?.imageUrl||productMainPhoto(product,'wb')||productMainPhoto(product,'ozon');
- dialog.innerHTML=`<div class="modal-head"><h2>Напечатано — распределить детали</h2><button type="button" data-completion-cancel aria-label="Отменить и закрыть">×</button></div><div class="completion-product"><div data-completion-photo>${tableProductPhoto({sku:job.sku,imageUrl},product,'wb')}</div><div><strong>${esc(job.sku)}</strong><p>${esc(product.name||job.name)}${product.variantNote?' · '+esc(product.variantNote):''}</p><b data-completion-count></b></div></div><p class="completion-explanation">Распределение по нормам остатков: сначала Ozon, затем WB. Можно изменить количества до учёта. Пока вы не нажали «Учесть», очередь и склады не меняются.</p><div class="completion-destinations"></div><p class="completion-allocation" role="status"></p><p class="completion-status" role="status"></p><div class="completion-footer"><button type="button" data-completion-all>Учесть всё и пополнить склады</button><div><button type="button" data-completion-local></button><button type="button" data-completion-cancel>Отмена</button><button type="button" data-completion-label>Этикетки</button></div></div>`;
+ dialog.innerHTML=`<div class="modal-head"><h2>Напечатано — распределить детали</h2><button type="button" data-completion-cancel aria-label="Отменить и закрыть">×</button></div><div class="completion-product"><div data-completion-photo>${tableProductPhoto({sku:job.sku,imageUrl},product,'wb')}</div><div><span class="sku-with-copy"><strong>${esc(job.sku)}</strong>${skuCopyButton(job.sku)}</span><p>${esc(product.name||job.name)}${product.variantNote?' · '+esc(product.variantNote):''}</p><b data-completion-count></b></div></div><p class="completion-explanation">Распределение по нормам остатков: сначала Ozon, затем WB. Можно изменить количества до учёта. Пока вы не нажали «Учесть», очередь и склады не меняются.</p><div class="completion-destinations"></div><p class="completion-allocation" role="status"></p><p class="completion-status" role="status"></p><div class="completion-footer"><button type="button" data-completion-all>Учесть всё и пополнить склады</button><div><button type="button" data-completion-local></button><button type="button" data-completion-cancel>Отмена</button><button type="button" data-completion-label>Этикетки</button></div></div>`;
  const $=s=>dialog.querySelector(s);let working=false,localBatch=null,closed=false,photoUrl;
  const accounted=()=>Object.values(states).reduce((n,s)=>n+(s.batch?.quantity||0),0)+(localBatch?.quantity||0);
  const undistributed=()=>Math.max(0,quantity-Object.values(states).reduce((n,s)=>n+s.quantity,0)-(localBatch?.quantity||0));
