@@ -1,10 +1,10 @@
-import {skuCopyButton} from './sku-copy.js?v=0.2.204';
-import {replenishmentPlan} from './warehouse-stocks.js?v=0.2.204';
-import {recordPrinted,remainingQuantity} from './print-queue-state.js?v=0.2.204';
-import {addNewParts,pendingAddition} from './stock-additions.js?v=0.2.204';
-import {marketRequest,redact} from './marketplace-api.js?v=0.2.204';
-import {tableProductPhoto,productMainPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.204';
-import {listFiles} from './attachments.js?v=0.2.204';
+import {skuCopyButton} from './sku-copy.js?v=0.2.205';
+import {replenishmentPlan} from './warehouse-stocks.js?v=0.2.205';
+import {recordPrinted,remainingQuantity} from './print-queue-state.js?v=0.2.205';
+import {addNewParts,pendingAddition} from './stock-additions.js?v=0.2.205';
+import {marketRequest,redact} from './marketplace-api.js?v=0.2.205';
+import {tableProductPhoto,productMainPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.205';
+import {listFiles} from './attachments.js?v=0.2.205';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function allocatePrintCompletion(quantity,needs){let left=quantity;const result={ozon:0,wb:0};for(const market of ['ozon','wb']){result[market]=Math.min(left,Math.max(0,needs[market]||0));left-=result[market];}return {...result,unallocated:left};}
 export function openPrintCompletion({database,job,quantity,save,getCredentials=()=>({}),getTargets=()=>[],drawQueue=()=>{},onLabel,requester,document:doc=globalThis.document}){
