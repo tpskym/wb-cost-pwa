@@ -1,24 +1,24 @@
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.193';
-import {openCostReport} from './cost-report.js?v=0.2.193';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.193';
-import {mountReleaseHistory} from './release-history.js?v=0.2.193';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.193';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.193';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.193';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.193';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.193';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.193';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.193';
-import {mountSales} from './sales.js?v=0.2.193';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.193';
-import {actionIcon} from './listing-fields.js?v=0.2.193';
-import {installNumberControls} from './number-controls.js?v=0.2.193';
-const APP_VERSION='0.2.193';
-import {disposeListingEditor} from './listing-editor.js?v=0.2.193';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.193';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.193';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.193';
-import {paginateProductGroups,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.193';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.194';
+import {openCostReport} from './cost-report.js?v=0.2.194';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.194';
+import {mountReleaseHistory} from './release-history.js?v=0.2.194';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.194';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.194';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.194';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.194';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.194';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.194';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.194';
+import {mountSales} from './sales.js?v=0.2.194';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.194';
+import {actionIcon} from './listing-fields.js?v=0.2.194';
+import {installNumberControls} from './number-controls.js?v=0.2.194';
+const APP_VERSION='0.2.194';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.194';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.194';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.194';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.194';
+import {paginateProductGroups,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.194';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
@@ -82,7 +82,9 @@ async function renderFiles(){
 }
 let productQuery='',productPage=0,productGroupFilter='',productColourFilter='';
 const productPageSize=20,productGroupOpen=new Map();
-function catalogueFilterControls(){const groups=[...new Set(db.products.map(p=>p.productGroup||'__ungrouped__'))].sort((a,b)=>a.localeCompare(b,'ru')),colours=[...new Set(db.products.map(p=>p.variantNote||p.colorCode||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));return `<div class="catalogue-filters"><label>Группа<select id="catalogue-group-filter"><option value="">Все группы</option>${groups.map(name=>`<option value="${esc(name)}" ${name===productGroupFilter?'selected':''}>${esc(name==='__ungrouped__'?'Без группы':name)}</option>`).join('')}</select></label><label>Цвет / вариант<select id="catalogue-colour-filter"><option value="">Все цвета и варианты</option>${colours.map(name=>`<option value="${esc(name)}" ${name===productColourFilter?'selected':''}>${esc(name)}</option>`).join('')}</select></label></div><div class="catalogue-group-actions"><button type="button" data-catalogue-collapse>Свернуть все</button><button type="button" data-catalogue-expand>Развернуть все</button><button type="button" data-catalogue-reset>Сбросить фильтры</button></div>`;}
+function catalogueColours(){return [...new Set(db.products.filter(p=>!productGroupFilter||(p.productGroup||'__ungrouped__')===productGroupFilter).map(p=>p.variantNote||p.colorCode||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));}
+function catalogueColourOptions(){return `<option value="">Все цвета и варианты</option>${catalogueColours().map(name=>`<option value="${esc(name)}" ${name===productColourFilter?'selected':''}>${esc(name)}</option>`).join('')}`;}
+function catalogueFilterControls(){const groups=[...new Set(db.products.map(p=>p.productGroup||'__ungrouped__'))].sort((a,b)=>a.localeCompare(b,'ru'));return `<div class="catalogue-filters"><label>Группа<select id="catalogue-group-filter"><option value="">Все группы</option>${groups.map(name=>`<option value="${esc(name)}" ${name===productGroupFilter?'selected':''}>${esc(name==='__ungrouped__'?'Без группы':name)}</option>`).join('')}</select></label><label>Цвет / вариант<select id="catalogue-colour-filter">${catalogueColourOptions()}</select></label></div><div class="catalogue-group-actions"><button type="button" data-catalogue-collapse>Свернуть все</button><button type="button" data-catalogue-expand>Развернуть все</button><button type="button" data-catalogue-reset>Сбросить фильтры</button></div>`;}
 function productList(p){
  const query=productQuery.trim().toLocaleLowerCase('ru'),matches=db.products.filter(q=>(!productGroupFilter||(productGroupFilter==='__ungrouped__'?!q.productGroup:q.productGroup===productGroupFilter))&&(!productColourFilter||(q.variantNote||q.colorCode||'')===productColourFilter)&&[q.name,q.sku,q.productGroup,q.variantNote,q.colorCode].filter(Boolean).join(' ').toLocaleLowerCase('ru').includes(query));
  const groupedPages=paginateProductGroups(matches,productPageSize),pages=groupedPages.length;productPage=Math.min(productPage,pages-1);
@@ -186,7 +188,7 @@ function openVariantColorPicker(){
 }
 function bind(){$('#app-zoom-out').onclick=()=>{appZoom=Math.max(60,appZoom-10);applyAppZoom();};$('#app-zoom-in').onclick=()=>{appZoom=Math.min(160,appZoom+10);applyAppZoom();};$('#app-zoom-reset').onclick=()=>{appZoom=100;applyAppZoom();};applyAppZoom();const p=product();
  $('#variant-color-pick').onclick=openVariantColorPicker;$('#label-ai-prompt').onclick=()=>openLabelPrompt();$('#label-design-prompt').onclick=()=>openLabelPrompt(true);$('#label-group-prompt').onclick=()=>openGroupLabelPicker({database:db,product:product(),onGenerate:members=>openLabelPrompt('group',members),onClose:()=>$('#label-group-prompt')?.focus({preventScroll:true})});
- bindProductList();const refreshCatalogue=()=>{productPage=0;$('#product-list').innerHTML=productList(product());bindProductList();};$('#product-search').oninput=e=>{productQuery=e.target.value;refreshCatalogue();};$('#catalogue-group-filter').onchange=e=>{productGroupFilter=e.target.value;refreshCatalogue();};$('#catalogue-colour-filter').onchange=e=>{productColourFilter=e.target.value;refreshCatalogue();};document.querySelector('[data-catalogue-reset]').onclick=()=>{productQuery='';productGroupFilter='';productColourFilter='';$('#product-search').value='';$('#catalogue-group-filter').value='';$('#catalogue-colour-filter').value='';refreshCatalogue();};for(const [selector,open] of [['[data-catalogue-collapse]',false],['[data-catalogue-expand]',true]])document.querySelector(selector).onclick=()=>{for(const p of db.products)productGroupOpen.set(p.productGroup||'',open);$('#product-list').querySelectorAll('details[data-group]').forEach(group=>group.open=open);};
+ bindProductList();const refreshCatalogue=()=>{productPage=0;$('#product-list').innerHTML=productList(product());bindProductList();};$('#product-search').oninput=e=>{productQuery=e.target.value;refreshCatalogue();};$('#catalogue-group-filter').onchange=e=>{productGroupFilter=e.target.value;if(!catalogueColours().includes(productColourFilter))productColourFilter='';$('#catalogue-colour-filter').innerHTML=catalogueColourOptions();refreshCatalogue();};$('#catalogue-colour-filter').onchange=e=>{productColourFilter=e.target.value;refreshCatalogue();};document.querySelector('[data-catalogue-reset]').onclick=()=>{productQuery='';productGroupFilter='';productColourFilter='';$('#product-search').value='';$('#catalogue-group-filter').value='';$('#catalogue-colour-filter').innerHTML=catalogueColourOptions();refreshCatalogue();};for(const [selector,open] of [['[data-catalogue-collapse]',false],['[data-catalogue-expand]',true]])document.querySelector(selector).onclick=()=>{for(const p of db.products)productGroupOpen.set(p.productGroup||'',open);$('#product-list').querySelectorAll('details[data-group]').forEach(group=>group.open=open);};
  const restoreWorkspace=state=>{if(!state)return;space=state.space;selected=db.products.some(p=>p.id===state.selected)?state.selected:db.products[0].id;history.replaceState(null,'','#'+space);render();};$('#workspace-back').onclick=()=>restoreWorkspace(workspaceHistory.back());$('#workspace-forward').onclick=()=>restoreWorkspace(workspaceHistory.forward());
  $('#workspace-select').onchange=event=>{space=event.target.value;history.replaceState(null,'','#'+space);render();window.scrollTo?.({top:0});};
  document.querySelectorAll('[data-space]').forEach(button=>button.onclick=()=>{space=button.dataset.space;if(globalThis.history?.replaceState)history.replaceState(null,'','#'+space);render();window.scrollTo?.({top:0});});
