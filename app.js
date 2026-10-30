@@ -1,23 +1,24 @@
-import {openCostReport} from './cost-report.js?v=0.2.185';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.185';
-import {mountReleaseHistory} from './release-history.js?v=0.2.185';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.185';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.185';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.185';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.185';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.185';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.185';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.185';
-import {mountSales} from './sales.js?v=0.2.185';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.185';
-import {actionIcon} from './listing-fields.js?v=0.2.185';
-import {installNumberControls} from './number-controls.js?v=0.2.185';
-const APP_VERSION='0.2.185';
-import {disposeListingEditor} from './listing-editor.js?v=0.2.185';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.185';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.185';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.185';
-import {productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.185';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.186';
+import {openCostReport} from './cost-report.js?v=0.2.186';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.186';
+import {mountReleaseHistory} from './release-history.js?v=0.2.186';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.186';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.186';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.186';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.186';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.186';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.186';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.186';
+import {mountSales} from './sales.js?v=0.2.186';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.186';
+import {actionIcon} from './listing-fields.js?v=0.2.186';
+import {installNumberControls} from './number-controls.js?v=0.2.186';
+const APP_VERSION='0.2.186';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.186';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.186';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.186';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.186';
+import {productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.186';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
@@ -168,9 +169,9 @@ async function driveLoad(){const list=await api("files?q="+encodeURIComponent("t
 async function driveCreate(){if(!token)throw Error('Сначала войдите через Google');if(!confirm('Создать новый видимый файл-снимок в Google Drive выбранного аккаунта?'))return;const boundary='workshop_'+crypto.randomUUID();const name='Мастерская-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';const meta={name,mimeType:'application/json',appProperties:{workshop:'v1'}};const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(db)}\r\n--${boundary}--`;const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},body});if(!res.ok)throw Error('Не удалось создать файл: '+res.status);const f=await res.json();driveId=f.id;googleStatus='Создан снимок: '+f.name;$('#google-status').textContent=googleStatus;$('#drive-link').hidden=false;$('#drive-link').href='https://drive.google.com/file/d/'+encodeURIComponent(f.id)+'/view';toast(googleStatus);}
 async function connectGoogle(){config.clientId=$('#client-id').value.trim();localStorage.setItem(CONFIG,JSON.stringify(config));if(!config.clientId.endsWith('.apps.googleusercontent.com'))throw Error('Укажите OAuth Client ID из Google Cloud Console');if(!window.google){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=resolve;s.onerror=()=>reject(Error('Не удалось загрузить вход Google'));document.head.append(s);});}google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:'https://www.googleapis.com/auth/drive.file',error_callback:()=>toast('Вход отменён или окно заблокировано'),callback:async r=>{if(r.error){toast(r.error);return;}token=r.access_token;driveId=null;googleStatus='Google подключён · доступ только к файлам приложения';$('#google-status').textContent=googleStatus;setTimeout(()=>{token=null;googleStatus='Вход истёк';if($('#google-status'))$('#google-status').textContent=googleStatus;},Number(r.expires_in)*1000);try{await driveLoad();}catch(e){toast(e.message);}}}).requestAccessToken({prompt:'select_account'});}
 const safe=fn=>async(...args)=>{try{await fn(...args);}catch(e){toast(e.message);}};
-function openLabelPrompt(design=false){
+function openLabelPrompt(design=false,selectedProducts=null){
  const dialog=document.createElement('dialog');dialog.className='label-prompt-dialog';dialog.setAttribute('aria-labelledby','label-prompt-title');
- dialog.innerHTML=`<div class="modal-head"><h2 id="label-prompt-title">${design==='group'?'Промпт для этикеток всей группы':design?'Промпт для этикетки 58 × 40 мм':'Текст для языковой модели'}</h2><button type="button" data-prompt-close aria-label="Закрыть">×</button></div><p>Скопируйте текст и отправьте в языковую модель.</p><textarea id="label-prompt-text" rows="16" aria-label="Промпт">${esc(design==='group'?groupLabelDesignPrompt(product(),db.products,db.filamentStock):design?labelDesignPrompt(product(),db.filamentStock):productLabelPrompt(product()))}</textarea><div class="confirm-actions"><button type="button" data-prompt-close>Закрыть</button><button type="button" id="label-prompt-copy">Скопировать</button></div><p id="label-prompt-status" role="status"></p>`;
+ dialog.innerHTML=`<div class="modal-head"><h2 id="label-prompt-title">${design==='group'?'Промпт для этикеток всей группы':design?'Промпт для этикетки 58 × 40 мм':'Текст для языковой модели'}</h2><button type="button" data-prompt-close aria-label="Закрыть">×</button></div><p>Скопируйте текст и отправьте в языковую модель.</p><textarea id="label-prompt-text" rows="16" aria-label="Промпт">${esc(design==='group'?groupLabelDesignPrompt(product(),selectedProducts??db.products,db.filamentStock):design?labelDesignPrompt(product(),db.filamentStock):productLabelPrompt(product()))}</textarea><div class="confirm-actions"><button type="button" data-prompt-close>Закрыть</button><button type="button" id="label-prompt-copy">Скопировать</button></div><p id="label-prompt-status" role="status"></p>`;
  const close=()=>{dialog.remove();$(design==='group'?'#label-group-prompt':design?'#label-design-prompt':'#label-ai-prompt')?.focus({preventScroll:true});};dialog.querySelectorAll('[data-prompt-close]').forEach(button=>button.onclick=close);dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  dialog.querySelector('#label-prompt-copy').onclick=async()=>{const text=dialog.querySelector('textarea');try{await navigator.clipboard.writeText(text.value);dialog.querySelector('#label-prompt-status').textContent='Скопировано';}catch{text.focus();text.select();dialog.querySelector('#label-prompt-status').textContent='Нажмите ⌘C или Ctrl+C, чтобы скопировать';}};
  document.body.append(dialog);dialog.showModal();
@@ -183,7 +184,7 @@ function openVariantColorPicker(){
  document.body.append(dialog);dialog.showModal();dialog.querySelector('[data-variant-color]').focus();
 }
 function bind(){$('#app-zoom-out').onclick=()=>{appZoom=Math.max(60,appZoom-10);applyAppZoom();};$('#app-zoom-in').onclick=()=>{appZoom=Math.min(160,appZoom+10);applyAppZoom();};$('#app-zoom-reset').onclick=()=>{appZoom=100;applyAppZoom();};applyAppZoom();const p=product();
- $('#variant-color-pick').onclick=openVariantColorPicker;$('#label-ai-prompt').onclick=()=>openLabelPrompt();$('#label-design-prompt').onclick=()=>openLabelPrompt(true);$('#label-group-prompt').onclick=()=>openLabelPrompt('group');
+ $('#variant-color-pick').onclick=openVariantColorPicker;$('#label-ai-prompt').onclick=()=>openLabelPrompt();$('#label-design-prompt').onclick=()=>openLabelPrompt(true);$('#label-group-prompt').onclick=()=>openGroupLabelPicker({database:db,product:product(),onGenerate:members=>openLabelPrompt('group',members),onClose:()=>$('#label-group-prompt')?.focus({preventScroll:true})});
  bindProductList();$('#product-search').oninput=e=>{productQuery=e.target.value;productPage=0;$('#product-list').innerHTML=productList(product());bindProductList();};
  const restoreWorkspace=state=>{if(!state)return;space=state.space;selected=db.products.some(p=>p.id===state.selected)?state.selected:db.products[0].id;history.replaceState(null,'','#'+space);render();};$('#workspace-back').onclick=()=>restoreWorkspace(workspaceHistory.back());$('#workspace-forward').onclick=()=>restoreWorkspace(workspaceHistory.forward());
  $('#workspace-select').onchange=event=>{space=event.target.value;history.replaceState(null,'','#'+space);render();window.scrollTo?.({top:0});};
