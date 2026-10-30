@@ -26,7 +26,7 @@ jobs:
       - run: |
           mkdir public
           cp -R pdfjs public/
-          cp index.html app.js print-completion.js label-thumbnail.js release-history.js marketplace-prices.js ozon-rich-text.js print-queue.js print-queue-state.js workspace-history.js product-labels.js data-freshness.js stock-additions.js warehouse-stocks.js listing-templates.js marketplace-orders.js remote-media.js sales.js filament-stock.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
+          cp index.html app.js cost-report.js print-completion.js label-thumbnail.js release-history.js marketplace-prices.js ozon-rich-text.js print-queue.js print-queue-state.js workspace-history.js product-labels.js data-freshness.js stock-additions.js warehouse-stocks.js listing-templates.js marketplace-orders.js remote-media.js sales.js filament-stock.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
