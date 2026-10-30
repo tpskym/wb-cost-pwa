@@ -1,0 +1,4 @@
+// Unknown warehouse data is not equivalent to a confirmed zero.
+export function stockPresence(rows){if(rows.some(row=>Number.isFinite(row.available)&&row.available>0))return true;if(!rows.length||rows.some(row=>!Number.isFinite(row.available)||row.available<0))return null;return false;}
+export function presenceMatches(state,choice){return !choice||choice==='all'||(choice==='yes'?state===true:choice==='no'?state===false:state===null);}
+export function filterStockArticles(rows,choice){if(!choice||choice==='all')return rows;const grouped=new Map();for(const row of rows){if(!grouped.has(row.sku))grouped.set(row.sku,[]);grouped.get(row.sku).push(row);}const matching=new Set([...grouped].filter(([,items])=>presenceMatches(stockPresence(items),choice)).map(([sku])=>sku));return rows.filter(row=>matching.has(row.sku));}
