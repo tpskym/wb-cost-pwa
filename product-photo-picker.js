@@ -1,5 +1,5 @@
-import {listFiles} from './attachments.js?v=0.2.192';
-import {tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.192';
+import {listFiles} from './attachments.js?v=0.2.193';
+import {tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.193';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function mountProductPhotoPicker({root,database,products,selectedId,onSelect,loadFiles=listFiles}){
  const doc=root.ownerDocument,urls=[];let disposed=false,currentId=selectedId;root.innerHTML='<details class="photo-variant-picker" open><summary>Выбрать вариант товара</summary><label class="photo-variant-search">Найти товар<input type="search" placeholder="Название, артикул или цвет"></label><div class="photo-variant-options" role="group" aria-label="Варианты товаров">'+products.map((p,i)=>{const row=[...(database.stockSnapshots||[]),...(database.orderSnapshots||[])].flatMap(s=>s.rows||[]).find(r=>r.sku===p.sku&&r.imageUrl);return `<label class="photo-variant-option"><input type="radio" name="photo-variant" value="${i}" ${p.id===selectedId?'checked':''}><span data-option-photo="${i}">${tableProductPhoto(row||{sku:p.sku},p,'wb')}</span><span class="photo-variant-copy"><strong>${esc(p.sku)}</strong><span>${esc(p.name||'')}</span><small>${esc(p.variantNote||p.colorCode||'')}</small></span></label>`;}).join('')+'</div><p class="photo-variant-empty" hidden>Товары не найдены</p></details>';
