@@ -40,3 +40,5 @@ test('banner refresh uses the existing action in both sections and prevents repe
  primary.disabled=true;await button.onclick();assert.equal(calls,1);
  }
 });
+
+test('refresh banner names only stale or missing schemes and removes recovered ones',()=>{const now=Date.parse('2026-10-30T10:00:00Z'),fresh='2026-10-30T09:55:00Z',old='2026-10-30T08:00:00Z',doc=new JSDOM(renderFreshness(fresh,now,'WB · FBS')+renderFreshness(old,now,'Ozon · FBO')+renderFreshness(null,now,'WB · FBW')+'<div class="table-results"><div id="stock-table"></div></div>').window.document;updateFreshness(doc,now);const title=doc.querySelector('.freshness-alert-title');assert.match(title.textContent,/Ozon · FBO/);assert.match(title.textContent,/WB · FBW/);assert.doesNotMatch(title.textContent,/WB · FBS/);doc.querySelector('[data-freshness-label="Ozon · FBO"]').dataset.updatedAt=fresh;updateFreshness(doc,now);assert.doesNotMatch(title.textContent,/Ozon · FBO/);});
