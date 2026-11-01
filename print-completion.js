@@ -1,10 +1,10 @@
-import {skuCopyButton} from './sku-copy.js?v=0.2.209';
-import {replenishmentPlan} from './warehouse-stocks.js?v=0.2.209';
-import {recordPrinted,remainingQuantity} from './print-queue-state.js?v=0.2.209';
-import {addNewParts,pendingAddition} from './stock-additions.js?v=0.2.209';
-import {marketRequest,redact} from './marketplace-api.js?v=0.2.209';
-import {tableProductPhoto,productMainPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.209';
-import {listFiles} from './attachments.js?v=0.2.209';
+import {skuCopyButton} from './sku-copy.js?v=0.2.210';
+import {replenishmentPlan} from './warehouse-stocks.js?v=0.2.210';
+import {recordPrinted,remainingQuantity} from './print-queue-state.js?v=0.2.210';
+import {addNewParts,pendingAddition} from './stock-additions.js?v=0.2.210';
+import {marketRequest,redact} from './marketplace-api.js?v=0.2.210';
+import {tableProductPhoto,productMainPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.210';
+import {listFiles} from './attachments.js?v=0.2.210';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function allocatePrintCompletion(quantity,needs){let left=quantity;const result={ozon:0,wb:0};for(const market of ['ozon','wb']){result[market]=Math.min(left,Math.max(0,needs[market]||0));left-=result[market];}return {...result,unallocated:left};}
 export function openPrintCompletion({database,job,quantity,save,getCredentials=()=>({}),getTargets=()=>[],drawQueue=()=>{},onLabel,requester,document:doc=globalThis.document}){
@@ -29,7 +29,7 @@ export function openPrintCompletion({database,job,quantity,save,getCredentials=(
  const run=async markets=>{if(working)return;message('');try{const sum=Object.values(states).reduce((n,s)=>n+s.quantity,0)+(localBatch?.quantity||0);if(!Number.isSafeInteger(sum)||sum>quantity||Object.values(states).some(s=>s.quantity<0))throw Error('Проверьте распределение деталей');for(const market of markets){const s=states[market];if(s.quantity&&(!s.record||s.record.status==='rejected')){const row=s.targets[Number(s.index)];if(s.index===''||!row)throw Error('Выберите склад '+market.toUpperCase());if(pendingAddition(database.stockAdditions||[],row.target))throw Error('На '+market.toUpperCase()+' есть неподтверждённое пополнение. Сначала проверьте его результат.');}}}catch(error){message(error.message);return;}working=true;render();try{for(const market of markets)await apply(market);if(markets.length===2&&quantity>accounted())accountLocal();message('Учтено '+accounted()+' из '+quantity+' шт.');}catch(error){message(redact(error.message,getCredentials()));}finally{working=false;render();}};
  $('[data-completion-all]').onclick=()=>run(['ozon','wb']);$('[data-completion-local]').onclick=()=>{if(working)return;try{const before=structuredClone(job),n=undistributed();if(!n)return;try{localBatch=recordPrinted(job,n);if(save()===false)throw Error('Не удалось сохранить учёт');}catch(error){restoreJob(before);localBatch=null;throw error;}drawQueue();render();message('Учтено без пополнения: '+n+' шт.');}catch(error){message(error.message);}};
  $('[data-completion-label]').disabled=!onLabel;$('[data-completion-label]').onclick=()=>onLabel?.(job.sku,quantity);
- doc.body.append(dialog);dialog.showModal();render();bindTablePhotos(dialog);
+ doc.body.append(dialog);dialog.showModal();render();bindTablePhotos(dialog,database);
  listFiles(database.id+':'+job.productId).then(files=>{const file=files.filter(f=>f.category==='product-image').sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];if(!file||closed)return;photoUrl=URL.createObjectURL(file.blob);const image=doc.createElement('img');image.src=photoUrl;image.alt='Фото '+job.sku;image.onload=()=>{if(!closed)$('[data-completion-photo]').replaceChildren(image);};}).catch(()=>{});
  return dialog;
 }

@@ -1,30 +1,30 @@
-import {ensureProductImage} from './product-images.js?v=0.2.209';
-import {writeDatabaseBackup,readDatabaseBackup} from './database-backup.js?v=0.2.209';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.209';
-import {installImagePreview} from './image-preview.js?v=0.2.209';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.209';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.209';
-import {openCostReport} from './cost-report.js?v=0.2.209';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.209';
-import {mountReleaseHistory} from './release-history.js?v=0.2.209';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.209';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.209';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.209';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.209';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.209';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.209';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.209';
-import {mountSales} from './sales.js?v=0.2.209';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.209';
-import {actionIcon} from './listing-fields.js?v=0.2.209';
-import {installNumberControls} from './number-controls.js?v=0.2.209';
-const APP_VERSION='0.2.209';
+import {ensureProductImage} from './product-images.js?v=0.2.210';
+import {writeDatabaseBackup,readDatabaseBackup} from './database-backup.js?v=0.2.210';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.210';
+import {installImagePreview} from './image-preview.js?v=0.2.210';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.210';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.210';
+import {openCostReport} from './cost-report.js?v=0.2.210';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.210';
+import {mountReleaseHistory} from './release-history.js?v=0.2.210';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.210';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.210';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.210';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.210';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.210';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.210';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.210';
+import {mountSales} from './sales.js?v=0.2.210';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.210';
+import {actionIcon} from './listing-fields.js?v=0.2.210';
+import {installNumberControls} from './number-controls.js?v=0.2.210';
+const APP_VERSION='0.2.210';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.209';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.209';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.209';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.209';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.209';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.210';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.210';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.210';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.210';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.210';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,installPrompt,recoveryRaw=null;
@@ -42,7 +42,7 @@ function lockBackupUI(){document.querySelectorAll('button,input,select').forEach
 async function exportFullArchive(){
  if(fullBackupBusy)return;if(recoveryRaw){exportDB();return toast('Сначала восстановите базу. Скачан исходный JSON для восстановления.');}
  fullBackupBusy=true;lockBackupUI();toast('Собираю базу и файлы всех товаров…');
- try{const snapshot=structuredClone(db);let unavailablePhotos=0;for(const product of snapshot.products){try{if(!await ensureProductImage(snapshot,product))unavailablePhotos++;}catch{unavailablePhotos++;}}const records=(await Promise.all(snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)))).flat();downloadBlob(await createFullBackup(snapshot,records),'workshop-full-'+new Date().toISOString().replace(/[:.]/g,'-')+'.zip');toast('Полный архив подготовлен: '+snapshot.products.length+' товаров, '+records.length+' файлов'+(unavailablePhotos?' · без сохранённого фото: '+unavailablePhotos:''));}finally{fullBackupBusy=false;render();}
+ try{const snapshot=structuredClone(db);let unavailablePhotos=0;for(const product of snapshot.products){try{if(!await ensureProductImage(snapshot,product,{download:false}))unavailablePhotos++;}catch{unavailablePhotos++;}}const records=(await Promise.all(snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)))).flat();downloadBlob(await createFullBackup(snapshot,records),'workshop-full-'+new Date().toISOString().replace(/[:.]/g,'-')+'.zip');toast('Полный архив подготовлен: '+snapshot.products.length+' товаров, '+records.length+' файлов'+(unavailablePhotos?' · без сохранённого фото: '+unavailablePhotos:''));}finally{fullBackupBusy=false;render();}
 }
 async function restoreFullArchive(file){
  if(!file||fullBackupBusy)return;fullBackupBusy=true;lockBackupUI();
@@ -58,13 +58,13 @@ function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=doc
 const productImageUrls=new Map();
 async function hydrateProductImages(scope=document){
  for(const img of scope.querySelectorAll('[data-product-image]')){
-  try{const imageProduct=db.products.find(product=>product.id===img.dataset.productImage);const file=imageProduct?await ensureProductImage(db,imageProduct):null;if(!img.isConnected)continue;const previous=productImageUrls.get(img);if(previous)URL.revokeObjectURL(previous);productImageUrls.delete(img);if(!file){img.hidden=true;img.removeAttribute('src');continue;}const url=URL.createObjectURL(file.blob);productImageUrls.set(img,url);img.onerror=()=>{img.hidden=true;img.removeAttribute('src');img.title='Фото не удалось прочитать. Прикрепите изображение заново.';};img.src=url;img.hidden=false;}catch{img.hidden=true;}
+  try{const imageProduct=db.products.find(product=>product.id===img.dataset.productImage);const file=imageProduct?await ensureProductImage(db,imageProduct,{download:false}):null;if(!img.isConnected)continue;const previous=productImageUrls.get(img);if(previous)URL.revokeObjectURL(previous);productImageUrls.delete(img);if(!file){img.hidden=true;img.removeAttribute('src');continue;}const url=URL.createObjectURL(file.blob);productImageUrls.set(img,url);img.onerror=()=>{img.hidden=true;img.removeAttribute('src');img.title='Фото не удалось прочитать. Прикрепите изображение заново.';};img.src=url;img.hidden=false;}catch{img.hidden=true;}
  }
  for(const [img,url] of productImageUrls)if(!img.isConnected){URL.revokeObjectURL(url);productImageUrls.delete(img);}
 }
 function mountProductImage(){
  const p=product(),heading=document.querySelector('main>.heading');if(space!=='cost'||!heading)return;
- const panel=document.createElement('div');panel.className='cost-product-image';panel.innerHTML=`<img data-product-image="${esc(p.id)}" alt="Изображение товара" hidden><div><label class="file-button">Прикрепить изображение<input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-remove-image>Удалить изображение</button><small>JPG, PNG или WebP · до 10 МБ. Сохраняется в полном архиве ZIP.</small></div>`;heading.prepend(panel);
+ const panel=document.createElement('div');panel.className='cost-product-image';panel.innerHTML=`<img data-product-image="${esc(p.id)}" alt="Изображение товара" hidden><div><label class="file-button">Прикрепить изображение<input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-remove-image>Удалить изображение</button><small>Фото хранится файлом в базе приложения и полном ZIP. JPG, PNG или WebP · до 10 МБ.</small></div>`;heading.prepend(panel);
  panel.querySelector('input').onchange=safe(async event=>{if(recoveryRaw)throw Error('Сначала восстановите базу расчётов');const file=event.target.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Выберите JPG, PNG или WebP');if(file.size>10*1024*1024)throw Error('Изображение должно быть не больше 10 МБ');const url=URL.createObjectURL(file);try{await new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Не удалось прочитать изображение'));image.src=url;});}finally{URL.revokeObjectURL(url);}const owner=db.id+':'+p.id,old=(await listFiles(owner)).filter(f=>f.category==='product-image');await putFile({id:crypto.randomUUID(),owner,category:'product-image',name:file.name,createdAt:new Date().toISOString(),blob:file});for(const f of old)await deleteFile(f.id);await hydrateProductImages();toast('Изображение товара сохранено');});
  panel.querySelector('[data-remove-image]').onclick=safe(async()=>{for(const file of (await listFiles(db.id+':'+p.id)).filter(f=>f.category==='product-image'))await deleteFile(file.id);await hydrateProductImages();toast('Изображение удалено');});hydrateProductImages(panel);
 }

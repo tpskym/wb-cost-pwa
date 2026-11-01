@@ -1,12 +1,12 @@
-import {listFiles,putFile} from './attachments.js?v=0.2.209';
-import {productMainPhoto,mainPhoto} from './marketplace-metrics.js?v=0.2.209';
+import {listFiles,putFile} from './attachments.js?v=0.2.210';
+import {productMainPhoto,mainPhoto} from './marketplace-metrics.js?v=0.2.210';
 const pending=new Map();
 export function productImageSources(database,product){return [...new Set([productMainPhoto(product,'wb'),productMainPhoto(product,'ozon'),...[...(database.stockSnapshots||[]),...(database.orderSnapshots||[])].flatMap(snapshot=>(snapshot.rows||[]).filter(row=>row.sku===product.sku).map(row=>mainPhoto(row.imageUrl)))].filter(Boolean))];}
-export async function ensureProductImage(database,product,{read=listFiles,write=putFile,fetcher=globalThis.fetch}={}){
- const owner=database.id+':'+product.id;if(pending.has(owner))return pending.get(owner);
- const work=(async()=>{const files=await read(owner),existing=files.filter(file=>file.category==='product-image'&&file.blob?.size>0).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];if(existing)return existing;
+export async function ensureProductImage(database,product,{read=listFiles,write=putFile,fetcher=globalThis.fetch,download=true}={}){
+ const owner=database.id+':'+product.id,pendingKey=owner+':'+download;if(pending.has(pendingKey))return pending.get(pendingKey);
+ const work=(async()=>{const files=await read(owner),existing=files.filter(file=>file.category==='product-image'&&file.blob?.size>0).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];if(existing)return existing;if(!download)return null;
  for(const source of productImageSources(database,product)){try{const response=await fetcher(source,{credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(20000)});if(!response.ok)continue;const type=(response.headers.get('content-type')||'').split(';')[0];if(!['image/jpeg','image/png','image/webp'].includes(type)||Number(response.headers.get('content-length'))>10*1024*1024)continue;const reader=response.body?.getReader();let blob;if(reader){const chunks=[];let size=0;try{for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>10*1024*1024){await reader.cancel();throw Error('Фото больше 10 МБ');}chunks.push(part.value);}}finally{reader.releaseLock();}blob=new Blob(chunks,{type});}else blob=await response.blob();if(!blob.size||blob.size>10*1024*1024)continue;
  const newer=(await read(owner)).filter(file=>file.category==='product-image'&&file.blob?.size>0).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];if(newer)return newer;const record={id:crypto.randomUUID(),owner,category:'product-image',name:'product-photo.'+({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[type]),createdAt:new Date().toISOString(),blob,sourceUrl:source};await write(record);return record;
  }catch{}}
- return null;})();pending.set(owner,work);try{return await work;}finally{pending.delete(owner);}
+ return null;})();pending.set(pendingKey,work);try{return await work;}finally{pending.delete(pendingKey);}
 }
