@@ -1,0 +1,5 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {writeDatabaseBackup,readDatabaseBackup} from '../database-backup.js';
+test('backup falls back to IndexedDB when localStorage quota is exhausted and can be restored',async()=>{let record;const storage={setItem(){throw Error('quota');},getItem(){return null;}},db={schema:1,id:'db',products:[{id:'a',name:'Before template'}]};await writeDatabaseBackup(JSON.stringify(db),{storage,write:async value=>{record=value;}});const restored=await readDatabaseBackup({storage,read:async()=>record});assert.deepEqual(restored.products,db.products);assert.equal(restored.id,'db');});
+test('backup fails before mutation if both stores fail, and reads newest successful backup',async()=>{const storage={setItem(){throw Error('quota');},getItem(){return JSON.stringify({id:'new',_backupAt:'2026-11-01T12:00:00Z'});}};await assert.rejects(()=>writeDatabaseBackup('{"id":"x"}',{storage,write:async()=>{throw Error('full');}}),/резервную копию/);assert.equal((await readDatabaseBackup({storage,read:async()=>({blob:new Blob(['{"id":"old","_backupAt":"2026-10-31T12:00:00Z"}'])})})).id,'new');});
