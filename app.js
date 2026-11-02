@@ -1,33 +1,33 @@
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.223';
-import {createDatabaseStorage} from './database-storage.js?v=0.2.223';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide} from './google-drive-setup.js?v=0.2.223';
-import {ensureProductImage} from './product-images.js?v=0.2.223';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.223';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.223';
-import {installImagePreview} from './image-preview.js?v=0.2.223';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.223';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.223';
-import {openCostReport} from './cost-report.js?v=0.2.223';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.223';
-import {mountReleaseHistory} from './release-history.js?v=0.2.223';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.223';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.223';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.223';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.223';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.223';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.223';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.223';
-import {mountSales} from './sales.js?v=0.2.223';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.223';
-import {actionIcon} from './listing-fields.js?v=0.2.223';
-import {installNumberControls} from './number-controls.js?v=0.2.223';
-const APP_VERSION='0.2.223';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.224';
+import {createDatabaseStorage} from './database-storage.js?v=0.2.224';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide} from './google-drive-setup.js?v=0.2.224';
+import {ensureProductImage} from './product-images.js?v=0.2.224';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.224';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.224';
+import {installImagePreview} from './image-preview.js?v=0.2.224';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.224';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.224';
+import {openCostReport} from './cost-report.js?v=0.2.224';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.224';
+import {mountReleaseHistory} from './release-history.js?v=0.2.224';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.224';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.224';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.224';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.224';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.224';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.224';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.224';
+import {mountSales} from './sales.js?v=0.2.224';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.224';
+import {actionIcon} from './listing-fields.js?v=0.2.224';
+import {installNumberControls} from './number-controls.js?v=0.2.224';
+const APP_VERSION='0.2.224';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.223';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.223';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.223';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.223';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.223';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.224';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.224';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.224';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.224';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.224';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -52,8 +52,8 @@ async function exportFullArchive(){
 }
 async function restoreFullArchive(file,{cloud=false}={}){
  if(!file||fullBackupBusy&&!cloud)return;fullBackupBusy=true;lockBackupUI();
- try{toast('Проверяю полный архив…');const parsed=await parseFullBackup(file);
- if(!confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? Текущая база будет заменена целиком. Предыдущая база и её файлы останутся доступны через «Вернуть предыдущую базу».'))return;
+ try{toast('Проверяю полный архив…');const parsed=await parseFullBackup(file);if(cloud)parsed.database=preserveLocalPrintQueue(parsed.database,db);
+ if(!confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? '+(cloud?'Очередь печати этого устройства останется без изменений. Остальные данные будут заменены.':'Текущая база будет заменена целиком.')+' Предыдущая база и её файлы останутся доступны через «Вернуть предыдущую базу».'))return;
  const restored=await commitFullRestore(parsed,{savePrevious:backup,writeFiles:putFiles,commitDatabase:async database=>{database.revision++;database.updatedAt=new Date().toISOString();await databaseStorage.saveRaw(JSON.stringify(database));}});
  db=restored;recoveryRaw=null;selected=db.products[0].id;
  toast('База и все файлы восстановлены из архива');return true;
@@ -193,14 +193,15 @@ function renderCustom(){const p=product();$('#custom').innerHTML=p.custom.map(c=
 function renderHistory(){const p=product();const clear=$('#clear-history');clear.disabled=!p.history.length;clear.onclick=safe(async()=>{if(!p.history.length||!confirm('Очистить все сохранённые расчёты текущего товара «'+(p.sku||p.name)+'»? Текущие поля и файлы товара сохранятся.'))return;await backup();const previous=p.history;p.history=[];var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false)){p.history=previous;return;}renderHistory();toast('История расчётов очищена. Восстановление: Бэкап → Вернуть предыдущую базу.');});$('#history').innerHTML=p.history.slice().reverse().map((h,i)=>`<div class="history-row"><span>${esc(h.date)}<small>${esc(h.platform)}</small></span><span>Цена ${rub(h.price)}</span><span>Прибыль ${rub(h.profit)} ${h.partial?'· частично':''}</span><button data-history="${p.history.length-1-i}">Открыть снимок JSON</button></div>`).join('')||'<p class="empty">Сохраните расчёт, чтобы сравнить его после изменения цен и тарифов.</p>';$('#history').querySelectorAll('[data-history]').forEach(e=>e.onclick=()=>download(p.history[+e.dataset.history],'calculation.json'));}
 let fileHandle=null,fileOriginal=null,fileBusy=false;
 async function fileAction(kind){if(fileBusy)return;fileBusy=true;try{if(!window.showOpenFilePicker)throw Error('Этот браузер не поддерживает прямую работу с файлом. Используйте экспорт и загрузку базы.');if(kind==='pick'){[fileHandle]=await window.showOpenFilePicker({types:[{description:'База JSON',accept:{'application/json':['.json']}}],multiple:false});fileOriginal=await(await fileHandle.getFile()).text();validateDB(JSON.parse(fileOriginal));$('#file-status').textContent=fileHandle.name+' · выбран; данные ещё не загружены';}else{if(!fileHandle)throw Error('Сначала выберите файл');const text=await(await fileHandle.getFile()).text();if(kind==='read'){const x=validateDB(JSON.parse(text));if(!confirm('Полностью заменить локальную базу содержимым файла? Текущая база будет сохранена как резервная.'))return;await changeDB(x);fileOriginal=text;toast('Полная база загружена');}else{if(fileOriginal===null||text!==fileOriginal)throw Error('Файл изменился с момента выбора. Скачайте локальную копию и загрузите свежий файл.');if(!confirm('Сохранить всю текущую базу в выбранный файл? Не сохраняйте одновременно с другого устройства.'))return;exportDB();const data=JSON.stringify(db,null,2),writer=await fileHandle.createWritable();await writer.write(data);await writer.close();fileOriginal=data;$('#file-status').textContent='Файл сохранён · '+new Date().toLocaleTimeString('ru-RU');toast('База записана. Перед переходом дождитесь синхронизации приложения Google Drive.');}}}catch(e){if(e.name!=='AbortError')toast(e.message);}finally{fileBusy=false;}}
-let token=null,driveId=null,googleStatus='Не подключено';
+let token=null,driveId=config.driveFileId||null,googleStatus='Не подключено';
+function rememberDriveFile(id){config.driveFileId=id;driveId=id;localStorage.setItem(CONFIG,JSON.stringify(config));}
 async function api(path,options={}){if(!token)throw Error('Сначала войдите через Google');const res=await fetch('https://www.googleapis.com/drive/v3/'+path,{...options,headers:{Authorization:'Bearer '+token,...options.headers}});if(!res.ok)throw Error(res.status===401?'Вход истёк. Войдите снова.':'Ошибка Google Drive: '+res.status);return res.json();}
 async function runDriveBackup(action){if(fullBackupBusy)return;if(recoveryRaw)throw Error('Сначала восстановите исправную базу');fullBackupBusy=true;lockBackupUI();try{await action();}catch(error){googleStatus=error.message;throw error;}finally{fullBackupBusy=false;render();$('#sync').showModal();}}
 function driveProgress(message){googleStatus=message;const status=$('#google-status');if(status)status.textContent=message;}
-async function driveLoad(){return runDriveBackup(async()=>{driveProgress('Ищу полную базу в Google Drive…');const accessToken=token,file=await findDriveBackup(accessToken);if(!file)throw Error('Полной базы в Google Drive пока нет. На компьютере с данными нажмите «Выгрузить всё в Google Drive».');driveProgress('Скачиваю базу, фотографии и модели из Google Drive · обновлено '+new Date(file.modifiedTime).toLocaleString('ru-RU')+'…');const blob=await downloadDriveBackup(file,accessToken);const restored=await restoreFullArchive(blob,{cloud:true});if(restored){driveId=file.id;driveProgress('Загрузка из Google Drive завершена');}else driveProgress('Загрузка отменена. Текущая база сохранена.');});}
-async function driveCreate(){return runDriveBackup(async()=>{driveProgress('Собираю полную базу с фотографиями и моделями…');const accessToken=token;if(!accessToken)throw Error('Сначала подключите Google Drive');await modelMigration;await databaseStorage.flush();const snapshot=structuredClone(db),records=(await Promise.all(snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)))).flat(),blob=await createFullBackup(snapshot,records);const file=await uploadDriveBackup(blob,accessToken,{onProgress:(done,total)=>driveProgress('Выгружаю всё в Google Drive: '+Math.round(done/total*100)+'%')});driveId=file.id;driveProgress('Всё сохранено в Google Drive: '+snapshot.products.length+' товаров, '+records.length+' файлов. Один облачный файл обновлён.');toast(googleStatus);});}
+async function driveLoad(){return runDriveBackup(async()=>{driveProgress('Ищу полную базу в Google Drive…');const accessToken=token,file=await findDriveBackup(accessToken,{fileId:config.driveFileId});if(!file)throw Error('Полной базы в Google Drive пока нет. На компьютере с данными нажмите «Выгрузить всё в Google Drive».');driveProgress('Скачиваю базу, фотографии и модели из Google Drive · обновлено '+new Date(file.modifiedTime).toLocaleString('ru-RU')+'…');const blob=await downloadDriveBackup(file,accessToken);const restored=await restoreFullArchive(blob,{cloud:true});if(restored){rememberDriveFile(file.id);driveProgress('Загрузка из Google Drive завершена');}else driveProgress('Загрузка отменена. Текущая база сохранена.');});}
+async function driveCreate(){return runDriveBackup(async()=>{driveProgress('Собираю полную базу с фотографиями и моделями…');const accessToken=token;if(!accessToken)throw Error('Сначала подключите Google Drive');await modelMigration;await databaseStorage.flush();const snapshot=databaseForCloud(db),records=(await Promise.all(snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)))).flat(),blob=await createFullBackup(snapshot,records);const file=await uploadDriveBackup(blob,accessToken,{fileId:config.driveFileId,onProgress:(done,total)=>driveProgress('Выгружаю всё в Google Drive: '+Math.round(done/total*100)+'%')});rememberDriveFile(file.id);driveProgress('Всё сохранено в Google Drive: '+snapshot.products.length+' товаров, '+records.length+' файлов. Один облачный файл обновлён.');toast(googleStatus);});}
 function updateDriveControls(){const input=$('#client-id');if(!input)return;const valid=validGoogleClientId(input.value);$('#google-connect').disabled=!valid;$('#drive-client-hint').textContent=valid?'Client ID заполнен. Нажмите «Подключить Google Drive».':'Сначала выполните шаг 1 и вставьте Client ID. После этого кнопка станет доступна.';for(const id of ['drive-load','drive-create','google-out'])$('#'+id).disabled=!token||fullBackupBusy;$('#google-status').textContent=googleStatus;const link=$('#drive-link');if(link){link.hidden=!driveId;if(driveId)link.href='https://drive.google.com/file/d/'+encodeURIComponent(driveId)+'/view';}}
-async function connectGoogle(){config.clientId=$('#client-id').value.trim();if(!validGoogleClientId(config.clientId))throw Error('Вставьте Client ID из шага 1, а не почту или пароль');localStorage.setItem(CONFIG,JSON.stringify(config));if(!window.google){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=resolve;s.onerror=()=>reject(Error('Не удалось загрузить вход Google'));document.head.append(s);});}window.google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:'https://www.googleapis.com/auth/drive.file',error_callback:()=>toast('Вход отменён или окно заблокировано'),callback:r=>{if(r.error){toast(r.error);return;}token=r.access_token;driveId=null;googleStatus='Google Drive подключён. Выберите действие в шаге 3.';updateDriveControls();if($('#drive-link'))$('#drive-link').hidden=true;setTimeout(()=>{token=null;googleStatus='Подключение истекло. Нажмите «Подключить Google Drive» ещё раз.';updateDriveControls();},Number(r.expires_in)*1000);}}).requestAccessToken({prompt:'select_account'});}
+async function connectGoogle(){config.clientId=$('#client-id').value.trim();if(!validGoogleClientId(config.clientId))throw Error('Вставьте Client ID из шага 1, а не почту или пароль');localStorage.setItem(CONFIG,JSON.stringify(config));if(!window.google){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=resolve;s.onerror=()=>reject(Error('Не удалось загрузить вход Google'));document.head.append(s);});}window.google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:'https://www.googleapis.com/auth/drive.file',error_callback:()=>toast('Вход отменён или окно заблокировано'),callback:r=>{if(r.error){toast(r.error);return;}token=r.access_token;driveId=config.driveFileId||null;googleStatus='Google Drive подключён. Выберите действие в шаге 3.';updateDriveControls();if($('#drive-link'))$('#drive-link').hidden=!driveId;setTimeout(()=>{token=null;googleStatus='Подключение истекло. Нажмите «Подключить Google Drive» ещё раз.';updateDriveControls();},Number(r.expires_in)*1000);}}).requestAccessToken({prompt:'select_account'});}
 
 const safe=fn=>async(...args)=>{try{await fn(...args);}catch(e){toast(e.message);}};
 function openLabelPrompt(design=false,selectedProducts=null){
