@@ -1,6 +1,6 @@
-import {databaseForCloud} from './google-drive-backup.js?v=0.2.227';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.227';
-import {validateDB} from './calc.js?v=0.2.227';
+import {databaseForCloud} from './google-drive-backup.js?v=0.2.228';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.228';
+import {validateDB} from './calc.js?v=0.2.228';
 const categories=['product-image','model','source-wb','source-ozon','source','ready'];
 export async function createFullBackup(database,records){
  const db=validateDB(databaseForCloud(database)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
