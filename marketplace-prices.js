@@ -1,12 +1,12 @@
-import {stockPresence,presenceMatches} from './availability-filters.js?v=0.2.213';
-import {skuCopyButton} from './sku-copy.js?v=0.2.213';
-import {mainPhoto,tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.213';
-import {listFiles} from './attachments.js?v=0.2.213';
-import {marketRequest,readAllWBCards,redact} from './marketplace-api.js?v=0.2.213';
-import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.213';
-import {readOzonPrice,ozonPriceBody,discountedPrice} from './price-editor.js?v=0.2.213';
-import {confirmAction} from './listing-fields.js?v=0.2.213';
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.213';
+import {stockPresence,presenceMatches} from './availability-filters.js?v=0.2.214';
+import {skuCopyButton} from './sku-copy.js?v=0.2.214';
+import {mainPhoto,tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.214';
+import {listFiles} from './attachments.js?v=0.2.214';
+import {marketRequest,readAllWBCards,redact} from './marketplace-api.js?v=0.2.214';
+import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.214';
+import {readOzonPrice,ozonPriceBody,discountedPrice} from './price-editor.js?v=0.2.214';
+import {confirmAction} from './listing-fields.js?v=0.2.214';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.214';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>v===null||v===undefined?'—':new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(Number(v));
 const number=v=>v===null||v===undefined||v===''||!Number.isFinite(Number(v))?null:Number(v);
@@ -47,7 +47,7 @@ export async function submitPriceChange(row,values,{request,confirm,save=()=>{},
  const expected=expectedPrice(row,values);if(!await confirm('Артикул: '+row.sku+'\nПлощадка: '+(row.market==='wb'?'WB':'Ozon')+'\nЦена продажи: '+money(row.price)+' → '+money(expected.price)+' ₽\n'+(row.market==='wb'?'Начальная: '+values.base+' ₽ · скидка: '+values.discount+'%':'Зачёркнутая: '+values.base+' ₽ · минимальная: '+values.minimum+' ₽')))return false;
  if(!isAlive())return false;
  const previousSubmission=row.submission;row.submission={status:'sending',at:new Date().toISOString(),expected:{base:expected.base,price:expected.price,discount:expected.discount,minimum:expected.minimum}};
- if(save()===false){if(previousSubmission)row.submission=previousSubmission;else delete row.submission;throw Error('Не удалось сохранить изменение. Цена не отправлена.');}
+ var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false)){if(previousSubmission)row.submission=previousSubmission;else delete row.submission;throw Error('Не удалось сохранить изменение. Цена не отправлена.');}
  try{const result=await request('setPrice',body);if(row.market==='ozon'){const entry=result.result?.find(r=>r.offer_id===row.sku);if(!entry||entry.errors?.length||!entry.updated){row.submission.status=entry?'rejected':'unknown';throw Error(entry?.errors?.map(e=>e.message||e.code).join('; ')||'Ozon не подтвердил изменение цены');}row.submission.status='accepted';}else{if(result.error===true){row.submission.status='rejected';throw Error(result.errorText||'WB отклонил изменение цены');}if(!result.data?.id){row.submission.status='unknown';throw Error('WB не вернул номер задачи. Проверьте цену перед повторной отправкой.');}row.submission.taskId=String(result.data.id);row.submission.status='accepted';}save();return true;}catch(error){if(row.submission.status==='sending')row.submission.status=error.status>=400&&error.status<500&&![408,429].includes(error.status)?'rejected':'unknown';save();throw error;}
 }
 export function filterPriceArticles(database,{market='all',query='',groups=null,price='',stock=''}={}){
