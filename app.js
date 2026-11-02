@@ -1,32 +1,32 @@
-import {createDatabaseStorage} from './database-storage.js?v=0.2.219';
-import {renderGoogleDriveSetup,validGoogleClientId} from './google-drive-setup.js?v=0.2.219';
-import {ensureProductImage} from './product-images.js?v=0.2.219';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.219';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.219';
-import {installImagePreview} from './image-preview.js?v=0.2.219';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.219';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.219';
-import {openCostReport} from './cost-report.js?v=0.2.219';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.219';
-import {mountReleaseHistory} from './release-history.js?v=0.2.219';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.219';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.219';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.219';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.219';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.219';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.219';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.219';
-import {mountSales} from './sales.js?v=0.2.219';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.219';
-import {actionIcon} from './listing-fields.js?v=0.2.219';
-import {installNumberControls} from './number-controls.js?v=0.2.219';
-const APP_VERSION='0.2.219';
+import {createDatabaseStorage} from './database-storage.js?v=0.2.220';
+import {renderGoogleDriveSetup,validGoogleClientId} from './google-drive-setup.js?v=0.2.220';
+import {ensureProductImage} from './product-images.js?v=0.2.220';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.220';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.220';
+import {installImagePreview} from './image-preview.js?v=0.2.220';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.220';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.220';
+import {openCostReport} from './cost-report.js?v=0.2.220';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.220';
+import {mountReleaseHistory} from './release-history.js?v=0.2.220';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.220';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.220';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.220';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.220';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.220';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.220';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.220';
+import {mountSales} from './sales.js?v=0.2.220';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.220';
+import {actionIcon} from './listing-fields.js?v=0.2.220';
+import {installNumberControls} from './number-controls.js?v=0.2.220';
+const APP_VERSION='0.2.220';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.219';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.219';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.219';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.219';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.219';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.220';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.220';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.220';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.220';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.220';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -90,8 +90,9 @@ async function renderFiles(){
 }
 let productQuery='',productPage=0,productGroupFilter='',productColourFilter='';
 const productPageSize=20,productGroupOpen=new Map(),cataloguePresenceFilters={wb:'',ozon:'',label:'',model:''},catalogueModelStates=new Map();
+function catalogueFileActions(p){const hasLabel=!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,');return `<span class="catalogue-product-actions"><button type="button" data-catalogue-label-print="${esc(p.id)}" ${hasLabel?'':'disabled'} title="${hasLabel?'Открыть PDF этикетки этого варианта':'Прикрепите PDF этикетки в карточке товара'}">Печать этикетки</button><button type="button" data-catalogue-model-download="${esc(p.id)}" disabled title="Проверяем сохранённую модель">Скачать модель</button></span>`;}
 function catalogueStatusBadges(p){const badge=(label,state)=>`<span class="catalogue-status ${state===true?'is-ready':state===false?'is-missing':'is-unknown'}" title="${esc(label)}: ${state===true?'есть':state===false?'нет':'нет сохранённых сведений; нажмите Обновить'}">${esc(label)} <b>${state===true?'✓':state===false?'—':'?'}</b></span>`;return `<span class="catalogue-statuses">${badge('WB',catalogueCardPresence(db,p,'wb'))}${badge('Ozon',catalogueCardPresence(db,p,'ozon'))}${badge('Этикетка',!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,'))}<span data-catalogue-model="${esc(p.id)}" class="catalogue-status is-unknown">Модель …</span></span>`;}
-async function hydrateCatalogueModels(scope=document){await modelMigration.catch(()=>{});for(const badge of scope.querySelectorAll('[data-catalogue-model]')){const target=db.products.find(p=>p.id===badge.dataset.catalogueModel);if(!target)continue;let ready=false;try{await selectedPrintModel(db,target);ready=true;}catch{}catalogueModelStates.set(db.id+':'+target.id,ready);if(!badge.isConnected)continue;badge.className='catalogue-status '+(ready?'is-ready':'is-missing');badge.textContent='Модель '+(ready?'✓':'—');badge.title=ready?'Модель для печати прикреплена':'Модель для печати не выбрана';}}
+async function hydrateCatalogueModels(scope=document){await modelMigration.catch(()=>{});for(const badge of scope.querySelectorAll('[data-catalogue-model]')){const target=db.products.find(p=>p.id===badge.dataset.catalogueModel);if(!target)continue;let ready=false;try{await selectedPrintModel(db,target);ready=true;}catch{}catalogueModelStates.set(db.id+':'+target.id,ready);if(!badge.isConnected)continue;badge.className='catalogue-status '+(ready?'is-ready':'is-missing');badge.textContent='Модель '+(ready?'✓':'—');badge.title=ready?'Модель для печати прикреплена':'Модель для печати не выбрана';const action=badge.closest('.catalogue-product-row')?.querySelector('[data-catalogue-model-download]');if(action){action.disabled=!ready;action.title=ready?'Скачать модель этого варианта':'Прикрепите или выберите модель в карточке товара';}}}
 async function loadCatalogueModelStates(){await modelMigration.catch(()=>{});const database=db;await Promise.all(database.products.map(async p=>{let ready=false;try{await selectedPrintModel(database,p);ready=true;}catch{}catalogueModelStates.set(database.id+':'+p.id,ready);}));}
 async function refreshCatalogueFileStates(){if(cataloguePresenceFilters.model){await loadCatalogueModelStates();$('#product-list').innerHTML=productList(product());bindProductList();}else hydrateCatalogueModels($('#product-list'));}
 function cataloguePresenceControls(){return `<div class="catalogue-presence-filters">${[['wb','Карточка WB'],['ozon','Карточка Ozon'],['label','Этикетка'],['model','Модель']].map(([key,label])=>`<label>${label}<select data-catalogue-presence="${key}"><option value="">Все</option><option value="yes" ${cataloguePresenceFilters[key]==='yes'?'selected':''}>Есть</option><option value="no" ${cataloguePresenceFilters[key]==='no'?'selected':''}>Нет</option>${['wb','ozon'].includes(key)?`<option value="unknown" ${cataloguePresenceFilters[key]==='unknown'?'selected':''}>Не проверено</option>`:''}</select></label>`).join('')}</div><small class="catalogue-file-filter-status" role="status"></small>`;}
@@ -103,21 +104,21 @@ function productList(p){
  const query=productQuery.trim().toLocaleLowerCase('ru'),matches=db.products.filter(q=>(!productGroupFilter||(productGroupFilter==='__ungrouped__'?!q.productGroup:q.productGroup===productGroupFilter))&&(!productColourFilter||(q.variantNote||q.colorCode||'')===productColourFilter)&&catalogueStatusMatches(db,q,cataloguePresenceFilters,catalogueModelStates.get(db.id+':'+q.id)??null)&&[q.name,q.sku,q.productGroup,q.variantNote,q.colorCode].filter(Boolean).join(' ').toLocaleLowerCase('ru').includes(query));
  const groupedPages=catalogueProductBatches(matches,productPageSize),pages=groupedPages.length;productPage=Math.min(productPage,pages-1);
  const visible=groupedPages.slice(0,productPage+1).flat(),offset=0,names=[...new Set(visible.map(q=>q.productGroup||''))];
- return `<div class="product-list-count">${matches.length?'Показано '+(offset+1)+'–'+(offset+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<button class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc([q.sku,q.name,q.variantNote,q.colorCode].filter(Boolean).join(' · '))}" ${q.id===p.id?'aria-current="true"':''}><img class="product-list-image" data-product-image="${esc(q.id)}" alt="" hidden><span class="product-label"><span class="sku-with-copy"><strong class="product-sku">${esc(q.sku||'Без артикула')}</strong>${skuCopyButton(q.sku)}</span><small class="product-name">${esc(q.name)}</small>${q.variantNote||q.colorCode?`<small>${esc([q.variantNote,q.colorCode].filter(Boolean).join(' · '))}</small>`:''}${catalogueStatusBadges(q)}</span></button>`).join('')}</details>`).join('')+`<div class="catalogue-scroll-status" ${productPage<pages-1?'data-catalogue-more':''}>${productPage<pages-1?'Прокрутите ниже — подгрузятся следующие товары':matches.length?'Все товары загружены':''}</div>`;
+ return `<div class="product-list-count">${matches.length?'Показано '+(offset+1)+'–'+(offset+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<div class="catalogue-product-row"><button type="button" class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc([q.sku,q.name,q.variantNote,q.colorCode].filter(Boolean).join(' · '))}" ${q.id===p.id?'aria-current="true"':''}><img class="product-list-image" data-product-image="${esc(q.id)}" alt="" hidden><span class="product-label"><span class="sku-with-copy"><strong class="product-sku">${esc(q.sku||'Без артикула')}</strong>${skuCopyButton(q.sku)}</span><small class="product-name">${esc(q.name)}</small>${q.variantNote||q.colorCode?`<small>${esc([q.variantNote,q.colorCode].filter(Boolean).join(' · '))}</small>`:''}${catalogueStatusBadges(q)}</span></button>${catalogueFileActions(q)}</div>`).join('')}</details>`).join('')+`<div class="catalogue-scroll-status" ${productPage<pages-1?'data-catalogue-more':''}>${productPage<pages-1?'Прокрутите ниже — подгрузятся следующие товары':matches.length?'Все товары загружены':''}</div>`;
 }
 function appendCatalogueBatch(list){
  if(!list.isConnected||!list.querySelector('[data-catalogue-more]'))return;
  const top=list.scrollTop;productPage++;const staging=document.createElement('div');staging.innerHTML=productList(product());
  list.querySelector('.product-list-count').textContent=staging.querySelector('.product-list-count').textContent;
  const marker=list.querySelector('.catalogue-scroll-status');
- for(const group of staging.querySelectorAll('details[data-group]')){const existing=[...list.querySelectorAll('details[data-group]')].find(node=>node.dataset.group===group.dataset.group);if(!existing)marker.before(group);else{const ids=new Set([...existing.querySelectorAll('[data-product]')].map(node=>node.dataset.product));for(const row of group.querySelectorAll('[data-product]'))if(!ids.has(row.dataset.product))existing.append(row);}}
+ for(const group of staging.querySelectorAll('details[data-group]')){const existing=[...list.querySelectorAll('details[data-group]')].find(node=>node.dataset.group===group.dataset.group);if(!existing)marker.before(group);else{const ids=new Set([...existing.querySelectorAll('[data-product]')].map(node=>node.dataset.product));for(const row of group.querySelectorAll('[data-product]'))if(!ids.has(row.dataset.product))existing.append(row.closest('.catalogue-product-row')||row);}}
  marker.replaceWith(staging.querySelector('.catalogue-scroll-status'));list.scrollTop=top;bindProductList();
 }
 function bindProductList(){
  const list=$('#product-list');hydrateProductImages(list);hydrateCatalogueModels(list);
  const loadNearEnd=()=>{if(list.isConnected&&list.clientHeight>0&&list.scrollHeight-list.scrollTop-list.clientHeight<240)appendCatalogueBatch(list);};
  list.onscroll=loadNearEnd;
- list.onclick=e=>{const item=e.target.closest('[data-product]');if(item)selectSidebarProduct(item.dataset.product);};
+ list.onclick=async e=>{const action=e.target.closest('[data-catalogue-label-print],[data-catalogue-model-download]');if(action){if(action.disabled)return;const target=db.products.find(product=>product.id===(action.dataset.catalogueLabelPrint||action.dataset.catalogueModelDownload));if(!target)return;try{if(action.hasAttribute('data-catalogue-label-print'))printProductLabel(target.labelPdf,{open:url=>window.open(url,'_blank'),notify:toast});else{action.disabled=true;action.textContent='Готовим…';try{await modelMigration.catch(()=>{});const file=await selectedPrintModel(db,target);downloadBlob(file.blob,file.name);}finally{action.disabled=false;action.textContent='Скачать модель';}}}catch(error){toast(error.message);}return;}const item=e.target.closest('[data-product]');if(item)selectSidebarProduct(item.dataset.product);};
  list.querySelectorAll('[data-group]').forEach(group=>group.ontoggle=()=>{if(group.isConnected&&!productQuery.trim())productGroupOpen.set(group.dataset.group,group.open);window.requestAnimationFrame?.(loadNearEnd);});
  window.requestAnimationFrame?.(loadNearEnd);
 }
