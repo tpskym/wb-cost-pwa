@@ -443,3 +443,5 @@ main:not([data-workspace="prices"]) .prices-only,main[data-workspace="prices"] .
 /* Fill the visible stock workspace, including when the app UI is scaled. */
 .warehouse-stocks .stock-table-scroll{height:var(--stock-viewport-height,auto);max-height:var(--stock-viewport-height,calc(100dvh - 150px));min-height:0;overscroll-behavior:contain;scrollbar-gutter:stable}.warehouse-stocks .table-results{min-height:0}.warehouse-stocks .table-pagination{margin-top:10px;padding-top:10px}
 @container(max-width:760px){.warehouse-stocks .stock-table-scroll{height:auto;max-height:65dvh}}
+
+.orders-chart-scroll{overflow:hidden;min-width:0;max-width:100%}.orders-chart-scroll svg{width:100%;min-width:0!important;max-width:100%}.orders-chart-head{flex-wrap:wrap;gap:12px;min-width:0}.orders-chart-head>div{min-width:0;max-width:100%}.orders-chart-head h3{overflow-wrap:anywhere}.orders-chart-types{flex-wrap:wrap;max-width:100%}.rolling-latest{flex-shrink:0}.orders-chart-grid>.orders-daily-chart{max-width:100%;overflow:hidden}
