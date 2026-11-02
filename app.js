@@ -1,33 +1,33 @@
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.224';
-import {createDatabaseStorage} from './database-storage.js?v=0.2.224';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide} from './google-drive-setup.js?v=0.2.224';
-import {ensureProductImage} from './product-images.js?v=0.2.224';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.224';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.224';
-import {installImagePreview} from './image-preview.js?v=0.2.224';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.224';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.224';
-import {openCostReport} from './cost-report.js?v=0.2.224';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.224';
-import {mountReleaseHistory} from './release-history.js?v=0.2.224';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.224';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.224';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.224';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.224';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.224';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.224';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.224';
-import {mountSales} from './sales.js?v=0.2.224';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.224';
-import {actionIcon} from './listing-fields.js?v=0.2.224';
-import {installNumberControls} from './number-controls.js?v=0.2.224';
-const APP_VERSION='0.2.224';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.225';
+import {createDatabaseStorage} from './database-storage.js?v=0.2.225';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide} from './google-drive-setup.js?v=0.2.225';
+import {ensureProductImage} from './product-images.js?v=0.2.225';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.225';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.225';
+import {installImagePreview} from './image-preview.js?v=0.2.225';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.225';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.225';
+import {openCostReport} from './cost-report.js?v=0.2.225';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.225';
+import {mountReleaseHistory} from './release-history.js?v=0.2.225';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.225';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.225';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.225';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.225';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.225';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.225';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.225';
+import {mountSales} from './sales.js?v=0.2.225';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.225';
+import {actionIcon} from './listing-fields.js?v=0.2.225';
+import {installNumberControls} from './number-controls.js?v=0.2.225';
+const APP_VERSION='0.2.225';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.224';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.224';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.224';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.224';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.224';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.225';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.225';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.225';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.225';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.225';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -196,7 +196,7 @@ async function fileAction(kind){if(fileBusy)return;fileBusy=true;try{if(!window.
 let token=null,driveId=config.driveFileId||null,googleStatus='Не подключено';
 function rememberDriveFile(id){config.driveFileId=id;driveId=id;localStorage.setItem(CONFIG,JSON.stringify(config));}
 async function api(path,options={}){if(!token)throw Error('Сначала войдите через Google');const res=await fetch('https://www.googleapis.com/drive/v3/'+path,{...options,headers:{Authorization:'Bearer '+token,...options.headers}});if(!res.ok)throw Error(res.status===401?'Вход истёк. Войдите снова.':'Ошибка Google Drive: '+res.status);return res.json();}
-async function runDriveBackup(action){if(fullBackupBusy)return;if(recoveryRaw)throw Error('Сначала восстановите исправную базу');fullBackupBusy=true;lockBackupUI();try{await action();}catch(error){googleStatus=error.message;throw error;}finally{fullBackupBusy=false;render();$('#sync').showModal();}}
+async function runDriveBackup(action){if(fullBackupBusy)return;if(recoveryRaw)throw Error('Сначала восстановите исправную базу');const reopenDialog=!!$('#sync')?.open;fullBackupBusy=true;lockBackupUI();try{await action();}catch(error){googleStatus=error.message;throw error;}finally{fullBackupBusy=false;render();if(reopenDialog)$('#sync')?.showModal();}}
 function driveProgress(message){googleStatus=message;const status=$('#google-status');if(status)status.textContent=message;}
 async function driveLoad(){return runDriveBackup(async()=>{driveProgress('Ищу полную базу в Google Drive…');const accessToken=token,file=await findDriveBackup(accessToken,{fileId:config.driveFileId});if(!file)throw Error('Полной базы в Google Drive пока нет. На компьютере с данными нажмите «Выгрузить всё в Google Drive».');driveProgress('Скачиваю базу, фотографии и модели из Google Drive · обновлено '+new Date(file.modifiedTime).toLocaleString('ru-RU')+'…');const blob=await downloadDriveBackup(file,accessToken);const restored=await restoreFullArchive(blob,{cloud:true});if(restored){rememberDriveFile(file.id);driveProgress('Загрузка из Google Drive завершена');}else driveProgress('Загрузка отменена. Текущая база сохранена.');});}
 async function driveCreate(){return runDriveBackup(async()=>{driveProgress('Собираю полную базу с фотографиями и моделями…');const accessToken=token;if(!accessToken)throw Error('Сначала подключите Google Drive');await modelMigration;await databaseStorage.flush();const snapshot=databaseForCloud(db),records=(await Promise.all(snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)))).flat(),blob=await createFullBackup(snapshot,records);const file=await uploadDriveBackup(blob,accessToken,{fileId:config.driveFileId,onProgress:(done,total)=>driveProgress('Выгружаю всё в Google Drive: '+Math.round(done/total*100)+'%')});rememberDriveFile(file.id);driveProgress('Всё сохранено в Google Drive: '+snapshot.products.length+' товаров, '+records.length+' файлов. Один облачный файл обновлён.');toast(googleStatus);});}
