@@ -1,4 +1,4 @@
-import {getFile,putFile} from './attachments.js?v=0.2.212';
+import {getFile,putFile} from './attachments.js?v=0.2.213';
 export async function writeDatabaseBackup(raw,{storage=globalThis.localStorage,key='workshop-db-v1',write=putFile}={}){
  const database=JSON.parse(raw),savedAt=new Date().toISOString(),copy=JSON.stringify({...database,_backupAt:savedAt});let local=false,indexed=false;
  try{storage.setItem(key+'-backup',copy);local=true;}catch{}
