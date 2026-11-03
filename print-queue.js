@@ -1,14 +1,14 @@
-import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.250';
-import {skuCopyButton} from './sku-copy.js?v=0.2.250';
-import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.250';
-import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.250';
-import {openPrintCompletion} from './print-completion.js?v=0.2.250';
-import {listFiles} from './attachments.js?v=0.2.250';
-import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.250';
-import {blankProduct} from './calc.js?v=0.2.250';
-import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.250';
+import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.251';
+import {skuCopyButton} from './sku-copy.js?v=0.2.251';
+import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.251';
+import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.251';
+import {openPrintCompletion} from './print-completion.js?v=0.2.251';
+import {listFiles} from './attachments.js?v=0.2.251';
+import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.251';
+import {blankProduct} from './calc.js?v=0.2.251';
+import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.251';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-import {movePrintJob,mergeActivePrintJobs,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.250';
+import {movePrintJob,mergeActivePrintJobs,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.251';
 const integer=(n)=>{if(!Number.isSafeInteger(n)||n<1||n>1000000)throw Error('Введите целое число от 1 до 1000000');return n;};
 export function openEnqueueDialog({database,sku='',quantity=1,market='',save,notify=()=>{},document:doc=globalThis.document}){
  const dialog=doc.createElement('dialog');dialog.className='print-queue-dialog enqueue-dialog';dialog.setAttribute('aria-label','Добавить в очередь печати');
@@ -30,7 +30,7 @@ export function openQueueDelivery({database,job,batch,save,getCredentials,onLabe
  const paintTargets=()=>{select.innerHTML='<option value="">Выберите площадку и склад</option>'+targets.map((r,i)=>`<option value="${i}">${r.target.market==='wb'?'WB':'Ozon'} · ${esc(r.warehouse)} · сейчас ${r.available??'—'} шт.</option>`).join('');};paintTargets();
  const draw=()=>{const record=linked();if(record&&record.status!=='rejected'){const index=targets.findIndex(r=>r.target.market===record.target.market&&r.warehouseId===record.target.warehouseId&&r.target.chrtId===record.target.chrtId);select.value=index>=0?String(index):'';select.disabled=true;if(['confirmed','resolved'].includes(record.status)){$('[data-form]').innerHTML=`<section class="print-success-panel" role="status"><span class="print-success-icon" aria-hidden="true">✓</span><h2>${record.status==='confirmed'?'Партия добавлена на склад':'Проверка завершена'}</h2><p><strong>${batch.quantity} шт. · ${esc(job.sku)}</strong><br>${record.status==='confirmed'?'Пополнение подтверждено площадкой.':'Результат отмечен после проверки в кабинете.'} Повторно добавлять эту партию не нужно.</p><button type="button" data-delivery-done>Готово — закрыть</button></section>`;$('[data-delivery-done]').onclick=()=>dialog.close();drawQueue();return;}}
  const row=targets[Number(select.value)];if(select.value===''||!row){$('[data-form]').innerHTML=targets.length?'<p>Выберите склад для добавления новых деталей.</p>':'<p>Товар ещё не привязан к складу в остатках. Нажмите «Найти склады WB» или «Найти склады Ozon» выше.</p>';return;}
- const otherPending=pendingAddition(database.stockAdditions||[],row.target);if(otherPending&&otherPending.id!==batch.additionId){$('[data-form]').innerHTML='<p>На этом складе предыдущее пополнение ещё не подтверждено. Проверьте его в остатках. Эта партия пока не отправлена.</p>';return;}$('[data-form]').innerHTML=renderStockAddition(row,row.target.market,database.stockAdditions||[]);const input=$('[data-new-parts]');if(input){input.value=batch.quantity;input.readOnly=true;}drawQueue();};
+ const otherPending=pendingAddition(database.stockAdditions||[],row.target);if(otherPending&&otherPending.id!==batch.additionId){$('[data-form]').innerHTML='<p>На этом складе предыдущее пополнение ещё не подтверждено. Проверьте его в остатках. Эта партия пока не отправлена.</p>';return;}$('[data-form]').innerHTML=renderStockAddition(row,row.target.market,database.stockAdditions||[]);const input=$('[data-new-parts]');if(input){input.value=batch.quantity;input.readOnly=true;input.disabled=true;}drawQueue();};
  dialog.querySelectorAll('[data-find-delivery-market]').forEach(button=>button.onclick=async()=>{if(select.disabled)return;button.disabled=true;const market=button.dataset.findDeliveryMarket;$('#stock-target-status').textContent='Ищу склады '+market.toUpperCase()+'…';try{const rows=await loadQueueAdditionChoices(job.sku,market,(op,body)=>marketRequest(market,op,getCredentials(),body));if(!dialog.isConnected)return;for(const row of rows)if(!targets.some(item=>item.target.market===market&&item.warehouseId===row.warehouseId&&item.chrtId===row.chrtId))targets.push(row);paintTargets();if(rows.length===1)select.value=String(targets.findIndex(row=>row.target.market===market&&row.warehouseId===rows[0].warehouseId&&row.chrtId===rows[0].chrtId));draw();$('#stock-target-status').textContent=rows.length?'Склады получены. Выберите склад и добавьте эту партию.':'Действующих складов FBS не найдено.';}catch(error){if(dialog.isConnected)$('#stock-target-status').textContent=error.message;}finally{button.disabled=false;}});select.onchange=draw;$('[data-close]').onclick=()=>dialog.close();dialog.onclose=()=>dialog.remove();doc.body.append(dialog);dialog.showModal();
  mountStockAdditions({root:dialog,database,getCredentials,save,draw,fixedQuantity:batch.quantity,beforeSubmit:()=>{const record=linked();if(record&&record.status!=='rejected')throw Error('Эта партия уже отправлена. Проверьте результат вместо повторного добавления.');},onRecord:record=>{if(record.quantity!==batch.quantity||record.target.sku!==job.sku)throw Error('Пополнение не соответствует напечатанной партии');const previous=linked();if(previous&&previous.id!==record.id&&previous.status!=='rejected')throw Error('Эта партия уже связана с другим пополнением');batch.additionId=record.id;}});draw();return dialog;
 }
