@@ -1,5 +1,5 @@
-import {listFiles,putFile} from './attachments.js?v=0.2.241';
-import {productMainPhoto,mainPhoto} from './marketplace-metrics.js?v=0.2.241';
+import {listFiles,putFile} from './attachments.js?v=0.2.242';
+import {productMainPhoto,mainPhoto} from './marketplace-metrics.js?v=0.2.242';
 const pending=new Map();
 export function productImageSources(database,product){return [...new Set([mainPhoto(product.marketplaceImageUrl),productMainPhoto(product,'wb'),productMainPhoto(product,'ozon'),...[...(database.stockSnapshots||[]),...(database.orderSnapshots||[])].flatMap(snapshot=>(snapshot.rows||[]).filter(row=>row.sku===product.sku).map(row=>mainPhoto(row.imageUrl)))].filter(Boolean))];}
 export async function ensureProductImage(database,product,{read=listFiles,write=putFile,fetcher=globalThis.fetch,download=true}={}){

@@ -1,35 +1,35 @@
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.241';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.241';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.241';
-import {createDatabaseStorage} from './database-storage.js?v=0.2.241';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.241';
-import {ensureProductImage} from './product-images.js?v=0.2.241';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.241';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.241';
-import {installImagePreview} from './image-preview.js?v=0.2.241';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.241';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.241';
-import {openCostReport} from './cost-report.js?v=0.2.241';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.241';
-import {mountReleaseHistory} from './release-history.js?v=0.2.241';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.241';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.241';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.241';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.241';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.241';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.241';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.241';
-import {mountSales} from './sales.js?v=0.2.241';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.241';
-import {actionIcon} from './listing-fields.js?v=0.2.241';
-import {installNumberControls} from './number-controls.js?v=0.2.241';
-const APP_VERSION='0.2.241';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.242';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.242';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.242';
+import {createDatabaseStorage} from './database-storage.js?v=0.2.242';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.242';
+import {ensureProductImage} from './product-images.js?v=0.2.242';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.242';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.242';
+import {installImagePreview} from './image-preview.js?v=0.2.242';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.242';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.242';
+import {openCostReport} from './cost-report.js?v=0.2.242';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.242';
+import {mountReleaseHistory} from './release-history.js?v=0.2.242';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.242';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.242';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.242';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.242';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.242';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.242';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.242';
+import {mountSales} from './sales.js?v=0.2.242';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.242';
+import {actionIcon} from './listing-fields.js?v=0.2.242';
+import {installNumberControls} from './number-controls.js?v=0.2.242';
+const APP_VERSION='0.2.242';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.241';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.241';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.241';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.241';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.241';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.242';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.242';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.242';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.242';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.242';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -206,9 +206,9 @@ function updateDriveControls(){const input=$('#client-id');if(!input)return;cons
 async function connectGoogle(){config.clientId=$('#client-id').value.trim();if(!validGoogleClientId(config.clientId))throw Error('Вставьте Client ID из шага 1, а не почту или пароль');localStorage.setItem(CONFIG,JSON.stringify(config));if(!window.google){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=resolve;s.onerror=()=>reject(Error('Не удалось загрузить вход Google'));document.head.append(s);});}window.google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:'https://www.googleapis.com/auth/drive.file',error_callback:()=>toast('Вход отменён или окно заблокировано'),callback:r=>{if(r.error){toast(r.error);return;}token=r.access_token;googleError=null;driveId=config.driveFileId||null;googleStatus='Google Drive подключён. Выберите действие в шаге 3.';updateDriveControls();if($('#drive-link'))$('#drive-link').hidden=!driveId;setTimeout(()=>{token=null;googleStatus='Подключение истекло. Нажмите «Подключить Google Drive» ещё раз.';updateDriveControls();},Number(r.expires_in)*1000);}}).requestAccessToken({prompt:'select_account'});}
 
 const safe=fn=>async(...args)=>{try{await fn(...args);}catch(e){toast(e.message);}};
-function openLabelPrompt(design=false,selectedProducts=null){
+function openLabelPrompt(design=false,selectedProducts=null,options={}){
  const dialog=document.createElement('dialog');dialog.className='label-prompt-dialog';dialog.setAttribute('aria-labelledby','label-prompt-title');
- dialog.innerHTML=`<div class="modal-head"><h2 id="label-prompt-title">${design==='group'?'Промпт для этикеток всей группы':design?'Промпт для этикетки 58 × 40 мм':'Текст для языковой модели'}</h2><button type="button" data-prompt-close aria-label="Закрыть">×</button></div><p>Скопируйте текст и отправьте в языковую модель.</p><textarea id="label-prompt-text" rows="16" aria-label="Промпт">${esc(design==='group'?groupLabelDesignPrompt(product(),selectedProducts??db.products,db.filamentStock):design?labelDesignPrompt(product(),db.filamentStock):productLabelPrompt(product()))}</textarea><div class="confirm-actions"><button type="button" data-prompt-close>Закрыть</button><button type="button" id="label-prompt-copy">Скопировать</button></div><p id="label-prompt-status" role="status"></p>`;
+ dialog.innerHTML=`<div class="modal-head"><h2 id="label-prompt-title">${design==='group'?'Промпт для этикеток всей группы':design?'Промпт для этикетки 58 × 40 мм':'Текст для языковой модели'}</h2><button type="button" data-prompt-close aria-label="Закрыть">×</button></div><p>Скопируйте текст и отправьте в языковую модель.</p><textarea id="label-prompt-text" rows="16" aria-label="Промпт">${esc(design==='group'?groupLabelDesignPrompt(product(),selectedProducts??db.products,db.filamentStock,options):design?labelDesignPrompt(product(),db.filamentStock):productLabelPrompt(product()))}</textarea><div class="confirm-actions"><button type="button" data-prompt-close>Закрыть</button><button type="button" id="label-prompt-copy">Скопировать</button></div><p id="label-prompt-status" role="status"></p>`;
  const close=()=>{dialog.remove();$(design==='group'?'#label-group-prompt':design?'#label-design-prompt':'#label-ai-prompt')?.focus({preventScroll:true});};dialog.querySelectorAll('[data-prompt-close]').forEach(button=>button.onclick=close);dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  dialog.querySelector('#label-prompt-copy').onclick=async()=>{const text=dialog.querySelector('textarea');try{await navigator.clipboard.writeText(text.value);dialog.querySelector('#label-prompt-status').textContent='Скопировано';}catch{text.focus();text.select();dialog.querySelector('#label-prompt-status').textContent='Нажмите ⌘C или Ctrl+C, чтобы скопировать';}};
  document.body.append(dialog);dialog.showModal();
@@ -221,7 +221,7 @@ function openVariantColorPicker(){
  document.body.append(dialog);dialog.showModal();dialog.querySelector('[data-variant-color]').focus();
 }
 function bind(){bindWorkingFolderControls(document,{notify:toast});$('#app-zoom-out').onclick=()=>{appZoom=Math.max(60,appZoom-10);applyAppZoom();};$('#app-zoom-in').onclick=()=>{appZoom=Math.min(160,appZoom+10);applyAppZoom();};$('#app-zoom-reset').onclick=()=>{appZoom=100;applyAppZoom();};applyAppZoom();const p=product();
- $('#variant-color-pick').onclick=openVariantColorPicker;$('#label-ai-prompt').onclick=()=>openLabelPrompt();$('#label-design-prompt').onclick=()=>openLabelPrompt(true);$('#label-group-prompt').onclick=()=>openGroupLabelPicker({database:db,product:product(),onGenerate:members=>openLabelPrompt('group',members),onClose:()=>$('#label-group-prompt')?.focus({preventScroll:true})});
+ $('#variant-color-pick').onclick=openVariantColorPicker;$('#label-ai-prompt').onclick=()=>openLabelPrompt();$('#label-design-prompt').onclick=()=>openLabelPrompt(true);$('#label-group-prompt').onclick=safe(async()=>{const folder=await workingDownloads.status();let outputDirectory=folder.name||'';try{outputDirectory=localStorage.getItem('workshop-label-output-folder')||outputDirectory;}catch{}openGroupLabelPicker({database:db,product:product(),outputDirectory,onGenerate:(members,options)=>{try{localStorage.setItem('workshop-label-output-folder',options.outputDirectory);}catch{}openLabelPrompt('group',members,options);},onClose:()=>$('#label-group-prompt')?.focus({preventScroll:true})});});
  bindProductList();$('#catalogue-refresh').onclick=async()=>{if(catalogueRefreshBusy)return;catalogueRefreshBusy=true;const button=$('#catalogue-refresh'),status=$('#catalogue-refresh-status');button.disabled=true;status.textContent='Обновляю карточки всех товаров…';try{const result=await refreshCatalogueCards(db,getMarketplaceCredentials(),{onSaved:()=>save()});status.textContent=result.map(r=>(r.market==='wb'?'WB':'Ozon')+': '+(r.error||('карточек '+r.count))).join(' · ');$('#product-list').innerHTML=productList(product());bindProductList();}catch(error){status.textContent=error.message;}finally{catalogueRefreshBusy=false;button.disabled=false;const current=$('#catalogue-refresh');if(current)current.disabled=false;}};const refreshCatalogue=()=>{productPage=0;$('#product-list').innerHTML=productList(product());bindProductList();};document.querySelector('[data-catalogue-group-picker]').onclick=openCatalogueGroupPicker;for(const input of document.querySelectorAll('[data-catalogue-presence]'))input.onchange=async()=>{const key=input.dataset.cataloguePresence;cataloguePresenceFilters[key]=input.value;const status=document.querySelector('.catalogue-file-filter-status');if(key==='model'&&input.value){status.textContent='Проверяю сохранённые модели…';await loadCatalogueModelStates();if(status.isConnected)status.textContent='';}refreshCatalogue();};$('#product-search').oninput=e=>{productQuery=e.target.value;refreshCatalogue();};$('#catalogue-group-filter').onchange=e=>{productGroupFilter=e.target.value;document.querySelector('[data-catalogue-group-picker] span').textContent=productGroupFilter==='__ungrouped__'?'Без группы':productGroupFilter||'Все группы';if(!catalogueColours().includes(productColourFilter))productColourFilter='';$('#catalogue-colour-filter').innerHTML=catalogueColourOptions();refreshCatalogue();};$('#catalogue-colour-filter').onchange=e=>{productColourFilter=e.target.value;refreshCatalogue();};document.querySelector('[data-catalogue-reset]').onclick=()=>{productQuery='';productGroupFilter='';productColourFilter='';for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';$('#product-search').value='';$('#catalogue-group-filter').value='';document.querySelector('[data-catalogue-group-picker] span').textContent='Все группы';document.querySelectorAll('[data-catalogue-presence]').forEach(input=>input.value='');$('#catalogue-colour-filter').innerHTML=catalogueColourOptions();refreshCatalogue();};for(const [selector,open] of [['[data-catalogue-collapse]',false],['[data-catalogue-expand]',true]])document.querySelector(selector).onclick=()=>{for(const p of db.products)productGroupOpen.set(p.productGroup||'',open);$('#product-list').querySelectorAll('details[data-group]').forEach(group=>group.open=open);};
  const restoreWorkspace=state=>{if(!state)return;space=state.space;selected=db.products.some(p=>p.id===state.selected)?state.selected:db.products[0].id;history.replaceState(null,'','#'+space);render();};$('#workspace-back').onclick=()=>restoreWorkspace(workspaceHistory.back());$('#workspace-forward').onclick=()=>restoreWorkspace(workspaceHistory.forward());
  $('#workspace-select').onchange=event=>{space=event.target.value;history.replaceState(null,'','#'+space);render();window.scrollTo?.({top:0});};

@@ -1,5 +1,5 @@
-import {nativeOpenerPlatform,windowsOpenerEnabled} from './windows-opener.js?v=0.2.241';
-import {workingDownloads} from './working-downloads.js?v=0.2.241';
+import {nativeOpenerPlatform,windowsOpenerEnabled} from './windows-opener.js?v=0.2.242';
+import {workingDownloads} from './working-downloads.js?v=0.2.242';
 export async function readLabelPdf(file){
  if(!file||file.size>2*1024*1024)throw Error('PDF должен быть не больше 2 МБ');
  const bytes=new Uint8Array(await file.arrayBuffer());
@@ -44,10 +44,10 @@ ${labelProductData(product,stock)}
 Не добавляй пояснения на саму этикетку. Не придумывай недостающие данные: сначала уточни их. Выдай PDF-файл, готовый для печати на этикетке 58 × 40 мм без подгонки под размер страницы.`;
 }
 
-export function groupLabelDesignPrompt(product,products,stock=[]){
+export function groupLabelDesignPrompt(product,products,stock=[],{outputDirectory=''}={}){
  const members=product.productGroup?.trim()?products.filter(p=>p.productGroup===product.productGroup):[product];
  const layout=labelDesignPrompt(product,stock).split('Данные товара (')[0];
- return `Сформируй этикетки для всей группы товаров: ${members.length} шт. Для каждого варианта из списка ниже создай отдельный одностраничный PDF размером 58 × 40 мм. Сохрани каждый файл под именем соответствующего артикула с расширением .pdf и собери все PDF в один ZIP. Не объединяй разные варианты на одной этикетке и не пропускай повторяющиеся цвета.
+ return `Сформируй этикетки для всей группы товаров: ${members.length} шт. Для каждого варианта из списка ниже создай отдельный одностраничный PDF размером 58 × 40 мм. Сохрани каждый файл под именем соответствующего артикула с расширением .pdf. Не объединяй разные варианты на одной этикетке и не пропускай повторяющиеся цвета.
 
 Общие требования к каждой этикетке:
 ${layout}
@@ -56,7 +56,7 @@ ${layout}
 ${members.map((p,i)=>`Этикетка ${i+1}
 ${labelProductData(p,stock)}`).join('\n\n')}
 
-Не придумывай отсутствующие значения: сначала уточни их. Выдай ZIP со всеми этикетками. На самих этикетках не печатай номера блоков, задания и пояснения.`;
+Не придумывай отсутствующие значения: сначала уточни их. Сразу сохрани готовые PDF в ту же рабочую папку «Мастерской», куда скачиваются модели model.* и этикетка label.pdf.${outputDirectory.trim()?' Папка назначения, указанная пользователем: '+outputDirectory.trim()+'.':''} Для каждого варианта используй отдельное имя <артикул>.pdf. Не называй все файлы label.pdf и не перезаписывай этикетки других вариантов. Если указан только короткий вариант имени папки и однозначно найти её нельзя, уточни полный путь. Если у тебя нет доступа к файловой системе этого компьютера, прямо сообщи об этом и выдай ZIP со всеми PDF для сохранения в эту папку; не утверждай, что файлы уже помещены в неё. На самих этикетках не печатай номера блоков, задания и пояснения.`;
 }
 
 export function previewProductLabel(label,{document:doc=globalThis.document,onClose=()=>{}}={}){
