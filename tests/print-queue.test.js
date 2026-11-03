@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {blankProduct,validateDB} from '../calc.js';
-import {movePrintJob,enqueuePrint,recordPrinted,remainingQuantity,queueOutstanding} from '../print-queue-state.js';
+import {movePrintJob,enqueuePrint,recordPrinted,remainingQuantity,queueOutstanding,setRequestedQuantity,minimumRequestedQuantity} from '../print-queue-state.js';
 import {renderPrintQueue,mountPrintQueue,openEnqueueDialog,openQueueDelivery,queueDeliveryTargets} from '../print-queue.js';
 import {mountWarehouseStocks} from '../warehouse-stocks.js';
 import {createWorkspaceHistory} from '../workspace-history.js';
@@ -56,4 +56,16 @@ test('a fixed printed batch cannot be changed by the quantity counter',()=>{
  const d=dom(),db=setup(),job=enqueuePrint(db,db.products[0],2),batch=recordPrinted(job,2);db.stockSnapshots=[{source:'wb-fbs',rows:[{sku:job.sku,warehouse:'Основной',warehouseId:7,chrtId:11,available:3}]}];
  const dialog=openQueueDelivery({database:db,job,batch,save:()=>true,getCredentials:()=>({}),document:d.window.document}),select=dialog.querySelector('[data-destination]');select.value='0';select.dispatchEvent(new d.window.Event('change'));
  const stop=installNumberControls(d.window.document),input=dialog.querySelector('[data-new-parts]');assert.equal(input.disabled,true);const control=input.closest('.quantity-control');assert.equal(control.querySelector('[data-delta="1"]').disabled,true);control.querySelector('[data-delta="1"]').click();assert.equal(input.value,'2');stop();dialog.close();
+});
+
+test('requested quantity cannot go below printed and in-progress parts',()=>{
+ const db=setup(),job=enqueuePrint(db,db.products[0],5);recordPrinted(job,1);job.printingQuantity=2;assert.equal(minimumRequestedQuantity(job),3);setRequestedQuantity(job,3);assert.equal(remainingQuantity(job),2);assert.throws(()=>setRequestedQuantity(job,2),/Нужно/);assert.equal(job.quantity,3);setRequestedQuantity(job,7);assert.doesNotThrow(()=>validateDB(db));assert.equal(remainingQuantity(job),6);
+});
+test('Need counter changes an existing task in place, updates totals and rolls back failed storage',async()=>{
+ const d=dom(),db=setup(),job=enqueuePrint(db,db.products[0],3),root=d.window.document.querySelector('#root');let fail=false,saves=0;
+ const dispose=mountPrintQueue({root,database:db,save:async()=>{saves++;return !fail;},getCredentials:()=>({})}),stop=installNumberControls(d.window.document),planned=root.querySelector('[data-requested-job]'),row=planned.closest('[data-queue-row]');
+ planned.closest('.quantity-control').querySelector('[data-delta="1"]').click();await new Promise(r=>setTimeout(r,0));assert.equal(job.quantity,4);assert.equal(db.printQueue.length,1);assert.equal(root.querySelector('[data-queue-row]'),row);assert.equal(root.querySelector('[data-queue-remaining]').textContent,'4 шт.');assert.equal(root.querySelector('[data-queue-remaining-total]').textContent,'4 шт.');
+ const printing=root.querySelector('[data-printing-job]');printing.value='2';printing.dispatchEvent(new d.window.Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,0));assert.equal(planned.min,'2');
+ planned.value='2';planned.dispatchEvent(new d.window.Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,0));assert.equal(job.quantity,2);assert.equal(printing.max,'2');assert.equal(planned.closest('.quantity-control').querySelector('[data-delta="-1"]').disabled,true);
+ fail=true;planned.closest('.quantity-control').querySelector('[data-delta="1"]').click();await new Promise(r=>setTimeout(r,0));assert.equal(job.quantity,2);assert.equal(planned.value,'2');assert.equal(planned.closest('.quantity-control').querySelector('output').textContent,'2');assert.match(root.querySelector('#queue-status').textContent,/Не удалось сохранить/);assert.equal(saves,4);stop();dispose();d.window.close();
 });

@@ -10,6 +10,12 @@ export function enqueuePrint(database,product,quantity,market=''){
 }
 export function mergeActivePrintJobs(database){const groups=new Map(),removed=new Set();let count=0;for(const job of database.printQueue||[]){if(job.archivedAt)continue;const key=JSON.stringify([job.productId,job.sku]),target=groups.get(key);if(!target||target.quantity+job.quantity>1000000){groups.set(key,job);continue;}target.quantity+=job.quantity;target.batches.push(...job.batches);target.printingQuantity=(target.printingQuantity||0)+(job.printingQuantity||0);target.requestedMarkets=[...new Set([...(target.requestedMarkets||[target.market]),...(job.requestedMarkets||[job.market])])];if(target.market!==job.market)target.market='';if(job.createdAt<target.createdAt)target.createdAt=job.createdAt;removed.add(job);count++;}if(count)database.printQueue=database.printQueue.filter(j=>!removed.has(j));return count;}
 
+export const minimumRequestedQuantity=job=>printedQuantity(job)+Math.max(1,job.printingQuantity||0);
+export function setRequestedQuantity(job,quantity){
+ const minimum=minimumRequestedQuantity(job);
+ if(job.archivedAt||!Number.isSafeInteger(quantity)||quantity<minimum||quantity>1000000)throw Error('Нужно: укажите количество от '+minimum+' до 1000000. Уже готовые и печатающиеся детали не уменьшаются.');
+ job.quantity=quantity;return quantity;
+}
 export function setPrintingQuantity(job,quantity){if(job.archivedAt||!Number.isSafeInteger(quantity)||quantity<0||quantity>remainingQuantity(job))throw Error('Печатается: укажите количество от 0 до '+remainingQuantity(job));job.printingQuantity=quantity;return quantity;}
 export function recordPrinted(job,quantity){integer(quantity,'Напечатано');if(job.archivedAt||quantity>remainingQuantity(job))throw Error('Укажите количество не больше оставшегося: '+remainingQuantity(job));const batch={id:crypto.randomUUID(),quantity,createdAt:new Date().toISOString()};job.batches.push(batch);if(job.printingQuantity!==undefined)job.printingQuantity=Math.max(0,job.printingQuantity-quantity);if(!remainingQuantity(job))job.archivedAt=new Date().toISOString();return batch;}
 export function queueOutstanding(database,sku,market=''){return (database.printQueue||[]).filter(j=>!j.archivedAt&&j.sku===sku&&(!market||!j.market||j.market===market)).reduce((n,j)=>n+remainingQuantity(j),0);}
