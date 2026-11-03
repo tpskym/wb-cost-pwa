@@ -486,3 +486,5 @@ main:not([data-workspace="expenses"]) .expenses-only,main[data-workspace="expens
 .expenses-workspace .expense-field-heading{flex-wrap:nowrap}.expenses-workspace [data-quantity-title]{min-width:0;overflow-wrap:anywhere}.expenses-workspace .expense-manual-quantity{flex:none;font-size:14px}.file-actions,.confirm-actions,.sync-actions,.queue-file-actions{gap:12px;row-gap:12px}
 
 .expenses-workspace .expense-amounts .number-control:not(.quantity-control){min-height:56px}.expenses-workspace .expense-amounts .number-control:not(.quantity-control)>input{height:56px;font-size:16px}.expenses-table-scroll time{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.expenses-workspace [data-quantity-label]>.expense-field-heading{justify-content:flex-start;gap:12px}.expenses-workspace [data-quantity-title]{flex:0 1 auto}
