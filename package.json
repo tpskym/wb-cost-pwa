@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "start": "python3 -m http.server 4173 --bind 127.0.0.1",
-    "postinstall": "node scripts/prepare-pdfjs.mjs && node scripts/prepare-model-preview.mjs"
+    "postinstall": "node scripts/prepare-pdfjs.mjs && node scripts/prepare-model-preview.mjs && node scripts/prepare-windows-helper.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

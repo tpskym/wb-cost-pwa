@@ -9,3 +9,4 @@ dist/
 *.log
 pdfjs/
 model-preview-runtime.js
+workshop-windows.zip
