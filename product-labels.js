@@ -1,3 +1,4 @@
+import {workingDownloads} from './working-downloads.js?v=0.2.234';
 export async function readLabelPdf(file){
  if(!file||file.size>2*1024*1024)throw Error('PDF должен быть не больше 2 МБ');
  const bytes=new Uint8Array(await file.arrayBuffer());
@@ -8,12 +9,13 @@ export async function readLabelPdf(file){
 export function printProductLabel(label,{open=url=>window.open(url,'_blank'),notify=()=>{}}={}){
  if(!label?.data?.startsWith('data:application/pdf;base64,'))throw Error('Сначала загрузите PDF этикетки этого товара');
  const bytes=Uint8Array.from(atob(label.data.split(',')[1]),c=>c.charCodeAt(0));
- const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),preview=open(url);
+ const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),preview=open(url);
  if(!preview){URL.revokeObjectURL(url);throw Error('Разрешите открытие новой вкладки для печати этикетки');}
  const timer=setTimeout(()=>URL.revokeObjectURL(url),300000);timer.unref?.();
- notify('Открыт PDF этикетки. Запустите печать из просмотрщика PDF после загрузки документа.');
+ notify('Открыт PDF этикетки. Запустите печать из просмотрщика PDF после загрузки документа.');workingDownloads.save(blob,'label.pdf','label',{onlyIfConfigured:true,notify}).catch(error=>notify(error.message));
  return preview;
 }
+export async function downloadProductLabel(label,{notify=()=>{}}={}){if(!label?.data?.startsWith('data:application/pdf;base64,'))throw Error('Сначала загрузите PDF этикетки этого товара');const bytes=Uint8Array.from(atob(label.data.split(',')[1]),c=>c.charCodeAt(0));return workingDownloads.save(new Blob([bytes],{type:'application/pdf'}),'label.pdf','label',{notify});}
 export function openStockLabelDialog({database,sku,notify=()=>{},document:doc=globalThis.document,open=url=>doc.defaultView.open(url,'_blank')}){
  const product=database.products.find(p=>p.sku?.trim()===sku.trim());
  try{printProductLabel(product?.labelPdf,{open,notify});}catch(error){notify(error.message);}return null;
@@ -61,6 +63,6 @@ export function previewProductLabel(label,{document:doc=globalThis.document,onCl
  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
  const dialog=doc.createElement('dialog');dialog.className='label-preview-dialog';dialog.setAttribute('aria-label','Предпросмотр этикетки');
  const head=doc.createElement('div');head.className='modal-head';const title=doc.createElement('h2');title.textContent='Предпросмотр этикетки';const close=doc.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Закрыть предпросмотр');head.append(title,close);
- const name=doc.createElement('p');name.textContent=label.name||'Этикетка.pdf';const frame=doc.createElement('iframe');frame.title='PDF этикетки';frame.src=url+'#view=Fit';const fallback=doc.createElement('a');fallback.href=url;fallback.target='_blank';fallback.rel='noopener';fallback.textContent='Открыть PDF для печати';dialog.append(head,name,frame,fallback);
+ const name=doc.createElement('p');name.textContent=label.name||'Этикетка.pdf';const frame=doc.createElement('iframe');frame.title='PDF этикетки';frame.src=url+'#view=Fit';const fallback=doc.createElement('a');fallback.href=url;fallback.target='_blank';fallback.rel='noopener';fallback.textContent='Открыть PDF для печати';const download=doc.createElement('button');download.type='button';download.textContent='Скачать label.pdf';download.onclick=async()=>{download.disabled=true;try{await downloadProductLabel(label);download.textContent='✓ label.pdf сохранён';}catch(error){download.textContent=error.name==='AbortError'?'Скачать label.pdf':error.message;}finally{download.disabled=false;}};dialog.append(head,name,download,frame,fallback);
  close.onclick=()=>dialog.close();dialog.addEventListener('close',()=>{frame.remove();URL.revokeObjectURL(url);dialog.remove();onClose();},{once:true});doc.body.append(dialog);try{dialog.showModal();}catch(error){URL.revokeObjectURL(url);dialog.remove();throw error;}return dialog;
 }
