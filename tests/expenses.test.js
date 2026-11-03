@@ -1,3 +1,4 @@
+import {installNumberControls} from '../number-controls.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
@@ -44,4 +45,22 @@ test('custom type is available from type selector and has its own comment plus r
 
 test('remounting expenses does not duplicate type selection or custom category dialogs',()=>{
  const f=mount();mountExpenses({root:f.root,database:f.database,save:async()=>true});f.root.querySelector('[data-expense-type="__new__"]').click();assert.equal(f.dom.window.document.querySelectorAll('dialog').length,1);f.dom.window.close();
+});
+
+test('bulk quantity entry derives price from total regardless of entry order and supports cancellation',async()=>{
+ const f=mount(),stop=installNumberControls(f.dom.window.document),event=()=>new f.dom.window.Event('input',{bubbles:true});
+ f.root.querySelector('[data-expense-type="boxes"]').click();f.field('size').value='100 × 80 × 60 мм';
+ f.field('amount').value='9500';f.field('amount').dispatchEvent(event());assert.equal(f.field('unitPrice').value,'');
+ const enter=value=>{f.root.querySelector('[data-enter-quantity]').click();const dialog=f.dom.window.document.querySelector('.expense-manual-dialog'),input=dialog.querySelector('[name="bulkQuantity"]');assert.equal(input.readOnly,false);assert.equal(input.closest('.number-control'),null);input.value=String(value);return dialog;};
+ let dialog=enter(1000);dialog.querySelector('form').onsubmit({preventDefault(){}});assert.equal(f.field('quantity').value,'1000');assert.equal(f.field('unitPrice').value,'9.5');assert.equal(f.field('amount').value,'9500');assert.equal(f.field('quantity').closest('.quantity-control').querySelector('output').textContent,'1000');
+ dialog=enter(2000);dialog.querySelector('[data-manual-cancel]').click();assert.equal(f.field('quantity').value,'1000');assert.equal(f.field('unitPrice').value,'9.5');
+ f.field('amount').value='2000';f.field('amount').dispatchEvent(event());assert.equal(f.field('unitPrice').value,'2');dialog=enter(500);dialog.querySelector('form').onsubmit({preventDefault(){}});assert.equal(f.field('unitPrice').value,'4');assert.equal(f.field('amount').value,'2000');
+ f.field('unitPrice').value='3';f.field('unitPrice').dispatchEvent(event());assert.equal(f.field('amount').value,'1500');dialog=enter(1000);dialog.querySelector('form').onsubmit({preventDefault(){}});assert.equal(f.field('amount').value,'3000');assert.equal(f.saves,0);
+ dialog=enter(0);dialog.querySelector('form').onsubmit({preventDefault(){}});assert.ok(dialog.isConnected);assert.equal(f.field('quantity').value,'1000');dialog.querySelector('[data-manual-cancel]').click();
+ await f.root.querySelector('[data-expense-form]').onsubmit({preventDefault(){}});assert.equal(f.database.expenses[0].quantity,1000);assert.equal(f.database.expenses[0].unitPrice,3);assert.equal(f.database.expenses[0].amount,3000);stop();f.dom.window.close();
+});
+test('expense list groups by article with totals and filtered dates while retaining newest records first',()=>{
+ const f=mount();f.database.expenses=[row({id:'box-new',categoryId:'boxes',size:'10 × 10',quantity:100,unitPrice:2,amount:200,date:'2026-11-03'}),row({id:'tax',amount:100}),row({id:'box-old',categoryId:'boxes',size:'20 × 20',quantity:100,unitPrice:3.5,amount:350,date:'2026-11-02'}),row({id:'income',categoryId:'payout',market:'ozon',amount:1200})];
+ mountExpenses({root:f.root,database:f.database,save:async()=>true});let groups=f.root.querySelectorAll('[data-expense-group]');assert.equal(groups.length,3);let boxes=f.root.querySelector('[data-expense-group="boxes"]');assert.match(boxes.querySelector('.expense-article-group').textContent,/Покупка коробок/);assert.match(boxes.querySelector('.expense-article-group').textContent,/550/);assert.deepEqual([...boxes.querySelectorAll('[data-edit-expense]')].map(b=>b.dataset.editExpense),['box-new','box-old']);assert.match(f.root.querySelector('[data-expense-group="payout"] .expense-article-group').textContent,/Итого: \+/);
+ const category=f.root.querySelector('[data-expense-category]');category.value='boxes';category.dispatchEvent(new f.dom.window.Event('input'));assert.equal(f.root.querySelectorAll('[data-expense-group]').length,1);const from=f.root.querySelector('[data-expense-from]');from.value='2026-11-03';from.dispatchEvent(new f.dom.window.Event('input'));boxes=f.root.querySelector('[data-expense-group="boxes"]');assert.match(boxes.querySelector('.expense-article-group').textContent,/200/);assert.equal(boxes.querySelectorAll('[data-edit-expense]').length,1);f.dom.window.close();
 });
