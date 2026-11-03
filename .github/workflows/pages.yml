@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   deploy:
-    needs: windows-helper
+    needs: [windows-helper, macos-helper]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -24,10 +24,14 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm test
+      - uses: actions/download-artifact@v4
+        with:
+          name: workshop-macos
+          path: .
       - run: |
           mkdir public
           cp -R pdfjs public/
-          cp windows-opener.js workshop-windows.zip index.html app.js model-preview.js model-preview-runtime.js working-downloads.js google-drive-backup.js queue-stock-sync.js database-storage.js google-drive-setup.js product-images.js database-backup.js availability-filters.js sku-copy.js image-preview.js catalogue-status.js product-photo-picker.js group-label-picker.js cost-report.js print-completion.js label-thumbnail.js release-history.js marketplace-prices.js ozon-rich-text.js print-queue.js print-queue-state.js workspace-history.js product-labels.js data-freshness.js stock-additions.js warehouse-stocks.js listing-templates.js marketplace-orders.js remote-media.js sales.js filament-stock.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
+          cp workshop-macos.zip windows-opener.js workshop-windows.zip index.html app.js model-preview.js model-preview-runtime.js working-downloads.js google-drive-backup.js queue-stock-sync.js database-storage.js google-drive-setup.js product-images.js database-backup.js availability-filters.js sku-copy.js image-preview.js catalogue-status.js product-photo-picker.js group-label-picker.js cost-report.js print-completion.js label-thumbnail.js release-history.js marketplace-prices.js ozon-rich-text.js print-queue.js print-queue-state.js workspace-history.js product-labels.js data-freshness.js stock-additions.js warehouse-stocks.js listing-templates.js marketplace-orders.js remote-media.js sales.js filament-stock.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -42,3 +46,17 @@ jobs:
       - name: Validate Windows component and file restrictions
         shell: powershell
         run: ./windows-helper/Test-WorkshopFile.ps1
+
+  macos-helper:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/macos-helper.test.js
+      - run: node scripts/prepare-macos-helper.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workshop-macos
+          path: workshop-macos.zip
