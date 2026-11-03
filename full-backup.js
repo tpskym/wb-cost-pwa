@@ -1,11 +1,12 @@
-import {databaseForCloud} from './google-drive-backup.js?v=0.2.242';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.242';
-import {validateDB} from './calc.js?v=0.2.242';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.243';
+import {databaseForCloud} from './google-drive-backup.js?v=0.2.243';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.243';
+import {validateDB} from './calc.js?v=0.2.243';
 const categories=['product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
-export async function createFullBackup(database,records){
- const db=validateDB(databaseForCloud(database)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
+export async function createFullBackup(database,records,{mode=database.backupMode??'full'}={}){
+ const db=validateDB(createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
  const files=[],entries=[];
- for(const record of records){const cache=record.category==='marketplace-image'&&record.owner===db.id+':marketplace-photos'&&typeof record.sku==='string'&&record.sku.trim();if(record.category==='marketplace-image'?!cache:!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:cache?null:owners.get(record.owner),...(cache?{sku:record.sku}:{}),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
+ for(const record of records){if(mode==='costs'&&!['product-image','model'].includes(record.category))continue;const cache=record.category==='marketplace-image'&&record.owner===db.id+':marketplace-photos'&&typeof record.sku==='string'&&record.sku.trim();if(record.category==='marketplace-image'?!cache:!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:cache?null:owners.get(record.owner),...(cache?{sku:record.sku}:{}),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
  const manifest={format:'workshop-full-backup',version:1,createdAt:new Date().toISOString(),database:'database.json',files};
  entries.unshift({name:'manifest.json',blob:new Blob([JSON.stringify(manifest,null,2)])},{name:'database.json',blob:new Blob([JSON.stringify(db,null,2)])});
  return makeZip(entries);
@@ -23,16 +24,17 @@ export async function parseFullBackup(blob){
  if(entries.size!==files.length+2)throw Error('Состав архива не совпадает с описанием');
  return {database,files};
 }
-export function stageFullRestore(parsed){
+export function stageFullRestore(parsed,{localDatabase}={}){
  const database=structuredClone(parsed.database);database.id=crypto.randomUUID();
  const references=new Map();
  const records=parsed.files.map(f=>{const id=crypto.randomUUID();if(f.fileId)references.set(f.productId+':'+f.fileId,id);return {id,owner:database.id+':'+(f.category==='marketplace-image'?'marketplace-photos':f.productId),...(f.category==='marketplace-image'?{sku:f.sku}:{}),name:f.name,category:f.category,createdAt:f.createdAt,blob:f.blob};});
  for(const product of database.products){const ref=product.printModel;if(ref){const id=references.get(ref.ownerId+':'+ref.fileId);if(id)product.printModel={...ref,fileId:id};else delete product.printModel;}}
  for(const product of database.products)for(const draft of Object.values(product.listingDrafts||{}))for(const photo of draft.photos||[]){const id=references.get(product.id+':'+photo.fileId);if(photo.kind==='local'&&id)photo.fileId=id;}
 
+ if(localDatabase){if(backupMode(parsed.database)==='costs'){const ids=costProductIds(database,localDatabase),merged=applyBackupSnapshot(database,localDatabase,{modelReferences:true});const sorted=[...records].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));const importedAt=Date.now();for(const [i,record]of sorted.entries()){const ownerId=record.owner.slice(database.id.length+1);record.owner=merged.id+':'+(ids.get(ownerId)||ownerId);record.sourceCreatedAt=record.createdAt;record.createdAt=new Date(importedAt+i).toISOString();}return {database:merged,records};}return {database:applyBackupSnapshot(database,localDatabase),records};}
  return {database,records};
 }
 // Storage commit is last: a failed file write can never activate an incomplete database.
-export async function commitFullRestore(parsed,{savePrevious,writeFiles,commitDatabase}){
- const staged=stageFullRestore(parsed);await savePrevious();await writeFiles(staged.records);await commitDatabase(staged.database);return staged.database;
+export async function commitFullRestore(parsed,{savePrevious,writeFiles,commitDatabase,localDatabase}){
+ const staged=stageFullRestore(parsed,{localDatabase});await savePrevious();await writeFiles(staged.records);await commitDatabase(staged.database);return staged.database;
 }
