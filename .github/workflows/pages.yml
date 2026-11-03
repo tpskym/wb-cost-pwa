@@ -23,7 +23,13 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npm test
+      - name: Test application
+        run: |
+          set +e
+          npm test 2>&1 | tee /tmp/workshop-tests.log
+          result=${PIPESTATUS[0]}
+          if [ "$result" -ne 0 ]; then node scripts/report-test-failures.mjs /tmp/workshop-tests.log; fi
+          exit "$result"
       - uses: actions/download-artifact@v4
         with:
           name: workshop-macos
