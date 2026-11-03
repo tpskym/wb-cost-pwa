@@ -1,4 +1,4 @@
-import {workingDownloads} from './working-downloads.js?v=0.2.234';
+import {workingDownloads} from './working-downloads.js?v=0.2.235';
 export async function readLabelPdf(file){
  if(!file||file.size>2*1024*1024)throw Error('PDF должен быть не больше 2 МБ');
  const bytes=new Uint8Array(await file.arrayBuffer());
@@ -12,10 +12,10 @@ export function printProductLabel(label,{open=url=>window.open(url,'_blank'),not
  const blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob),preview=open(url);
  if(!preview){URL.revokeObjectURL(url);throw Error('Разрешите открытие новой вкладки для печати этикетки');}
  const timer=setTimeout(()=>URL.revokeObjectURL(url),300000);timer.unref?.();
- notify('Открыт PDF этикетки. Запустите печать из просмотрщика PDF после загрузки документа.');workingDownloads.save(blob,'label.pdf','label',{onlyIfConfigured:true,notify}).catch(error=>notify(error.message));
+ notify('Открыт PDF этикетки. Запустите печать из просмотрщика PDF после загрузки документа.');workingDownloads.save(blob,label.name||'label.pdf','label',{onlyIfConfigured:true,notify}).catch(error=>notify(error.message));
  return preview;
 }
-export async function downloadProductLabel(label,{notify=()=>{}}={}){if(!label?.data?.startsWith('data:application/pdf;base64,'))throw Error('Сначала загрузите PDF этикетки этого товара');const bytes=Uint8Array.from(atob(label.data.split(',')[1]),c=>c.charCodeAt(0));return workingDownloads.save(new Blob([bytes],{type:'application/pdf'}),'label.pdf','label',{notify});}
+export async function downloadProductLabel(label,{notify=()=>{}}={}){if(!label?.data?.startsWith('data:application/pdf;base64,'))throw Error('Сначала загрузите PDF этикетки этого товара');const bytes=Uint8Array.from(atob(label.data.split(',')[1]),c=>c.charCodeAt(0));return workingDownloads.save(new Blob([bytes],{type:'application/pdf'}),label.name||'label.pdf','label',{notify});}
 export function openStockLabelDialog({database,sku,notify=()=>{},document:doc=globalThis.document,open=url=>doc.defaultView.open(url,'_blank')}){
  const product=database.products.find(p=>p.sku?.trim()===sku.trim());
  try{printProductLabel(product?.labelPdf,{open,notify});}catch(error){notify(error.message);}return null;

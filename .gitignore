@@ -8,3 +8,4 @@ dist/
 *.key
 *.log
 pdfjs/
+model-preview-runtime.js
