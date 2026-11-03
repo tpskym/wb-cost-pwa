@@ -41,3 +41,7 @@ test('custom type is available from type selector and has its own comment plus r
  f.field('title').value='Лента';f.field('description').value='Красная, 10 метров';f.field('amount').value='350';await f.root.querySelector('[data-expense-form]').onsubmit({preventDefault(){}});
  assert.equal(f.database.expenses[0].title,'Лента');assert.equal(f.database.expenses[0].description,'Красная, 10 метров');assert.match(f.root.querySelector('[data-expense-table]').textContent,/Лента/);f.dom.window.close();
 });
+
+test('remounting expenses does not duplicate type selection or custom category dialogs',()=>{
+ const f=mount();mountExpenses({root:f.root,database:f.database,save:async()=>true});f.root.querySelector('[data-expense-type="__new__"]').click();assert.equal(f.dom.window.document.querySelectorAll('dialog').length,1);f.dom.window.close();
+});
