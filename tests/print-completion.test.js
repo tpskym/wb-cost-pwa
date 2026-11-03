@@ -24,3 +24,24 @@ test('confirmed external addition with failed snapshot saving shows a warning in
  const f=fixture(3),m=mock(),dialog=open(f,{...m,save:()=>f.database.stockSnapshots.find(s=>s.source==='ozon-fbs').rows[0].available!==4});
  await dialog.querySelector('[data-completion-all]').onclick();assert.equal(m.writes.length,1);assert.equal(dialog.querySelector('[data-completion-success]').hidden,true);assert.match(dialog.querySelector('.completion-status').textContent,/снимок не сохранён/);
 });
+
+test('all accounting requires the entire printed batch to be allocated before any mutation or API call',async()=>{
+ const f=fixture(5),m=mock(),dialog=open(f,m),button=dialog.querySelector('[data-completion-all]');
+ const input=dialog.querySelector('[data-completion-quantity=wb]');input.value='0';input.oninput();
+ const before=structuredClone(f.database);assert.equal(button.disabled,true);assert.match(dialog.querySelector('.completion-allocation').textContent,/Не распределено: 2 шт/);
+ await button.onclick();assert.deepEqual(f.database,before);assert.equal(m.writes.length,0);assert.equal(f.job.printingQuantity,5);
+ input.value='2';input.oninput();assert.equal(button.disabled,false);await button.onclick();
+ assert.equal(printedQuantity(f.job),5);assert.equal(f.job.printingQuantity,0);assert.equal(f.job.batches.length,2);assert.ok(f.job.batches.every(b=>b.additionId));assert.deepEqual(m.writes,[{market:'ozon',value:4},{market:'wb',value:4}]);
+});
+test('automatic surplus cannot silently become printed stock without a warehouse',async()=>{
+ const f=fixture(10),m=mock(),before=structuredClone(f.database),dialog=open(f,m);assert.equal(dialog.querySelector('[data-completion-all]').disabled,true);
+ await dialog.querySelector('[data-completion-all]').onclick();assert.deepEqual(f.database,before);assert.equal(m.writes.length,0);assert.equal(printedQuantity(f.job),0);
+});
+test('partial marketplace accounting preserves undistributed pieces in printing and keeps bulk accounting blocked',async()=>{
+ const f=fixture(5),m=mock(),dialog=open(f,m),input=dialog.querySelector('[data-completion-quantity=wb]');input.value='0';input.oninput();
+ await dialog.querySelector('[data-account-market=ozon]').onclick();assert.equal(printedQuantity(f.job),3);assert.equal(f.job.printingQuantity,2);assert.equal(dialog.querySelector('[data-completion-all]').disabled,true);
+ await dialog.querySelector('[data-completion-all]').onclick();assert.equal(m.writes.length,1);assert.equal(f.job.printingQuantity,2);assert.equal(dialog.querySelector('[data-completion-success]').hidden,true);
+});
+test('completion offers no action that accounts printed pieces without a warehouse',()=>{
+ const f=fixture(10),dialog=open(f);assert.equal(dialog.querySelector('[data-completion-local]'),null);assert.doesNotMatch(dialog.textContent,/Учесть без пополнения|останутся готовыми без пополнения/);assert.equal(printedQuantity(f.job),0);
+});
