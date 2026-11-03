@@ -1,15 +1,15 @@
-import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.257';
-import {skuCopyButton} from './sku-copy.js?v=0.2.257';
-import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.257';
-import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.257';
-import {openPrintCompletion} from './print-completion.js?v=0.2.257';
-import {listFiles} from './attachments.js?v=0.2.257';
-import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.257';
-import {blankProduct} from './calc.js?v=0.2.257';
-import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.257';
-const printActionIcon=kind=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${kind==='model'?'<path d="M7 8V3h10v5M7 17H4V9h16v8h-3M7 14h10v7H7z"/><path d="M17 11h.01"/>':'<path d="M3 5v14M6 5v14M9 5v14M13 5v14M15 5v14M19 5v14M21 5v14"/>'}</svg>`;
+import {printActionIcon} from './print-action-controls.js?v=0.2.258';
+import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.258';
+import {skuCopyButton} from './sku-copy.js?v=0.2.258';
+import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.258';
+import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.258';
+import {openPrintCompletion} from './print-completion.js?v=0.2.258';
+import {listFiles} from './attachments.js?v=0.2.258';
+import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.258';
+import {blankProduct} from './calc.js?v=0.2.258';
+import {renderStockAddition,mountStockAdditions,validateAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.258';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-import {movePrintJob,mergeActivePrintJobs,setRequestedQuantity,minimumRequestedQuantity,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.257';
+import {movePrintJob,mergeActivePrintJobs,setRequestedQuantity,minimumRequestedQuantity,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.258';
 const integer=(n)=>{if(!Number.isSafeInteger(n)||n<1||n>1000000)throw Error('Введите целое число от 1 до 1000000');return n;};
 export function openEnqueueDialog({database,sku='',quantity=1,market='',save,notify=()=>{},document:doc=globalThis.document}){
  const dialog=doc.createElement('dialog');dialog.className='print-queue-dialog enqueue-dialog';dialog.setAttribute('aria-label','Добавить в очередь печати');
