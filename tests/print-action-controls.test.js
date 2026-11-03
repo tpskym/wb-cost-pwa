@@ -8,3 +8,6 @@ test('printing actions receive accessible decorative icons without changing labe
 test('newly rendered and renamed print buttons are decorated once across workspace redraws',async()=>{
  const dom=new JSDOM('<body><div></div></body>'),doc=dom.window.document,stop=installPrintActionControls(doc);doc.querySelector('div').innerHTML='<button>Печать модели</button>';await new Promise(r=>setTimeout(r,0));const button=doc.querySelector('button');assert.equal(button.querySelectorAll('svg').length,1);button.textContent='Печать модели';await new Promise(r=>setTimeout(r,0));assert.equal(button.querySelectorAll('svg').length,1);stop();dom.window.close();
 });
+test('shared print controls are included in the published site and offline cache',async()=>{
+ const {readFile}=await import('node:fs/promises'),workflow=await readFile(new URL('../.github/workflows/pages.yml',import.meta.url),'utf8'),worker=await readFile(new URL('../sw.js',import.meta.url),'utf8');assert.match(workflow,/cp [^\n]*\bprint-action-controls\.js\b/);assert.match(worker,/\.\/print-action-controls\.js\?v=/);
+});
