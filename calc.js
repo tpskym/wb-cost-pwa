@@ -1,4 +1,4 @@
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.237';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.238';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],

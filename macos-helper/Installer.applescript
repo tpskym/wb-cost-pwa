@@ -1,6 +1,7 @@
 on run
     try
         set workingFolder to POSIX path of (choose folder with prompt "Выберите ТУ ЖЕ рабочую папку, что указана в Мастерской кнопкой «Папка label / model»")
+        set downloadsFolder to POSIX path of (choose folder with prompt "Выберите папку загрузок Safari (обычно «Загрузки»). Она нужна для переноса скачанных файлов в рабочую папку." default location (path to downloads folder))
         set userHome to POSIX path of (path to home folder)
         set destinationFolder to userHome & "Applications/"
         set targetApp to destinationFolder & "Workshop File Opener.app"
@@ -13,9 +14,10 @@ on run
         do shell script "/bin/mkdir -p " & quoted form of destinationFolder & " " & quoted form of configFolder
         do shell script "/usr/bin/ditto " & quoted form of builtApp & " " & quoted form of targetApp
         do shell script "/usr/bin/printf %s " & quoted form of workingFolder & " > " & quoted form of (configFolder & "folder.txt")
+        do shell script "/usr/bin/printf %s " & quoted form of downloadsFolder & " > " & quoted form of (configFolder & "downloads.txt")
         do shell script "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f " & quoted form of targetApp
         do shell script "/bin/rm -rf " & quoted form of temporaryFolder
-        display dialog "Готово. Рабочая папка: " & workingFolder & return & "В Мастерской → Бэкап включите «Компонент установлен» и сохраните файл. Кнопка «Открыть на Mac» откроет его в программе по умолчанию." & return & "Для модели назначьте Bambu Studio, для PDF — удобную программу: Finder → Свойства файла → Открывать в программе → Настроить всё." buttons {"Готово"} default button 1
+        display dialog "Готово. Рабочая папка: " & workingFolder & return & "Папка загрузок Safari: " & downloadsFolder & return & "В Мастерской → Бэкап включите «Компонент установлен» и сохраните файл. Кнопка «Открыть на Mac» откроет его в программе по умолчанию." & return & "Для модели назначьте Bambu Studio, для PDF — удобную программу: Finder → Свойства файла → Открывать в программе → Настроить всё." buttons {"Готово"} default button 1
     on error messageText number errorNumber
         if errorNumber is not -128 then display dialog messageText buttons {"Понятно"} default button 1 with icon caution
     end try
