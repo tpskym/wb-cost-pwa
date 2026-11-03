@@ -32,7 +32,7 @@ import_workshop_file() {
     case "$downloads" in /*) ;; *) return 1 ;; esac
     [ -d "$folder" ] && [ -d "$downloads" ] || { printf '%s\n' 'Папка не найдена. Повторите установку и выберите рабочую папку и папку загрузок Safari.' >&2; return 1; }
     receipt="$receipts/receipt-$name.txt"
-    if [ -f "$receipt" ] && [ "$(cat "$receipt")" = "$token" ]; then
+    if [ -f "$receipt" ] && [ "$(cat "$receipt")" = "$(printf '%s\n%s' "$token" "$folder/$name")" ]; then
         resolve_workshop_file "workshop-files://open/$name" "$folder"
         return
     fi
@@ -60,17 +60,17 @@ import_workshop_file() {
     cp "$source" "$staged" || return 1
     mv -f "$staged" "$target" || return 1
     receipt_stage=$(mktemp "$receipts/.receipt.XXXXXXXX")
-    printf '%s' "$token" > "$receipt_stage"
+    printf '%s\n%s' "$token" "$target" > "$receipt_stage"
     mv -f "$receipt_stage" "$receipt" || return 1
     rm -f "$source"
     case "$name" in model.*)
         marker="$receipts/managed-model.txt"
         previous=''
         if [ -f "$marker" ]; then previous=$(cat "$marker"); fi
-        if [ "$previous" != "$name" ]; then
-            case "$previous" in model.3mf|model.stl|model.step|model.stp|model.obj|model.gcode) rm -f "$folder/$previous" || true ;; esac
+        if [ "$previous" != "$target" ]; then
+            case "$previous" in "$folder"/model.3mf|"$folder"/model.stl|"$folder"/model.step|"$folder"/model.stp|"$folder"/model.obj|"$folder"/model.gcode) rm -f "$previous" || true ;; esac
         fi
-        printf '%s' "$name" > "$marker"
+        printf '%s' "$target" > "$marker"
     esac
     printf '%s\n' "$target"
 }
