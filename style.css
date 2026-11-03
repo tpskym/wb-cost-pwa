@@ -495,3 +495,7 @@ main:not([data-workspace="expenses"]) .expenses-only,main[data-workspace="expens
 
 .dimension-stepper{gap:10px}.dimension-stepper button{flex:0 0 44px;width:44px;min-height:44px}label:has(>.dimension-stepper){display:flex;flex-direction:column;align-items:stretch;gap:10px}
 .number-control>.number-control-button,#card-attributes .number-control>.number-control-button{flex-basis:44px;width:44px;min-height:44px}
+
+/* Queue table fills its card; spacing belongs to cells and action groups. */
+.queue-results{padding:0}.queue-results>.queue-table-scroll{margin:0}.queue-results>.queue-archive{margin:0;padding:0}.queue-results:has(>.queue-table-scroll)>.queue-archive{border-top:0}.queue-results>.queue-archive>summary{padding:16px 18px}.queue-results>.queue-archive>.queue-table-scroll{margin:0}.queue-results>.queue-archive>p,.queue-results>p{padding:16px 18px;margin:0}.queue-results #queue-status:not(:empty){margin:14px 16px}.queue-results>.queue-archive[open]>summary{border-bottom:1px solid #dfe5d9}
+@container(max-width:1050px){.queue-results .queue-table tbody{gap:0}.queue-results .queue-table tbody>tr{border:0;border-bottom:1px solid #dfe5d9;border-radius:0;padding:18px}}
