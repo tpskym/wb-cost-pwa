@@ -1,6 +1,6 @@
-import {skuCopyButton} from './sku-copy.js?v=0.2.265';
-import {listFiles} from './attachments.js?v=0.2.265';
-import {tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.265';
+import {skuCopyButton} from './sku-copy.js?v=0.2.266';
+import {listFiles} from './attachments.js?v=0.2.266';
+import {tableProductPhoto,bindTablePhotos} from './marketplace-metrics.js?v=0.2.266';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hasLabel=product=>!!product.labelPdf?.data?.startsWith('data:application/pdf;base64,');
 export function openGroupLabelPicker({database,product,onGenerate,document:doc=globalThis.document,loadFiles=listFiles,onClose=()=>{},outputDirectory=''}){
