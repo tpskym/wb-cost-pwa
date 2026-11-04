@@ -223,3 +223,12 @@ export function editDifferenceField(product,market,key,input){
 }
 
 export function wbBarcodeRemovalErrors(baseline,sizes){const errors=[];for(const original of baseline||[]){const size=(sizes||[]).find(size=>String(size.chrtID)===String(original.chrtID)),removed=(original.skus||[]).filter(code=>!(size?.skus||[]).includes(code));if(removed.length)errors.push('WB не позволяет удалить или заменить уже привязанные штрихкоды через API: '+removed.join(', ')+'. Верните их в список; добавлять новые штрихкоды можно.');}return errors;}
+
+export async function pullProductBarcodes(product,products,credentials,{request=marketRequest}={}){
+ const sku=String(product.sku||'').trim();if(!sku)throw Error('Сначала укажите артикул товара');const found=new Map(),errors=[];
+ const collect=(market,item)=>{if(!item||String(item[market==='wb'?'vendorCode':'offer_id']||'').trim()!==sku)return;for(const raw of [...(Array.isArray(item.barcodes)?item.barcodes:[]),item.barcode,...(item.sizes||[]).flatMap(size=>size.skus||[])]){if(typeof raw!=='string'||!raw.trim())continue;const value=raw.trim(),row=found.get(value)||{value,markets:[]};if(!row.markets.includes(market))row.markets.push(market);found.set(value,row);}};
+ for(const source of products)for(const market of ['wb','ozon']){const draft=source.listingDrafts?.[market];if(draft?.mode!=='update')continue;try{const body=JSON.parse(draft.body);collect(market,market==='wb'?body[0]:body.items?.[0]);}catch{}}
+ if(found.size)return {codes:[...found.values()],errors};
+ for(const market of ['wb','ozon']){if(market==='wb'?!credentials.wbToken:!credentials.ozonKey||!credentials.ozonClient)continue;try{if(market==='wb'){const cards=await readAllWBCards((operation,body)=>request('wb',operation,credentials,{...body,settings:{...body.settings,filter:{...body.settings.filter,textSearch:sku}}}));cards.forEach(item=>collect(market,item));}else{const result=await request('ozon','info',credentials,{offer_id:[sku],product_id:[],sku:[]});(result.items||result.result?.items||[]).forEach(item=>collect(market,item));}}catch(error){errors.push((market==='wb'?'WB':'Ozon')+': '+redact(error.message,credentials));}}
+ if(!found.size)throw Error(errors.length?errors.join('\n'):'Штрихкод не найден в сохранённых карточках. Проверьте артикул и настройте API-доступы WB / Ozon.');return {codes:[...found.values()],errors};
+}
