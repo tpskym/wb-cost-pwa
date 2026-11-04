@@ -574,3 +574,8 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .catalogue-filters>label:first-child{grid-column:1/-1}
 
 .label-primary-actions{display:inline-flex;align-items:center;gap:10px;flex-wrap:nowrap;max-width:100%}.label-primary-actions>button{min-height:44px}.label-primary-actions .icon-action{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:10px;flex:0 0 44px}.label-primary-actions .icon-action svg{width:20px;height:20px;flex:0 0 20px}
+
+/* Equal label space keeps dimension and weight fields aligned across columns. */
+.product-measurements .product-details-columns label>span{min-height:2.8em;line-height:1.4}.product-measurements .measurement-grid{align-items:stretch}.product-measurements .measurement-grid label{justify-content:flex-end}@media(max-width:700px){.product-measurements .product-details-columns label>span{min-height:0}}
+
+.label-primary-actions .label-prompt-action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;width:auto;padding:10px 14px;font-size:14px;line-height:1.4}.label-primary-actions .label-prompt-action svg{width:20px;height:20px;flex:0 0 20px}.label-primary-actions{flex-wrap:wrap}
