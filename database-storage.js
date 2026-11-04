@@ -1,4 +1,4 @@
-import {getFile,putFile} from './attachments.js?v=0.2.284';
+import {getFile,putFile} from './attachments.js?v=0.2.285';
 // IndexedDB is the only write target. localStorage is read solely for migration.
 export function createDatabaseStorage({storage=globalThis.localStorage,key='workshop-db-v1',read=getFile,write=putFile,validate=raw=>JSON.parse(raw)}={}){
  let tail=Promise.resolve(),persisted=null,migrationError=null;
@@ -10,4 +10,10 @@ export function createDatabaseStorage({storage=globalThis.localStorage,key='work
  if(validLocal){persisted=local;try{await saveRaw(local);}catch(error){migrationError=error;}return local;}
  persisted=local||corrupt;return persisted;},saveRaw,
  get persistedRaw(){return persisted;},get usesIndexedDB(){return true;},get migrationError(){return migrationError;},flush:()=>tail};
+}
+
+export function mountStorageUsage(root,{storage=globalThis.navigator?.storage}={}){
+ root.innerHTML='<div class="storage-usage-heading"><h3>Хранилище устройства</h3><button type="button" data-storage-refresh>Обновить показатели</button></div><p>Оценка браузера для этого сайта: база, фотографии, модели, архивы и кэш. Это не место в Google Drive. Квота может меняться и не гарантирует столько свободного места на диске.</p><div class="storage-usage-values"><div><span>Занято</span><strong data-storage-used>—</strong></div><div><span>Квота приложения</span><strong data-storage-quota>—</strong></div><div><span>Осталось по квоте</span><strong data-storage-free>—</strong></div></div><progress data-storage-progress max="100" value="0" aria-label="Использование квоты хранилища" hidden></progress><p data-storage-status role="status"></p>';
+ const $=selector=>root.querySelector(selector),button=$('[data-storage-refresh]'),format=bytes=>{const units=['Б','КБ','МБ','ГБ','ТБ'];let index=0;while(bytes>=1024&&index<units.length-1){bytes/=1024;index++;}return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:index?2:0}).format(bytes)+' '+units[index];};
+ const refresh=async()=>{if(button.disabled)return;button.disabled=true;$('[data-storage-status]').textContent='Проверяю хранилище…';try{if(typeof storage?.estimate!=='function')throw Error('Этот браузер не сообщает размер хранилища. Данные приложения продолжают сохраняться обычным способом.');const {usage,quota}=await storage.estimate();if(!Number.isFinite(usage)||usage<0||!Number.isFinite(quota)||quota<=0)throw Error('Браузер не вернул оценку занятого места и квоты.');$('[data-storage-used]').textContent=format(usage);$('[data-storage-quota]').textContent=format(quota);$('[data-storage-free]').textContent=format(Math.max(0,quota-usage));const percent=Math.min(100,usage/quota*100),progress=$('[data-storage-progress]');progress.value=percent;progress.hidden=false;progress.classList.toggle('storage-almost-full',percent>=90);$('[data-storage-status]').textContent='Использовано '+new Intl.NumberFormat('ru-RU',{maximumFractionDigits:1}).format(percent)+'% квоты. Данные относятся к этому браузеру и устройству.';}catch(error){for(const selector of ['[data-storage-used]','[data-storage-quota]','[data-storage-free]'])$(selector).textContent='—';$('[data-storage-progress]').hidden=true;$('[data-storage-status]').textContent=error.message;}finally{button.disabled=false;}};button.onclick=refresh;return refresh();
 }
