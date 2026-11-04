@@ -533,3 +533,14 @@ button.print-action.print-action--model,button.print-action.print-action--label{
 .filament-to-buy.covered{background:#edf4e5;color:#4d6b3e;white-space:normal;font-size:12px;line-height:1.4;max-width:110px}.filament-purchase-table .filament-purchased-note{color:#4d6b3e;font-weight:650;font-size:12px;margin-top:8px}
 
 .filament-identity>div{gap:4px;justify-content:center}.filament-identity strong,.filament-identity span,.filament-identity small{margin:0;line-height:1.45}.filament-stock-list .filament-identity small{display:block;margin-top:0}.filament-identity>.filament-color-swatch{align-self:center}
+
+/* Shared stepper sizing: the counter and adjacent fields use the same 44px row. */
+:root{--stepper-size:44px;--stepper-symbol-size:22px;--stepper-value-size:18px}
+.number-control>.number-control-button,.number-control.quantity-control .number-control-button,#card-attributes .number-control>.number-control-button,.filament-quantity-counter button{flex:0 0 var(--stepper-size)!important;width:var(--stepper-size)!important;min-width:var(--stepper-size)!important;height:var(--stepper-size)!important;min-height:var(--stepper-size)!important;max-height:var(--stepper-size);padding:0!important;font-size:var(--stepper-symbol-size)!important;line-height:1;border-radius:8px;align-self:center;display:inline-flex;align-items:center;justify-content:center}
+.number-control.quantity-control,.filament-quantity-counter{height:var(--stepper-size);min-height:var(--stepper-size);padding:0!important;border:0;box-shadow:inset 0 0 0 1px #d6e1cc;border-radius:9px;gap:8px!important;align-items:center}
+.filament-quantity-counter{grid-template-columns:var(--stepper-size) minmax(48px,auto) var(--stepper-size)}
+.number-control.quantity-control .quantity-control-value,.filament-quantity-counter output{min-width:48px;padding:0 6px;font-size:var(--stepper-value-size);line-height:var(--stepper-size);height:var(--stepper-size)}
+.number-control:not(.quantity-control)>input,.number-control:not(.quantity-control)>.input-unit,.number-control:not(.quantity-control)>.input-unit>input{height:var(--stepper-size)!important;min-height:var(--stepper-size)!important}
+.filament-stock-form>label{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0;line-height:1.5}.filament-stock-form>label>input,.filament-stock-form>label>select,.filament-stock-form>label>.number-control{margin:0}.filament-stock-form>label>.quantity-control{align-self:flex-start}
+
+@keyframes filament-transfer-feedback{0%,60%{background:#d7edbd;color:#315523;box-shadow:inset 0 0 0 1px #9fbd83}100%{background:transparent;color:#344c33;box-shadow:inset 0 0 0 1px transparent}}.filament-quantity-counter output.filament-transfer-flash{animation:filament-transfer-feedback 1.4s ease-out;border-radius:7px}
