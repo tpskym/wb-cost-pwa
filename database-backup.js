@@ -1,4 +1,4 @@
-import {getFile,putFile} from './attachments.js?v=0.2.268';
+import {getFile,putFile} from './attachments.js?v=0.2.269';
 export async function writeDatabaseBackup(raw,{storage=globalThis.localStorage,key='workshop-db-v1',write=putFile}={}){
  const database=JSON.parse(raw),savedAt=new Date().toISOString(),copy=JSON.stringify({...database,_backupAt:savedAt});
  try{await write({id:key+'-database-backup',owner:'__database-backup',category:'database-backup',name:'previous-database.json',createdAt:savedAt,blob:new Blob([copy],{type:'application/json'})});}catch{throw Error('Не удалось создать резервную копию в IndexedDB. Сначала скачайте текущую базу.');}
