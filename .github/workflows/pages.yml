@@ -4,6 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -11,6 +12,36 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  native-source:
+    runs-on: ubuntu-latest
+    outputs:
+      run-id: ${{ steps.native.outputs.run-id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/github-script@v7
+        id: native
+        with:
+          script: |
+            const {execFileSync} = require('node:child_process');
+            const files = ['macos-helper', 'scripts/prepare-macos-helper.mjs', 'tests/macos-helper.test.js'];
+            const {data} = await github.rest.actions.listWorkflowRuns({
+              ...context.repo, workflow_id: 'pages.yml', branch: 'main', status: 'success', per_page: 20
+            });
+            let reuse = '';
+            for (const run of data.workflow_runs) {
+              if (!/^[a-f0-9]{40}$/.test(run.head_sha)) continue;
+              try { execFileSync('git', ['diff', '--quiet', run.head_sha, 'HEAD', '--', ...files]); }
+              catch { continue; }
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({...context.repo, run_id: run.id});
+              if (artifacts.data.artifacts.some(a => a.name === 'workshop-macos' && !a.expired)) {
+                reuse = String(run.id);
+                core.info('Reusing verified macOS component from successful run ' + reuse + ': native sources are identical.');
+                break;
+              }
+            }
+            core.setOutput('run-id', reuse);
   deploy:
     needs: [windows-helper, macos-helper]
     runs-on: ubuntu-latest
@@ -54,14 +85,24 @@ jobs:
         run: ./windows-helper/Test-WorkshopFile.ps1
 
   macos-helper:
-    runs-on: macos-15
+    needs: native-source
+    runs-on: ${{ needs.native-source.outputs.run-id != '' && 'ubuntu-latest' || 'macos-15' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test tests/macos-helper.test.js
-      - run: node scripts/prepare-macos-helper.mjs
+      - uses: actions/download-artifact@v4
+        if: needs.native-source.outputs.run-id != ''
+        with:
+          name: workshop-macos
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.native-source.outputs.run-id }}
+          path: .
+      - if: needs.native-source.outputs.run-id == ''
+        run: node --test tests/macos-helper.test.js
+      - if: needs.native-source.outputs.run-id == ''
+        run: node scripts/prepare-macos-helper.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: workshop-macos
