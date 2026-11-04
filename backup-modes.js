@@ -1,4 +1,4 @@
-import {databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.266';
+import {databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.267';
 export const backupModes={full:'Полный бэкап',costs:'Только себестоимость'};
 export function backupMode(database){const mode=database.backupMode??'full';if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');return mode;}
 export function createBackupSnapshot(database,mode=database.backupMode??'full'){if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');const clean=databaseForCloud(database);if(mode==='full')return {...clean,backupMode:'full'};return {schema:clean.schema,id:clean.id,revision:clean.revision??0,updatedAt:clean.updatedAt,backupMode:'costs',products:clean.products.map(product=>{const copy={...product};delete copy.stockTargets;delete copy.listingDrafts;return copy;}),templates:clean.templates||[]};}
