@@ -1,39 +1,39 @@
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.259';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.259';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.259';
-import {mountExpenses} from './expenses.js?v=0.2.259';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.259';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.259';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.259';
-import {createDatabaseStorage} from './database-storage.js?v=0.2.259';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.259';
-import {ensureProductImage} from './product-images.js?v=0.2.259';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.259';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.259';
-import {installImagePreview} from './image-preview.js?v=0.2.259';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.259';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.259';
-import {openCostReport} from './cost-report.js?v=0.2.259';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.259';
-import {mountReleaseHistory} from './release-history.js?v=0.2.259';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.259';
-import {createWorkspaceHistory} from './workspace-history.js?v=0.2.259';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.259';
-import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.259';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.259';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.259';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.259';
-import {mountSales} from './sales.js?v=0.2.259';
-import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.259';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.259';
-import {installNumberControls} from './number-controls.js?v=0.2.259';
-const APP_VERSION='0.2.259';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.260';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.260';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.260';
+import {mountExpenses} from './expenses.js?v=0.2.260';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.260';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.260';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.260';
+import {createDatabaseStorage} from './database-storage.js?v=0.2.260';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.260';
+import {ensureProductImage} from './product-images.js?v=0.2.260';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.260';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.260';
+import {installImagePreview} from './image-preview.js?v=0.2.260';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.260';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.260';
+import {openCostReport} from './cost-report.js?v=0.2.260';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.260';
+import {mountReleaseHistory} from './release-history.js?v=0.2.260';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.260';
+import {createWorkspaceHistory} from './workspace-history.js?v=0.2.260';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.260';
+import {printProductLabel,previewProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.260';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.260';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.260';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.260';
+import {mountSales} from './sales.js?v=0.2.260';
+import {sharedListingChangesApplied,applySharedListingChanges} from './marketplace-api.js?v=0.2.260';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.260';
+import {installNumberControls} from './number-controls.js?v=0.2.260';
+const APP_VERSION='0.2.260';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.259';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.259';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.259';
-import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.259';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.259';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.260';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.260';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.260';
+import {migrateProductModels,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename} from './attachments.js?v=0.2.260';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.260';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='production',space=globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -99,7 +99,7 @@ async function renderFiles(){
 }
 let productQuery='',productPage=0,productGroupFilter='',productColourFilter='';
 const productPageSize=20,productGroupOpen=new Map(),cataloguePresenceFilters={wb:'',ozon:'',label:'',model:''},catalogueModelStates=new Map();
-function catalogueFileActions(p){const hasLabel=!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,');return `<span class="catalogue-product-actions"><button type="button" data-catalogue-label-print="${esc(p.id)}" ${hasLabel?'':'disabled'} title="${hasLabel?'Открыть PDF этикетки этого варианта':'Прикрепите PDF этикетки в карточке товара'}">Печать этикетки</button><button type="button" data-catalogue-model-download="${esc(p.id)}" disabled title="Проверяем сохранённую модель">Печать модели</button></span>`;}
+function catalogueFileActions(p){const hasLabel=!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,');return `<span class="catalogue-product-actions"><button type="button" data-catalogue-label-print="${esc(p.id)}" ${hasLabel?'':'disabled'} title="${hasLabel?'Открыть PDF этикетки этого варианта':'Прикрепите PDF этикетки в карточке товара'}" aria-label="Печать этикетки"><span class="catalogue-print-full">Печать этикетки</span><span class="catalogue-print-compact" aria-hidden="true">Этикетка</span></button><button type="button" data-catalogue-model-download="${esc(p.id)}" disabled title="Проверяем сохранённую модель" aria-label="Печать модели"><span class="catalogue-print-full">Печать модели</span><span class="catalogue-print-compact" aria-hidden="true">Модель</span></button></span>`;}
 function catalogueStatusBadges(p){const badge=(label,state)=>`<span class="catalogue-status ${state===true?'is-ready':state===false?'is-missing':'is-unknown'}" title="${esc(label)}: ${state===true?'есть':state===false?'нет':'нет сохранённых сведений; нажмите Обновить'}">${esc(label)} <b>${state===true?'✓':state===false?'—':'?'}</b></span>`;return `<span class="catalogue-statuses">${badge('WB',catalogueCardPresence(db,p,'wb'))}${badge('Ozon',catalogueCardPresence(db,p,'ozon'))}${badge('Этикетка',!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,'))}<span data-catalogue-model="${esc(p.id)}" class="catalogue-status is-unknown">Модель …</span></span>`;}
 async function hydrateCatalogueModels(scope=document){await modelMigration.catch(()=>{});for(const badge of scope.querySelectorAll('[data-catalogue-model]')){const target=db.products.find(p=>p.id===badge.dataset.catalogueModel);if(!target)continue;let ready=false;try{await selectedPrintModel(db,target);ready=true;}catch{}catalogueModelStates.set(db.id+':'+target.id,ready);if(!badge.isConnected)continue;badge.className='catalogue-status '+(ready?'is-ready':'is-missing');badge.textContent='Модель '+(ready?'✓':'—');badge.title=ready?'Модель для печати прикреплена':'Модель для печати не выбрана';const action=badge.closest('.catalogue-product-row')?.querySelector('[data-catalogue-model-download]');if(action){action.disabled=!ready;action.title=ready?'Печать модели этого варианта':'Прикрепите или выберите модель в карточке товара';}}}
 async function loadCatalogueModelStates(){await modelMigration.catch(()=>{});const database=db;await Promise.all(database.products.map(async p=>{let ready=false;try{await selectedPrintModel(database,p);ready=true;}catch{}catalogueModelStates.set(database.id+':'+p.id,ready);}));}
