@@ -10,12 +10,12 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products,templates:[]}));
  await import('../app.js');
  const $=s=>document.querySelector(s);
- assert.equal(document.querySelectorAll('[data-product]').length,20);
+ assert.equal($('[data-tab="important"]').getAttribute('aria-selected'),'true');assert.equal(document.querySelectorAll('[data-product]').length,20);
  assert.equal($('[data-product-page]'),null);const list=$('#product-list'),first=$('[data-product]');Object.defineProperty(list,'clientHeight',{configurable:true,value:400});Object.defineProperty(list,'scrollHeight',{configurable:true,value:1000});list.scrollTop=650;list.dispatchEvent(new dom.window.Event('scroll'));assert.equal(document.querySelectorAll('[data-product]').length,40);assert.equal($('[data-product]'),first);assert.equal(list.scrollTop,650);assert.equal(list.querySelectorAll('[data-product]')[20].dataset.product,products[20].id);
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.267');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.268');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -105,3 +105,5 @@ test('cost summary contains cost breakdown without unused marketplace profit inp
 test('multiline product description stays synchronized between identity and Important tab and persists',async()=>{
  const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();$('[data-tab="important"]').click();await settle();const text='Описание товара\nВторая строка';const input=$('#fields [data-product-description]');assert.ok(input);input.value=text;input.dispatchEvent(new window.Event('input',{bubbles:true}));assert.equal($('#description-identity').value,text);await settle();const id=$('#mobile-product').value;assert.equal((await readDatabase()).products.find(p=>p.id===id).description,text);$('[data-tab="production"]').click();await settle();assert.equal($('#description-identity').value,text);assert.equal(document.querySelectorAll('[data-product-description]').length,1);
 });
+
+test('label panel keeps printing without a redundant preview button',()=>{assert.equal(document.querySelector('#label-preview'),null);assert.ok(document.querySelector('#label-print'));});
