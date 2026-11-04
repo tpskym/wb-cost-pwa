@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.269');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.270');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -107,3 +107,5 @@ test('multiline product description appears once above Important with its card i
 });
 
 test('label panel keeps printing without a redundant preview button',()=>{assert.equal(document.querySelector('#label-preview'),null);assert.ok(document.querySelector('#label-print'));});
+
+test('individual and group prompt actions are beside the product group field',()=>{const block=document.querySelector('#productGroup').closest('.identity-group-block');assert.ok(block.querySelector('#label-design-prompt'));assert.ok(block.querySelector('#label-group-prompt'));assert.equal(document.querySelectorAll('#label-design-prompt').length,1);assert.equal(document.querySelector('.product-label-panel #label-group-prompt'),null);});
