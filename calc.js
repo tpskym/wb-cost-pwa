@@ -1,5 +1,5 @@
-import {validateExpensesDatabase} from './expenses.js?v=0.2.262';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.262';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.263';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.263';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -11,7 +11,7 @@ export const fields = [
  ['commission','Комиссия площадки','% цены','sales'],['acquiring','Эквайринг · если отдельно','% цены','sales'],['ads','Реклама','% цены','sales'],['wbDelivery','Готовая доставка из калькулятора WB','₽/продажа','sales'],['deliveryPercent','Доставка WB · доля при исходной цене','% цены','sales'],['logistics','Прямая логистика на отправку','₽','sales'],['reverse','Обратная логистика на невыкуп','₽','sales'],['delivery','Доставка общей коробки до приёмки','₽/коробка','sales'],['acceptance','Приёмка','₽/шт.','sales'],['storage','Хранение','₽/шт.','sales'],['penalties','Штрафы, прочие удержания','₽/шт.','sales'],['buyout','Плановый выкуп','%','sales'],['loss','Потеря стоимости при невыкупе','%','sales'],
  ['rent','Аренда за месяц','₽','overhead'],['software','Сервисы за месяц','₽','overhead'],['bank','Банк за месяц','₽','overhead'],['otherMonthly','Другие постоянные затраты','₽/мес.','overhead'],['volume','Продажи за месяц','шт.','overhead'],['otherUnit','Прочие затраты','₽/шт.','overhead']
 ];
-export function blankProduct(){return {id:crypto.randomUUID(),name:'Новый товар',sku:'',productGroup:'',variantNote:'',variantNumber:'',barcode:'',stockTargets:{},platform:'WB · свой склад',printer:'Bambu Lab P2S Combo',material:'PLA',colorCode:'',values:{...Object.fromEntries(fields.map(([k])=>[k,null])),watts:200,tariff:5,yield:1,labels:1,outerLabels:1},shippingMode:'rubles',custom:[],price:null,target:30,tax:4,taxMode:'НПД',history:[]};}
+export function blankProduct(){return {id:crypto.randomUUID(),name:'Новый товар',description:'',sku:'',productGroup:'',variantNote:'',variantNumber:'',barcode:'',stockTargets:{},platform:'WB · свой склад',printer:'Bambu Lab P2S Combo',material:'PLA',colorCode:'',values:{...Object.fromEntries(fields.map(([k])=>[k,null])),watts:200,tariff:5,yield:1,labels:1,outerLabels:1},shippingMode:'rubles',custom:[],price:null,target:30,tax:4,taxMode:'НПД',history:[]};}
 export function calculate(p){
  const v=p.values, missing=[], invalid=[];
  const n=k=>{if(v[k]===null||v[k]===''||v[k]===undefined){missing.push(k);return 0;} if(!Number.isFinite(v[k])||v[k]<0){invalid.push(k);return 0;}return v[k];};
@@ -65,10 +65,10 @@ export function calculate(p){
 }
 export function createTemplate(p,name){
  const title=name.trim();if(!title)throw Error('Введите имя шаблона');
- const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.sku;delete inputs.labelPdf;delete inputs.listingDrafts;delete inputs.sharedListingChanges;delete inputs.productGroup;delete inputs.variantNote;delete inputs.variantNumber;delete inputs.barcode;delete inputs.history;delete inputs.stockTargets;delete inputs.printModel;
+ const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.description;delete inputs.sku;delete inputs.labelPdf;delete inputs.listingDrafts;delete inputs.sharedListingChanges;delete inputs.productGroup;delete inputs.variantNote;delete inputs.variantNumber;delete inputs.barcode;delete inputs.history;delete inputs.stockTargets;delete inputs.printModel;
  return {id:crypto.randomUUID(),name:title,inputs};
 }
-export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,sku:p.sku,labelPdf:p.labelPdf,listingDrafts:p.listingDrafts,productGroup:p.productGroup,variantNote:p.variantNote,variantNumber:p.variantNumber,barcode:p.barcode,stockTargets:p.stockTargets,printModel:p.printModel,history:p.history};}
+export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,description:p.description,sku:p.sku,labelPdf:p.labelPdf,listingDrafts:p.listingDrafts,productGroup:p.productGroup,variantNote:p.variantNote,variantNumber:p.variantNumber,barcode:p.barcode,stockTargets:p.stockTargets,printModel:p.printModel,history:p.history};}
 export function validateDB(x){
  if(x?.catalogueCards!==undefined){if(!x.catalogueCards||typeof x.catalogueCards!=='object'||Array.isArray(x.catalogueCards))throw Error('Некорректные сведения о карточках');for(const [market,snapshot] of Object.entries(x.catalogueCards))if(!['wb','ozon'].includes(market)||!snapshot||!Array.isArray(snapshot.skus)||snapshot.skus.some(sku=>typeof sku!=='string')||typeof snapshot.complete!=='boolean'||typeof snapshot.updatedAt!=='string')throw Error('Некорректный снимок карточек');}
 
@@ -97,7 +97,7 @@ export function validateDB(x){
   t.inputs=createTemplate(checked,t.name).inputs;
  }
  const ids=new Set();
- for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);
+ for(const p of x.products){if(!p||typeof p.id!=='string'||ids.has(p.id)||typeof p.name!=='string'||!p.values||!Array.isArray(p.custom)||!Array.isArray(p.history))throw Error('Повреждена карточка товара');ids.add(p.id);if(p.description!==undefined&&typeof p.description!=='string')throw Error('Некорректное описание товара');
  if(p.listingDrafts!==undefined){if(!p.listingDrafts||typeof p.listingDrafts!=='object'||Array.isArray(p.listingDrafts))throw Error('Некорректные черновики карточек');for(const [market,draft] of Object.entries(p.listingDrafts)){if(!['wb','ozon'].includes(market)||!draft||!['create','update'].includes(draft.mode)||typeof draft.body!=='string'||(draft.photoURLs!==undefined&&(!Array.isArray(draft.photoURLs)||draft.photoURLs.some(url=>typeof url!=='string'))))throw Error('Некорректный черновик карточки');if(draft.photos!==undefined&&(!Array.isArray(draft.photos)||draft.photos.some(photo=>!photo||!['local','remote'].includes(photo.kind)||typeof photo.url!=='string'||(photo.kind==='local'&&['fileId','name','category','createdAt'].some(key=>typeof photo[key]!=='string')))))throw Error('Некорректные фотографии черновика');if(draft.attributeSchema!==undefined&&(!Array.isArray(draft.attributeSchema)||draft.attributeSchema.some(def=>!def||typeof def.id!=='number'||typeof def.name!=='string')))throw Error('Некорректные характеристики черновика');}}
  if(p.labelPdf!=null&&(typeof p.labelPdf.name!=='string'||typeof p.labelPdf.data!=='string'||p.labelPdf.data.length>2800000||!/^data:application\/pdf;base64,[A-Za-z0-9+/=]+$/.test(p.labelPdf.data)))throw Error('Некорректный PDF этикетки');
  if(p.printModel!==undefined&&(!p.printModel||typeof p.printModel!=='object'||!['ownerId','fileId'].every(k=>typeof p.printModel[k]==='string'&&p.printModel[k].length>0&&p.printModel[k].length<200)))throw Error('Некорректная модель печати');
@@ -148,3 +148,12 @@ export function productLabelPrompt(p){return `${p.name||''}\nВариант ${p.
 export function paginateProductGroups(products,pageSize=20){const groups=new Map();for(const product of products){const key=product.productGroup?.trim()?'group:'+product.productGroup:'product:'+product.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(product);}const pages=[];let page=[];for(const group of groups.values()){if(page.length&&page.length+group.length>pageSize){pages.push(page);page=[];}page.push(...group);if(page.length>=pageSize){pages.push(page);page=[];}}if(page.length)pages.push(page);return pages.length?pages:[[]];}
 
 export function catalogueProductBatches(products,size=20){const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'ru',{numeric:true,sensitivity:'base'});return paginateProductGroups([...products].sort((a,b)=>compare(a.productGroup||a.sku,b.productGroup||b.sku)||compare(a.sku,b.sku)||compare(a.id,b.id)),size);}
+
+export function savedListingDescription(products,sku){
+ const key=String(sku||'').trim();if(!key)return null;const matches=[];
+ for(const product of products)for(const market of ['wb','ozon']){const draft=product.listingDrafts?.[market];if(draft?.mode!=='update')continue;try{const body=JSON.parse(draft.body),item=market==='wb'?body?.[0]:body?.items?.[0];if(String(item?.[market==='wb'?'vendorCode':'offer_id']||'').trim()!==key)continue;let description=typeof item.description==='string'?item.description:'';
+  if(!description.trim()&&market==='ozon'){const ids=new Set([4191,...(draft.attributeSchema||[]).filter(a=>/описание|аннотация/i.test(a.name)).map(a=>Number(a.id))]);description=(item.attributes||[]).filter(a=>ids.has(Number(a.id))).flatMap(a=>a.values||[]).map(v=>typeof v.value==='string'?v.value:'').filter(Boolean).join('\n');}
+  if(description.trim())matches.push({description,market,loadedAt:draft.loadedAt||''});
+ }catch{}}
+ return matches.sort((a,b)=>b.loadedAt.localeCompare(a.loadedAt))[0]||null;
+}

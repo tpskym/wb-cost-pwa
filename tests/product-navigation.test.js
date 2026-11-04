@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.262');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.263');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -103,3 +103,7 @@ test('Important tab edits the same production parameters without adding extra ca
 });
 
 test('cost summary contains cost breakdown without unused marketplace profit inputs',async()=>{document.querySelector('[data-space="cost"]').click();await settle();const root=document.querySelector('#results');assert.ok(root.querySelector('.big-number'));assert.ok(root.querySelector('.cost-list'));assert.ok(root.querySelector('details'));assert.equal(root.querySelector('[data-market-field]'),null);assert.equal(root.querySelector('[data-open-loaded-listing]'),null);assert.equal(root.querySelector('[data-market-profit]'),null);assert.doesNotMatch(root.textContent,/К переводу за товар|Налог на продажу|Маржа от цены/);});
+
+test('multiline product description stays synchronized between identity and Important tab and persists',async()=>{
+ const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();$('[data-tab="important"]').click();await settle();const text='Описание товара\nВторая строка';const input=$('#fields [data-product-description]');assert.ok(input);input.value=text;input.dispatchEvent(new window.Event('input',{bubbles:true}));assert.equal($('#description-identity').value,text);await settle();const id=$('#mobile-product').value;assert.equal((await readDatabase()).products.find(p=>p.id===id).description,text);$('[data-tab="production"]').click();await settle();assert.equal($('#description-identity').value,text);assert.equal(document.querySelectorAll('[data-product-description]').length,1);
+});
