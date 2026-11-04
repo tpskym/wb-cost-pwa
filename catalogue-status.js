@@ -1,6 +1,6 @@
-import {loadedListingForSku} from './calc.js?v=0.2.294';
-import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.294';
-import {normalizeCategories} from './listing-fields.js?v=0.2.294';
+import {loadedListingForSku} from './calc.js?v=0.2.295';
+import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.295';
+import {normalizeCategories,normalizeAttributes,dimensionTriple,splitDimensions,categoryOf} from './listing-fields.js?v=0.2.295';
 // Presence snapshots do not replace editable card drafts or send changes to marketplaces.
 export function rememberCatalogueCards(database,market,cards,complete=false){
  const skus=cards.map(card=>String((market==='wb'?card.vendorCode:card.offer_id)||'').trim()).filter(Boolean),previous=database.catalogueCards?.[market];
@@ -17,11 +17,15 @@ export function cardMeasurementValues(market,card){
  for(const key of ['width','height','depth']){const value=market==='wb'?card.dimensions?.[key==='depth'?'length':key]:card[key],n=scale?positive(value,scale):null;if(n!==null)dimensions[key]=n;}
  if(Object.keys(dimensions).length)values.packaged=dimensions;
  const weight=weightScale?positive(market==='wb'?card.dimensions?.weightBrutto:card.weight,weightScale):null;if(weight!==null)values.packagingWeight=weight;
- // Use only explicitly named, unambiguous unpackaged characteristics; never infer from shipping dimensions.
- for(const attribute of card.characteristics||card.attributes||[]){const name=String(attribute.name||'').toLowerCase().trim(),value=Array.isArray(attribute.value)?attribute.value[0]:attribute.value??attribute.values?.[0]?.value;let key;
- if(/^ширина (товара|предмета) без упаковки,? (мм|см)$/.test(name))key='width';if(/^высота (товара|предмета) без упаковки,? (мм|см)$/.test(name))key='height';if(/^(глубина|длина) (товара|предмета) без упаковки,? (мм|см)$/.test(name))key='depth';
- if(key){const n=positive(value,name.endsWith('см')?10:1);if(n!==null){values.product??={};values.product[key]=n;}}
- if(/^вес (товара|предмета) без упаковки,? (г|кг)$/.test(name)){const n=positive(value,name.endsWith('кг')?1000:1);if(n!==null)values.productWeight=n;}
+ // Resolve category attribute IDs through their schema. Shipping dimensions never become item dimensions.
+ for(const attribute of card.characteristics||card.attributes||[]){const def=(card.measurementSchema||[]).find(def=>Number(def.id)===Number(attribute.id))||{},name=String(attribute.name||def.name||'').toLowerCase().replace(/ё/g,'е').trim(),unit=String(def.unit||'').toLowerCase().trim(),text=name+' '+String(def.description||'').toLowerCase(),raw=Array.isArray(attribute.value)?attribute.value[0]:attribute.value??attribute.values?.[0]?.value,value=typeof raw==='string'?raw.replace(',','.'):raw;let key;
+ const packed=/упаковк/.test(name)&&!/без упаковк/.test(name),part=packed?'packaged':'product';
+ if(dimensionTriple({...def,name})&&/размер|габарит/.test(name)&&(/без упаковк/.test(text)||/товар|предмет/.test(name))){const parts=splitDimensions(raw),factor=/мм|миллиметр/.test(name+' '+unit+' '+text)?1:/см|сантиметр/.test(name+' '+unit+' '+text)?10:null;if(factor&&parts.every(v=>positive(v)!==null)){values[part]={...values[part],depth:positive(parts[0],factor),width:positive(parts[1],factor),height:positive(parts[2],factor)};}continue;}
+ if(/^ширина (товара|предмета)(?:\b|[ ,(])/.test(name)||/^ширина (товара|предмета)$/.test(name))key='width';
+ if(/^высота (товара|предмета)(?:\b|[ ,(])/.test(name)||/^высота (товара|предмета)$/.test(name))key='height';
+ if(/^(глубина|длина) (товара|предмета)(?:\b|[ ,(])/.test(name)||/^(глубина|длина) (товара|предмета)$/.test(name))key='depth';
+ const units=name+' '+unit;if(key){const factor=/(?:^|[ ,(])мм(?:$|[ )])/.test(units)?1:/(?:^|[ ,(])см(?:$|[ )])/.test(units)?10:null,n=factor?positive(value,factor):null;if(n!==null){values[part]??={};values[part][key]=n;}}
+ if(/^(вес|масса) (товара|предмета)(?:$|[ ,(])/.test(name)){const factor=/(?:^|[ ,(])кг(?:$|[ )])/.test(units)?1000:/(?:^|[ ,(])г(?:$|[ )])/.test(units)?1:null,n=factor?positive(value,factor):null;if(n!==null)values[packed?'packagingWeight':'productWeight']=n;}
  }
  return values;
 }
@@ -41,6 +45,7 @@ export async function refreshCatalogueCards(database,credentials,{request=market
    else{cards=[];let cursor=null;const seen=new Set();for(;;){const result=await request(market,'list',credentials,listBody(market,'',cursor)),batch=result.result?.items;if(!Array.isArray(batch))throw Error('Не удалось прочитать список карточек Ozon');cards.push(...batch);const next=result.result?.last_id;if(batch.length<100)break;if(!next||seen.has(next))throw Error('Ozon повторил страницу: сохранён прежний список');seen.add(next);cursor=next;}}
    rememberCatalogueCards(database,market,cards,true);let metadataCount=0,warning='';
    try{let metadata=cards,categories=[];if(market==='ozon'){metadata=[];const wanted=new Set((database.products||[]).map(p=>String(p.sku||'').trim()).filter(Boolean)),offers=[...new Set(cards.map(card=>String(card.offer_id||'').trim()).filter(sku=>wanted.has(sku)))];for(let offset=0;offset<offers.length;offset+=100){const result=await request(market,'details',credentials,{filter:{offer_id:offers.slice(offset,offset+100),visibility:'ALL'},limit:100});const batch=Array.isArray(result.result)?result.result:result.result?.items||result.items;if(!Array.isArray(batch))throw Error('Не удалось прочитать параметры карточек Ozon');metadata.push(...batch);}if(metadata.length){try{categories=normalizeCategories('ozon',await request(market,'categories',credentials,{language:'DEFAULT'}));}catch{warning='Названия категорий Ozon не получены, сохранены коды';}}}
+    const schemas=new Map(),wanted=new Set((database.products||[]).map(p=>String(p.sku||'').trim()));for(const card of metadata){const sku=String((market==='wb'?card.vendorCode:card.offer_id)||'').trim();if(!wanted.has(sku))continue;const id=Number(market==='wb'?card.subjectID:card.description_category_id),typeId=Number(card.type_id),key=id+':'+(market==='ozon'?typeId:'');if(!(id>0)||(market==='ozon'&&!(typeId>0)))continue;if(!schemas.has(key)){try{schemas.set(key,normalizeAttributes(market,await request(market,'attributes',credentials,market==='wb'?{subjectID:id}:{description_category_id:id,type_id:typeId,language:'DEFAULT'})));}catch{const cached=(database.products||[]).find(p=>{const draft=p.listingDrafts?.[market];if(!draft?.attributeSchema?.length)return false;try{const category=categoryOf(market,draft);return Number(category.id)===id&&(market==='wb'||Number(category.typeId)===typeId);}catch{return false;}})?.listingDrafts?.[market]?.attributeSchema||[];schemas.set(key,cached);warning=[warning,'Не удалось обновить справочник характеристик '+(market==='wb'?'WB':'Ozon')+'; использованы сохранённые сведения'].filter(Boolean).join(' · ');}}card.measurementSchema=schemas.get(key);}
     metadataCount=applyCatalogueCardMetadata(database,market,metadata,categories);
    }catch(error){warning='Параметры карточек не обновлены: '+error.message;}
    await onSaved(market);results.push({market,count:cards.length,metadataCount,...(warning?{warning}:{})});
