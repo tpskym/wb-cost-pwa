@@ -1,5 +1,5 @@
-import {validateExpensesDatabase} from './expenses.js?v=0.2.299';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.299';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.300';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.300';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],

@@ -59,3 +59,15 @@ export async function createCardDesignArchive(owner,files,sku='product'){
 }
 
 export async function attachCardDesignZip(owner,file){if(!file||! /\.zip$/i.test(file.name))throw Error('Выберите ZIP-архив');if(file.size>500*1024*1024)throw Error('Архив должен быть не больше 500 МБ');const bytes=new Uint8Array(await file.slice(0,4).arrayBuffer());if(bytes[0]!==80||bytes[1]!==75||!([3,5,7].includes(bytes[2])))throw Error('Файл не похож на ZIP-архив');return {id:crypto.randomUUID(),owner,category:'card-design',name:safeFilename(file.name),createdAt:new Date().toISOString(),blob:file};}
+
+// Commit related binary changes together; retain old bytes until the database reference is saved.
+async function changeModelFiles(records,removed=[]){const db=await openFilesDB();try{await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Не удалось заменить модель'));const store=tx.objectStore('files');try{for(const record of records)store.put(record);for(const id of removed)store.delete(id);}catch(error){tx.abort();reject(error);}});}finally{db.close();}}
+export async function replacePrintModel(database,product,record,save){
+ const owner=database.id+':'+product.id;if(record.category!=='model'||record.owner!==owner)throw Error('Модель не принадлежит этому товару');
+ const old=(await listFiles(owner)).filter(file=>file.category==='model'&&file.id!==record.id),references=database.products.map(p=>({product:p,reference:p.printModel?{...p.printModel}:undefined})),rehomed=[];
+ for(const file of old){const peers=database.products.filter(p=>p!==product&&p.printModel?.fileId===file.id);if(peers.length)rehomed.push({file,ownerId:peers[0].id});}
+ await changeModelFiles([record,...rehomed.map(({file,ownerId})=>({...file,owner:database.id+':'+ownerId}))]);
+ try{for(const {file,ownerId} of rehomed)for(const p of database.products)if(p!==product&&p.printModel?.fileId===file.id)p.printModel={...p.printModel,ownerId};assignPrintModel(database,product,record);if(await save()===false)throw Error('Не удалось сохранить замену модели');}
+ catch(error){for(const {product:p,reference} of references){if(reference)p.printModel=reference;else delete p.printModel;}await changeModelFiles(old,[record.id]);throw error;}
+ const shared=new Set(rehomed.map(row=>row.file.id));await changeModelFiles([],old.filter(file=>!shared.has(file.id)).map(file=>file.id));return record;
+}
