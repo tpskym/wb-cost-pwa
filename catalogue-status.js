@@ -1,6 +1,6 @@
-import {loadedListingForSku} from './calc.js?v=0.2.295';
-import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.295';
-import {normalizeCategories,normalizeAttributes,dimensionTriple,splitDimensions,categoryOf} from './listing-fields.js?v=0.2.295';
+import {loadedListingForSku,normalizeDescriptionBreaks} from './calc.js?v=0.2.296';
+import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.296';
+import {normalizeCategories,normalizeAttributes,dimensionTriple,splitDimensions,categoryOf} from './listing-fields.js?v=0.2.296';
 // Presence snapshots do not replace editable card drafts or send changes to marketplaces.
 export function rememberCatalogueCards(database,market,cards,complete=false){
  const skus=cards.map(card=>String((market==='wb'?card.vendorCode:card.offer_id)||'').trim()).filter(Boolean),previous=database.catalogueCards?.[market];
@@ -29,10 +29,11 @@ export function cardMeasurementValues(market,card){
  }
  return values;
 }
+export function cardDescription(market,card){let text=typeof card.description==='string'?card.description:'';if(!text.trim()&&market==='ozon'){const ids=new Set([4191,...(card.measurementSchema||[]).filter(def=>/описание|аннотация/i.test(def.name)&&!/rich|рич|json/i.test(def.name)).map(def=>Number(def.id))]);text=(card.attributes||[]).filter(attribute=>ids.has(Number(attribute.id))).flatMap(attribute=>attribute.values||[]).map(value=>typeof value.value==='string'?value.value:'').filter(value=>value.trim()).join('\n');}return normalizeDescriptionBreaks(text).trim();}
 export function applyCatalogueCardMetadata(database,market,cards,categories=[]){let updated=0;
  for(const product of database.products||[]){const sku=String(product.sku||'').trim();if(!sku)continue;const card=cards.find(card=>String((market==='wb'?card.vendorCode:card.offer_id)||'').trim()===sku);if(!card)continue;const id=Number(market==='wb'?card.subjectID:card.description_category_id),typeId=Number(card.type_id);let changed=false;
  if(Number.isSafeInteger(id)&&id>0&&(market==='wb'||Number.isSafeInteger(typeId)&&typeId>0)){const existing=product.marketplaceCategories?.[market],found=categories.find(row=>row.id===id&&(market==='wb'||row.typeId===typeId));const label=found?.label||(market==='wb'?card.subjectName:card.category_name)||(existing?.id===id&&(market==='wb'||existing.typeId===typeId)?existing.label:'')||'Категория '+id;product.marketplaceCategories={...product.marketplaceCategories,[market]:{id,...(market==='ozon'?{typeId}:{}),label}};changed=true;}
- const values=cardMeasurementValues(market,card);if(Object.keys(values).length){product.measurements={...product.measurements,...values,...(values.packaged?{packaged:{...product.measurements?.packaged,...values.packaged}}:{}),...(values.product?{product:{...product.measurements?.product,...values.product}}:{})};changed=true;}if(changed)updated++;
+ const description=cardDescription(market,card);if(description){product.description=description;changed=true;}const values=cardMeasurementValues(market,card);if(Object.keys(values).length){product.measurements={...product.measurements,...values,...(values.packaged?{packaged:{...product.measurements?.packaged,...values.packaged}}:{}),...(values.product?{product:{...product.measurements?.product,...values.product}}:{})};changed=true;}if(changed)updated++;
  }return updated;
 }
 export async function refreshCatalogueCards(database,credentials,{request=marketRequest,onSaved=()=>{}}={}){
