@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.260');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.261');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -95,3 +95,9 @@ test('large group picker searches by article and applies the chosen group',async
 async function settle(){await new Promise(resolve=>setTimeout(resolve,5));const {flushDatabase}=await import('../app.js');await flushDatabase().catch(()=>{});await new Promise(resolve=>setTimeout(resolve,0));}
 async function readDatabase(){await settle();const {getFile}=await import('../attachments.js'),record=await getFile('workshop-db-v1-main-database');return JSON.parse(await record.blob.text());}
 async function readBackup(){const {readDatabaseBackup}=await import('../database-backup.js');return readDatabaseBackup();}
+
+test('Important tab edits the same production parameters without adding extra calculation fields',async()=>{
+ const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();$('[data-tab="important"]').click();await settle();assert.equal($('[data-tab="important"]').getAttribute('aria-selected'),'true');assert.deepEqual([...document.querySelectorAll('#fields [data-field]')].map(e=>e.dataset.field),['grams','kgPrice','minutes','yield']);assert.ok($('#printer'));assert.ok($('#material'));assert.equal(document.querySelectorAll('#product-filament-colors select').length,3);assert.equal($('#fields [data-field="printerLife"]'),null);assert.doesNotMatch($('#fields').textContent,/Энергия: 200 Вт/);
+ const input=$('#fields [data-field="grams"]');input.value='32';input.dispatchEvent(new window.Event('input',{bubbles:true}));$('#printer').value='Bambu Lab P2S Combo';$('#printer').dispatchEvent(new window.Event('input',{bubbles:true}));await settle();const productId=$('#mobile-product').value;assert.equal((await readDatabase()).products.find(p=>p.id===productId).values.grams,32);
+ $('[data-tab="production"]').click();await settle();assert.equal($('#fields [data-field="grams"]').value,'32');assert.equal($('#printer').value,'Bambu Lab P2S Combo');const price=$('#fields [data-field="kgPrice"]');price.value='1300';price.dispatchEvent(new window.Event('input',{bubbles:true}));await settle();$('[data-tab="important"]').click();await settle();assert.equal($('#fields [data-field="kgPrice"]').value,'1300');assert.equal(document.querySelectorAll('#fields [data-field="grams"]').length,1);$('[data-tab="production"]').click();await settle();
+});
