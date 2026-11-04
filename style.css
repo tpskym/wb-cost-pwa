@@ -572,3 +572,5 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .description-prompt-limit{display:flex;flex-direction:column;gap:8px;margin:16px 0}.description-prompt-limit input{max-width:260px}.description-prompt-limit small,.description-character-count{color:#6d7c62;font-size:12px;font-variant-numeric:tabular-nums}
 /* Group first; marketplace categories share the next row. */
 .catalogue-filters>label:first-child{grid-column:1/-1}
+
+.label-primary-actions{display:inline-flex;align-items:center;gap:10px;flex-wrap:nowrap;max-width:100%}.label-primary-actions>button{min-height:44px}.label-primary-actions .icon-action{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:10px;flex:0 0 44px}.label-primary-actions .icon-action svg{width:20px;height:20px;flex:0 0 20px}
