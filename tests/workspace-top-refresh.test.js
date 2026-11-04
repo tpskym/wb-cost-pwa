@@ -1,0 +1,5 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {mountTopRefresh} from '../workspace-history.js';
+test('toolbar refresh follows workspace operation through disabled state and redraws',async()=>{const dom=new JSDOM('<div class="workspace-history-controls"></div><main><button id="refresh">Обновить остатки</button></main>'),doc=dom.window.document;let clicks=0;doc.querySelector('#refresh').onclick=()=>clicks++;const stop=mountTopRefresh(doc,'#refresh'),top=doc.querySelector('.workspace-top-refresh');top.click();assert.equal(clicks,1);doc.querySelector('#refresh').disabled=true;await new Promise(r=>setTimeout(r,0));assert.equal(top.disabled,true);doc.querySelector('main').innerHTML='<button id="refresh">Повторить обновление</button>';doc.querySelector('#refresh').onclick=()=>clicks++;await new Promise(r=>setTimeout(r,0));assert.equal(top.disabled,false);assert.match(top.textContent,/Повторить/);top.click();assert.equal(clicks,2);assert.ok(doc.querySelector('#refresh').classList.contains('top-refresh-source'));stop();assert.equal(doc.querySelector('.workspace-top-refresh'),null);dom.window.close();});
