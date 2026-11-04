@@ -560,3 +560,9 @@ button.print-action.print-action--model,button.print-action.print-action--label{
 
 #fields .product-details-columns{grid-template-columns:minmax(0,1fr)}@container(min-width:650px){#fields .product-details-columns{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .archive-progress-dialog progress{width:100%;height:14px;accent-color:#69884e}.archive-progress-dialog h2{margin:0}.archive-progress-dialog [data-progress-detail]{font-variant-numeric:tabular-nums;color:#617159}
+
+.card-design-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.card-design-actions .card-design-upload{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;height:44px;min-height:44px;margin:0;padding:10px 14px;font-size:14px;line-height:1.2}.card-design-actions .card-design-upload svg{width:18px;height:18px;flex:0 0 18px}.card-design-actions .card-design-upload span{min-width:0}@media(max-width:600px){.card-design-actions .card-design-upload{width:100%;height:auto;min-height:44px}}
+
+/* The toolbar must grow with its wrapped controls instead of overlapping the next section. */
+main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:12px;padding:12px 0;flex-shrink:0}
+@media(max-width:850px){main[data-workspace]>.app-header{position:static;display:flex;align-items:stretch;margin-bottom:16px}.app-header .workspace-history-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;min-width:0;flex:1 0 100%}.app-header .workspace-history-controls button{width:100%;min-width:0;min-height:44px;font-size:14px;padding:10px 12px}.app-header .workspace-top-refresh{grid-column:1/-1;justify-content:center}.app-header .header-actions{margin:0;width:100%;min-width:0;justify-content:flex-end;gap:8px;flex-wrap:wrap}.app-header .header-actions #saved{max-width:100%;overflow-wrap:anywhere}}
