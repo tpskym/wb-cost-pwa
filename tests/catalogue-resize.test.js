@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {mountCatalogueResize} from '../catalogue-resize.js';
+test('catalogue width buttons and keyboard preserve a bounded device preference across redraws',()=>{
+ const dom=new JSDOM('<div id="app"><aside><div class="list-title">Мои товары</div><div id="product-list"><button>Товар</button></div></aside></div>',{url:'https://example.test'}),doc=dom.window.document,storage=dom.window.localStorage,catalogue=doc.querySelector('aside'),row=doc.querySelector('#product-list button');const mount=()=>mountCatalogueResize(catalogue,{document:doc,storage});mount();catalogue.querySelector('[data-catalogue-narrow]').click();assert.equal(storage.getItem('workshop-catalogue-width'),'360');mount();assert.equal(catalogue.querySelector('[role=separator]').getAttribute('aria-valuenow'),'360');assert.equal(doc.querySelector('#product-list button'),row);for(let i=0;i<20;i++)catalogue.querySelector('[data-catalogue-narrow]').click();assert.equal(storage.getItem('workshop-catalogue-width'),'300');assert.equal(catalogue.querySelector('[data-catalogue-narrow]').disabled,true);catalogue.querySelector('[role=separator]').dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'End',bubbles:true}));assert.equal(storage.getItem('workshop-catalogue-width'),'900');assert.equal(catalogue.querySelector('[data-catalogue-widen]').disabled,true);assert.equal(catalogue.querySelectorAll('.catalogue-width-controls').length,1);dom.window.close();
+});
