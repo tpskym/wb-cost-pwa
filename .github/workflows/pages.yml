@@ -54,7 +54,7 @@ jobs:
         run: ./windows-helper/Test-WorkshopFile.ps1
 
   macos-helper:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
