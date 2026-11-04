@@ -6,7 +6,7 @@ import {blankProduct} from '../calc.js';
 test('large catalogue appends products on scroll, preserves rows, and searches the whole collection',async()=>{
  const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
  Object.assign(globalThis,{document:dom.window.document,window:dom.window,localStorage:dom.window.localStorage,location:dom.window.location,history:dom.window.history,indexedDB,confirm:()=>true});dom.window.scrollTo=()=>{};
- const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,productGroup:'Каталог '+Math.floor(i/5)}));
+ const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,marketplaceCategories:i%2?{}:{wb:{id:12,label:'Дом'},ozon:{id:22,typeId:23,label:'Аксессуары'}},productGroup:'Каталог '+Math.floor(i/5)}));
  localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products,templates:[]}));
  await import('../app.js');
  const $=s=>document.querySelector(s);
@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.291');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.292');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -68,15 +68,20 @@ test('group label prompt button opens group task beside individual label prompt'
 
 test('creating more than ten variants keeps the complete group together and the new item visible',async()=>{const before=(await readDatabase()),currentId=document.querySelector('#mobile-product').value,group=before.products.find(p=>p.id===currentId).productGroup;for(let i=0;i<12;i++)document.querySelector('#duplicate').click();await settle();const db=(await readDatabase()),members=db.products.filter(p=>p.productGroup===group),groups=[...document.querySelectorAll('#product-list [data-group]')].filter(item=>item.dataset.group===group);assert.equal(groups.length,1);assert.equal(groups[0].querySelectorAll('[data-product]').length,members.length);assert.ok(groups[0].querySelector('.chosen'));assert.equal(document.querySelectorAll('#product-list .chosen').length,1);});
 
-test('catalogue filters by group and colour and can collapse and expand all visible groups',async()=>{const $=s=>document.querySelector(s),db=(await readDatabase()),group=db.products.find(p=>p.productGroup)?.productGroup;$('#catalogue-group-filter').value=group;$('#catalogue-group-filter').dispatchEvent(new window.Event('change'));assert.ok([...document.querySelectorAll('#product-list [data-group]')].every(item=>item.dataset.group===group));$('[data-catalogue-collapse]').click();await settle();assert.equal(document.querySelectorAll('#product-list details[open]').length,0);$('[data-catalogue-expand]').click();await settle();assert.ok(document.querySelectorAll('#product-list details[open]').length>0);const option=[...$('#catalogue-colour-filter').options].find(o=>o.value);if(option){$('#catalogue-colour-filter').value=option.value;$('#catalogue-colour-filter').dispatchEvent(new window.Event('change'));for(const item of document.querySelectorAll('#product-list [data-product]')){const p=db.products.find(p=>p.id===item.dataset.product);assert.equal(p.variantNote||p.colorCode,option.value);}}$('[data-catalogue-reset]').click();await settle();assert.equal($('#catalogue-group-filter').value,'');assert.equal($('#catalogue-colour-filter').value,'');});
-test('colour options follow the selected group and reset an unavailable selection',async()=>{
- const $=s=>document.querySelector(s),db=(await readDatabase());
- const groups=[...new Set(db.products.map(p=>p.productGroup||'__ungrouped__'))];
- const choose=group=>{$('#catalogue-group-filter').value=group;$('#catalogue-group-filter').dispatchEvent(new window.Event('change'));};
- for(const group of groups){choose(group);const expected=[...new Set(db.products.filter(p=>(p.productGroup||'__ungrouped__')===group).map(p=>p.variantNote||p.colorCode||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));assert.deepEqual([...$('#catalogue-colour-filter').options].map(o=>o.value),['',...expected]);}
- const coloured=db.products.find(p=>p.variantNote||p.colorCode);assert.ok(coloured);choose(coloured.productGroup||'__ungrouped__');$('#catalogue-colour-filter').value=coloured.variantNote||coloured.colorCode;$('#catalogue-colour-filter').dispatchEvent(new window.Event('change'));
- const other=groups.find(group=>!db.products.some(p=>(p.productGroup||'__ungrouped__')===group&&(p.variantNote||p.colorCode)===(coloured.variantNote||coloured.colorCode)));assert.ok(other);choose(other);assert.equal($('#catalogue-colour-filter').value,'');assert.ok(document.querySelectorAll('#product-list [data-product]').length>0);
- $('[data-catalogue-reset]').click();await settle();assert.ok([...$('#catalogue-colour-filter').options].some(o=>o.value===(coloured.variantNote||coloured.colorCode)));
+test('catalogue category filters combine with groups, collapse and reset',async()=>{
+ const $=s=>document.querySelector(s),db=await readDatabase(),group=db.products.find(p=>p.productGroup)?.productGroup;
+ $('#catalogue-group-filter').value=group;$('#catalogue-group-filter').dispatchEvent(new window.Event('change'));
+ $('[data-catalogue-collapse]').click();assert.equal(document.querySelectorAll('#product-list details[open]').length,0);$('[data-catalogue-expand]').click();assert.ok(document.querySelectorAll('#product-list details[open]').length>0);
+ const wb=$('[data-catalogue-category=wb]'),ozon=$('[data-catalogue-category=ozon]');wb.value='12:';wb.dispatchEvent(new window.Event('change'));assert.ok(document.querySelectorAll('#product-list [data-product]').length>0);
+ for(const item of document.querySelectorAll('#product-list [data-product]')){const p=db.products.find(p=>p.id===item.dataset.product);assert.equal(p.productGroup,group);assert.equal(p.marketplaceCategories.wb.id,12);}
+ ozon.value='__none__';ozon.dispatchEvent(new window.Event('change'));assert.equal(document.querySelectorAll('#product-list [data-product]').length,0);
+ $('[data-catalogue-reset]').click();await settle();assert.equal(wb.value,'');assert.equal(ozon.value,'');assert.equal($('#catalogue-group-filter').value,'');
+});
+test('category choices follow the selected group',async()=>{
+ const $=s=>document.querySelector(s),db=await readDatabase();for(const group of [...new Set(db.products.map(p=>p.productGroup||'__ungrouped__'))]){
+ $('#catalogue-group-filter').value=group;$('#catalogue-group-filter').dispatchEvent(new window.Event('change'));
+ for(const market of ['wb','ozon']){const expected=[...new Set(db.products.filter(p=>(p.productGroup||'__ungrouped__')===group).map(p=>p.marketplaceCategories?.[market]).filter(Boolean).map(c=>c.id+':'+(c.typeId||'')))];assert.deepEqual([...$('[data-catalogue-category='+market+']').options].map(o=>o.value),['','__none__',...expected]);}}
+ $('[data-catalogue-reset]').click();await settle();
 });
 test('catalogue displays four saved status badges without refreshing marketplaces',async()=>{
  const row=document.querySelector('#product-list [data-product]');assert.ok(row);assert.equal(row.querySelectorAll('.catalogue-status').length,4);assert.match(row.textContent,/WB/);assert.match(row.textContent,/Ozon/);assert.match(row.textContent,/Этикетка/);assert.match(row.textContent,/Модель/);assert.ok(document.querySelector('#catalogue-refresh'));assert.match(document.querySelector('#catalogue-refresh-status').textContent,/сохранённым/);
