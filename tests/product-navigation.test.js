@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.263');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.264');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -53,9 +53,7 @@ test('form variant number is copied while barcode is cleared and label prompt us
  assert.equal(document.querySelector('#variantNumber').value,'3');assert.equal(document.querySelector('#barcode').value,'');
  change('barcode','1234567890123');change('variantNote','Белый');
  const name=document.querySelector('#name').value,sku=document.querySelector('#sku').value;
- document.querySelector('#label-ai-prompt').click();await settle();
- assert.equal(document.querySelector('#label-prompt-text').value,`${name}\nВариант 3. Цвет: Белый\n${sku}\n1234567890123`);
- document.querySelector('[data-prompt-close]').click();await settle();
+ assert.equal(document.querySelector('#label-ai-prompt'),null);assert.ok(document.querySelector('#label-design-prompt'));
 });
 test('sidebar switches preserve page position and invoke selection only once',async()=>{
  const previousScroll=window.scrollTo;Object.defineProperty(window,'scrollY',{configurable:true,value:540});const calls=[];window.scrollTo=options=>calls.push(options);const list=document.querySelector('#product-list');list.scrollTop=200;list.querySelectorAll('[data-product]')[2].click();await settle();assert.equal(calls.length,1);assert.equal(calls[0].top,540);assert.equal(document.querySelector('#product-list').scrollTop,200);window.scrollTo=previousScroll;
