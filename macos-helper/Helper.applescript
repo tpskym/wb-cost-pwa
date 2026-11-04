@@ -1,12 +1,5 @@
 on open location requestURL
     try
-        if requestURL is "workshop-files://extract/card-design" then
-            set archiveFile to choose file with prompt "Выберите скачанный ZIP материалов карточки" of type {"public.zip-archive"}
-            set destinationFolder to choose folder with prompt "Куда распаковать материалы карточки?"
-            set resourceFolder to POSIX path of (path to resource "open-file.sh")
-            do shell script "/bin/sh " & quoted form of resourceFolder & " --extract " & quoted form of POSIX path of archiveFile & " " & quoted form of POSIX path of destinationFolder
-            return
-        end if
         set resourceFolder to POSIX path of (path to resource "open-file.sh")
         do shell script "/bin/sh " & quoted form of resourceFolder & " " & quoted form of requestURL
     on error messageText number errorNumber

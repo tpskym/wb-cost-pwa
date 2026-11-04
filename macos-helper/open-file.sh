@@ -74,17 +74,6 @@ import_workshop_file() {
     esac
     printf '%s\n' "$target"
 }
-if [ "${1:-}" = '--extract' ]; then
-    archive=${2:-}
-    destination=${3:-}
-    [ -f "$archive" ] && [ ! -L "$archive" ] && [ -d "$destination" ] || exit 1
-    /usr/bin/unzip -Z1 "$archive" | /usr/bin/awk 'BEGIN { ok=1 } /^\// || /(^|\/)\.\.(\/|$)/ || /\\/ { ok=0 } END { exit !ok }'
-    /usr/bin/zipinfo -l "$archive" | /usr/bin/awk 'BEGIN { ok=1 } /^l/ { ok=0 } END { exit !ok }'
-    target=$(/usr/bin/mktemp -d "$destination/card-design.XXXXXXXX")
-    /usr/bin/ditto -x -k "$archive" "$target"
-    /usr/bin/open "$target"
-    exit
-fi
 if [ "${1:-}" = '--resolve-only' ]; then
     resolve_workshop_file "${2:-}" "${3:-}"
     exit

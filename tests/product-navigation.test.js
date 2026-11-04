@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.286');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.287');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -115,3 +115,5 @@ test('pasted HTML breaks become newlines in the description without losing caret
 test('product archive and model actions appear above their file selectors',async()=>{
  for(let i=0;i<100&&!document.querySelector('.print-model-actions');i++)await new Promise(r=>setTimeout(r,5));const archive=document.querySelector('#all-product-files'),section=document.querySelector('.product-files');assert.ok(section.querySelector('.product-files-head').contains(archive));assert.equal(document.querySelectorAll('#all-product-files').length,1);const toolbar=document.querySelector('.print-model-toolbar');assert.equal(toolbar.firstElementChild.className,'print-model-actions');assert.ok(toolbar.lastElementChild.querySelector('#print-model-select'));
 });
+
+test('last marketplace parameters tab shares product dimensions with Important',async()=>{const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();const tabs=[...document.querySelectorAll('[data-tab]')];assert.equal(tabs.at(-1).dataset.tab,'marketplace');$('[data-tab="marketplace"]').click();await settle();assert.equal(document.querySelectorAll('[data-measurement]').length,8);const input=$('[data-measurement="product.width"]');input.value='42';input.dispatchEvent(new window.Event('change',{bubbles:true}));await settle();$('[data-tab="important"]').click();await settle();assert.equal($('[data-measurement="product.width"]').value,'42');});
