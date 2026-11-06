@@ -579,3 +579,5 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .product-measurements .product-details-columns label>span{min-height:2.8em;line-height:1.4}.product-measurements .measurement-grid{align-items:stretch}.product-measurements .measurement-grid label{justify-content:flex-end}@media(max-width:700px){.product-measurements .product-details-columns label>span{min-height:0}}
 
 .label-primary-actions .label-prompt-action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;width:auto;padding:10px 14px;font-size:14px;line-height:1.4}.label-primary-actions .label-prompt-action svg{width:20px;height:20px;flex:0 0 20px}.label-primary-actions{flex-wrap:wrap}
+
+.api-key-transfer>label{display:block;margin:20px 0}.api-key-transfer textarea{display:block;width:100%;margin-top:10px}.api-key-transfer>.file-actions{margin-top:20px}.api-key-transfer [role="status"]{overflow-wrap:anywhere}

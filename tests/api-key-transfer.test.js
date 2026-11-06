@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import {indexedDB} from 'fake-indexeddb';
+const dom=new JSDOM('<div id="api"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
+Object.assign(globalThis,{window:dom.window,document:dom.window.document,localStorage:dom.window.localStorage,indexedDB});
+const {parseSharedCredentials,serializeSharedCredentials,mountMarketplaceUI,getMarketplaceCredentials}=await import('../marketplace-ui.js');
+const keys={wbToken:'wb-example',ozonKey:'ozon-example',ozonClient:'12345'};
+test('credential bundle round trips only marketplace credentials',()=>{const text=serializeSharedCredentials({...keys,googleToken:'excluded'});assert.deepEqual(parseSharedCredentials(text),keys);assert.ok(!text.includes('excluded'));for(const text of ['hello','{}',JSON.stringify({type:'workshop-api-credentials',version:1,...keys,ozonClient:'not-id'})])assert.throws(()=>parseSharedCredentials(text));});
+test('clipboard import saves all three keys, clears secret text, and rejects malformed input atomically',async()=>{let clipboard=serializeSharedCredentials(keys);Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{readText:async()=>clipboard,writeText:async value=>{clipboard=value;}}}});const root=document.querySelector('#api');mountMarketplaceUI({container:root,product:{id:'p',listingDrafts:{}},owner:'db:p',save:()=>{},toast:()=>{},settingsOnly:true});await root.querySelector('#api-paste-keys').onclick();assert.deepEqual(getMarketplaceCredentials(),keys);assert.deepEqual(JSON.parse(localStorage.getItem('workshop-marketplace-keys-v1')),keys);assert.equal(root.querySelector('#api-transfer-text').value,'');await root.querySelector('#api-share-keys').onclick();assert.deepEqual(parseSharedCredentials(clipboard),keys);clipboard='invalid';await root.querySelector('#api-paste-keys').onclick();assert.deepEqual(getMarketplaceCredentials(),keys);root.querySelector('#api-transfer-text').value=serializeSharedCredentials({...keys,wbToken:'new-wb'});root.querySelector('#api-import-keys').click();assert.equal(getMarketplaceCredentials().wbToken,'new-wb');});
