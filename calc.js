@@ -1,5 +1,5 @@
-import {validateExpensesDatabase} from './expenses.js?v=0.2.309';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.309';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.310';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.310';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -123,7 +123,7 @@ export function validateDB(x){
  if(!('deliveryPercent' in p.values))p.values.deliveryPercent=null;
  for(const [k] of fields){if(!(k in p.values)||!(p.values[k]===null||(typeof p.values[k]==='number'&&Number.isFinite(p.values[k])&&p.values[k]>=0)))throw Error('Некорректное поле '+k);}
  for(const c of p.custom){if(typeof c.id!=='string'||typeof c.name!=='string'||!['unit','percent'].includes(c.mode)||!(c.amount===null||(typeof c.amount==='number'&&Number.isFinite(c.amount)&&c.amount>=0)))throw Error('Некорректная дополнительная статья');}
- if(typeof p.tax!=='number'||p.tax<0||p.tax>=100||!(p.price===null||(typeof p.price==='number'&&p.price>=0))||typeof p.target!=='number'||p.target<0||p.target>=100)throw Error('Некорректные параметры цены или налога');
+ if((p.tax!=null&&(!Number.isFinite(p.tax)||p.tax<0||p.tax>=100))||!(p.price===null||(typeof p.price==='number'&&p.price>=0))||typeof p.target!=='number'||p.target<0||p.target>=100)throw Error('Некорректные параметры цены или налога');
  }
  return x;
 }
