@@ -1,9 +1,9 @@
-import {openStockLabelDialog} from './product-labels.js?v=0.2.330';
-import {skuCopyButton} from './sku-copy.js?v=0.2.330';
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.330';
-import {marketRequest} from './marketplace-api.js?v=0.2.330';
-import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.330';
-import {redact} from './marketplace-api.js?v=0.2.330';
+import {openStockLabelDialog} from './product-labels.js?v=0.2.331';
+import {skuCopyButton} from './sku-copy.js?v=0.2.331';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.331';
+import {marketRequest} from './marketplace-api.js?v=0.2.331';
+import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.331';
+import {redact} from './marketplace-api.js?v=0.2.331';
 export const orderSources={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'};
 const routes={wbOrders:['wb','GET','https://marketplace-api.wildberries.ru/api/v3/orders','Маркетплейс'],wbStatuses:['wb','POST','https://marketplace-api.wildberries.ru/api/v3/orders/status','Маркетплейс'],wbReportOrders:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/orders','Статистика'],wbReportSales:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/sales','Статистика'],ozonFbs:['ozon','POST','https://api-seller.ozon.ru/v4/posting/fbs/list','Posting FBS read-only'],ozonFbo:['ozon','POST','https://api-seller.ozon.ru/v3/posting/fbo/list','Posting FBO']};
 const lastRequest=new Map();
@@ -48,8 +48,10 @@ export function renderRollingOrders5Days(rows,containerWidth=720,period='days'){
 const returnedOrderLine=row=>/возврат|возвращ[её]н|returned/i.test([row.status,row.substatus,row.rawStatus].join(' '));
 const cancelledOrderLine=row=>/отмен|cancel|declined|defect|not_accepted/i.test([row.status,row.rawStatus].join(' '));
 const orderCostBreakdown=[['materials','Материалы'],['printing','Печать'],['electricity','Электричество'],['labor','Труд']];
+const purchasedOrderLine=row=>['sold','delivered','posting_received','posting_delivered'].some(status=>[row.rawStatus,row.status,row.substatus].includes(status))||
+ ['Получен покупателем / выкуплен','Доставлен','Получен в ПВЗ','Доставлен курьером'].some(status=>[row.status,row.substatus].includes(status));
 function orderMoney(items,profitForRow){
- const result={revenue:0,missingRevenue:0,profit:0,missingProfit:0,cost:0,missingCost:0,profitRevenue:0,materials:0,printing:0,electricity:0,labor:0,lines:0,saleLines:0};
+ const result={revenue:0,missingRevenue:0,profit:0,missingProfit:0,purchasedProfit:0,purchasedLines:0,missingPurchasedProfit:0,cost:0,missingCost:0,profitRevenue:0,materials:0,printing:0,electricity:0,labor:0,lines:0,saleLines:0};
  for(const row of items){
   const returned=returnedOrderLine(row)||cancelledOrderLine(row);
   result.lines++;
@@ -61,6 +63,11 @@ function orderMoney(items,profitForRow){
   }
   const amounts=profitForRow?.(row,returned)??{};
   const {profit,cost}=amounts;
+  if(!returned&&purchasedOrderLine(row)){
+   result.purchasedLines++;
+   if(Number.isFinite(profit))result.purchasedProfit+=profit*row.quantity;
+   else result.missingPurchasedProfit++;
+  }
   if(Number.isFinite(profit)){
    result.profit+=profit*row.quantity;
    if(!returned&&hasPrice){
@@ -85,7 +92,7 @@ function renderOrderMoney(money,showProfit){
  if(!money)return '';
  const format=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
  const {revenue,missingRevenue,profit,missingProfit,cost,missingCost,profitRevenue,lines,saleLines}=money;
- return `<dl class="orders-period-money"><div><dt>Сумма заказов</dt><dd>${missingRevenue&&missingRevenue===saleLines?'Нет данных':format.format(revenue)}</dd>${missingRevenue?`<small>Без данных по ${missingRevenue} поз.</small>`:''}</div>${showProfit?`<div><dt>Расчётная прибыль</dt><dd>${missingProfit&&missingProfit===lines?'Нет данных':format.format(profit)}</dd>${missingProfit?`<small>Без расчёта по ${missingProfit} поз.</small>` :''}${profitRevenue>0?`<dl class="orders-profit-breakdown">${orderCostBreakdown.map(([key,label])=>`<div><dt>${label}</dt><dd>${format.format(money[key])}</dd></div>`).join('')}</dl>`:''}</div><div><dt>Себестоимость</dt><dd>${missingCost&&missingCost===saleLines?'Нет данных':format.format(cost)}</dd>${missingCost?`<small>Без расчёта по ${missingCost} поз.</small>`:''}</div><div><dt>Маржинальность</dt><dd>${profitRevenue>0?(profit/profitRevenue).toLocaleString('ru-RU',{style:'percent',maximumFractionDigits:1}):'—'}</dd>${missingProfit?'<small>По рассчитанным позициям</small>':''}</div>`:''}</dl>`;
+ return `<dl class="orders-period-money"><div><dt>Сумма заказов</dt><dd>${missingRevenue&&missingRevenue===saleLines?'Нет данных':format.format(revenue)}</dd>${missingRevenue?`<small>Без данных по ${missingRevenue} поз.</small>`:''}</div>${showProfit?`<div><dt>Расчётная прибыль</dt><dd>${missingProfit&&missingProfit===lines?'Нет данных':format.format(profit)}</dd>${missingProfit?`<small>Без расчёта по ${missingProfit} поз.</small>` :''}${profitRevenue>0?`<dl class="orders-profit-breakdown">${orderCostBreakdown.map(([key,label])=>`<div><dt>${label}</dt><dd>${format.format(money[key])}</dd></div>`).join('')}</dl>`:''}</div><div><dt>Прибыль по выкупленным</dt><dd>${money.missingPurchasedProfit&&money.missingPurchasedProfit===money.purchasedLines?'Нет данных':format.format(money.purchasedProfit)}</dd>${money.missingPurchasedProfit?`<small>Без расчёта по ${money.missingPurchasedProfit} поз.</small>`:''}</div><div><dt>Себестоимость</dt><dd>${missingCost&&missingCost===saleLines?'Нет данных':format.format(cost)}</dd>${missingCost?`<small>Без расчёта по ${missingCost} поз.</small>`:''}</div><div><dt>Маржинальность</dt><dd>${profitRevenue>0?(profit/profitRevenue).toLocaleString('ru-RU',{style:'percent',maximumFractionDigits:1}):'—'}</dd>${missingProfit?'<small>По рассчитанным позициям</small>':''}</div>`:''}</dl>`;
 }
 export function renderOrderStatisticCards(rows,profitForRow){const statistics=orderPeriodStatistics(rows,new Date(),true,profitForRow),average=averageOrders7Days(rows),days=dailyOrderCounts(rows),totals=days.reduce((a,d)=>({wb:a.wb+d.wb,ozon:a.ozon+d.ozon}),{wb:0,ozon:0}),fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});return `<div class="orders-period-stats">${statistics.map(stat=>`<div><span>${stat.key==='month'?'В этом месяце':stat.key==='year'?'В этом году':'Всего в базе'}</span><strong>${stat.net}<small> ${stat.net%100>=11&&stat.net%100<=14?'заказов':stat.net%10===1?'заказ':stat.net%10>=2&&stat.net%10<=4?'заказа':'заказов'}</small></strong><small>Всего: ${stat.total} · возвраты: −${stat.returns}${stat.cancelled?' · отмены: −'+stat.cancelled:''}</small>${renderOrderMoney(stat.money,!!profitForRow)}</div>`).join('')}</div><p class="orders-stats-note">Заказы за вычетом известных полных возвратов и отмен. Итоги только по загруженным данным; частичный возврат не исключает весь заказ. В прибыли возвраты и отмены учитываются как две доставки.</p><div class="orders-average orders-chart-metrics"><div class="chart-main-metric"><span>В среднем за день</span><strong>${fmt(average.total)}<small> / день</small></strong><small>Последние 7 дней · включая сегодня</small></div><div><span><i class="chart-wb"></i> Wildberries</span><strong>${fmt(average.wb)}<small> / день</small></strong><small>${totals.wb} за весь период</small></div><div><span><i class="chart-ozon"></i> Ozon</span><strong>${fmt(average.ozon)}<small> / день</small></strong><small>${totals.ozon} за весь период</small></div></div>`;}
 export function renderDailyOrders(rows,type='bars',containerWidth=720,period='days',showStatistics=true){

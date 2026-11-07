@@ -1,7 +1,7 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.330';
-import {databaseForCloud} from './google-drive-backup.js?v=0.2.330';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.330';
-import {validateDB} from './calc.js?v=0.2.330';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.331';
+import {databaseForCloud} from './google-drive-backup.js?v=0.2.331';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.331';
+import {validateDB} from './calc.js?v=0.2.331';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 export async function createFullBackup(database,records,{mode=database.backupMode??'full',onProgress=()=>{}}={}){
  const db=validateDB(createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
