@@ -1,42 +1,42 @@
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.326';
-import {attachCardDesignZip} from './attachments.js?v=0.2.326';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.326';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.326';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.326';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.326';
-import {mountExpenses} from './expenses.js?v=0.2.326';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.326';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.326';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.326';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.326';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.326';
-import {ensureProductImage} from './product-images.js?v=0.2.326';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.326';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.326';
-import {installImagePreview} from './image-preview.js?v=0.2.326';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.326';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.326';
-import {openCostReport} from './cost-report.js?v=0.2.326';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.326';
-import {mountReleaseHistory} from './release-history.js?v=0.2.326';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.326';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.326';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.326';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.326';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.326';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.326';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.326';
-import {mountSales} from './sales.js?v=0.2.326';
-import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.326';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.326';
-import {installNumberControls} from './number-controls.js?v=0.2.326';
-const APP_VERSION='0.2.326';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.327';
+import {attachCardDesignZip} from './attachments.js?v=0.2.327';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.327';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.327';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.327';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.327';
+import {mountExpenses} from './expenses.js?v=0.2.327';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.327';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.327';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.327';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.327';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.327';
+import {ensureProductImage} from './product-images.js?v=0.2.327';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.327';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.327';
+import {installImagePreview} from './image-preview.js?v=0.2.327';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.327';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.327';
+import {openCostReport} from './cost-report.js?v=0.2.327';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.327';
+import {mountReleaseHistory} from './release-history.js?v=0.2.327';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.327';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.327';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.327';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.327';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.327';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.327';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.327';
+import {mountSales} from './sales.js?v=0.2.327';
+import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.327';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.327';
+import {installNumberControls} from './number-controls.js?v=0.2.327';
+const APP_VERSION='0.2.327';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.326';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.326';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.326';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.326';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.326';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.327';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.327';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.327';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.327';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.327';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -240,7 +240,7 @@ async function hydrateProductImages(scope=document){
 }
 function mountProductImage(){
  const p=product(),heading=document.querySelector('main>.heading');if(space!=='cost'||!heading)return;
- const panel=document.createElement('div');panel.className='cost-product-image';panel.innerHTML=`<img data-product-image="${esc(p.id)}" alt="Изображение товара" hidden><div><label class="file-button">${actionIcon('upload')}<span>Прикрепить изображение</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-remove-image>${actionIcon('remove')}<span>Удалить изображение</span></button><button type="button" data-reveal-catalogue-product>${actionIcon('search')}<span>Активировать в списке</span></button><small>Фото хранится файлом в базе приложения и полном ZIP. JPG, PNG или WebP · до 10 МБ.</small></div>`;heading.prepend(panel);
+ const panel=document.createElement('div');panel.className='cost-product-image';panel.innerHTML=`<img data-product-image="${esc(p.id)}" alt="Изображение товара" hidden><div><label class="file-button">${actionIcon('upload')}<span>Прикрепить изображение</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-remove-image>${actionIcon('remove')}<span>Удалить изображение</span></button><button type="button" data-reveal-catalogue-product>${actionIcon('search')}<span>Активировать в списке</span></button><small>Фото хранится файлом в базе приложения и полном ZIP. JPG, PNG или WebP · до 10 МБ.</small></div><aside class="image-profit-summary"><strong>Прибыль на изделие</strong><div data-product-profit-summary>${profitSummary(p)}</div></aside>`;heading.prepend(panel);
  panel.querySelector('[data-reveal-catalogue-product]').onclick=()=>revealCatalogueProduct(p.id);
  panel.querySelector('input').onchange=safe(async event=>{if(recoveryRaw)throw Error('Сначала восстановите базу расчётов');const file=event.target.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Выберите JPG, PNG или WebP');if(file.size>10*1024*1024)throw Error('Изображение должно быть не больше 10 МБ');const url=URL.createObjectURL(file);try{await new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Не удалось прочитать изображение'));image.src=url;});}finally{URL.revokeObjectURL(url);}const owner=db.id+':'+p.id,old=(await listFiles(owner)).filter(f=>f.category==='product-image');await putFile({id:crypto.randomUUID(),owner,category:'product-image',name:file.name,createdAt:new Date().toISOString(),blob:file});for(const f of old)await deleteFile(f.id);await hydrateProductImages();toast('Изображение товара сохранено');});
  panel.querySelector('[data-remove-image]').onclick=safe(async()=>{for(const file of (await listFiles(db.id+':'+p.id)).filter(f=>f.category==='product-image'))await deleteFile(file.id);await hydrateProductImages();toast('Изображение удалено');});hydrateProductImages(panel);
@@ -330,7 +330,7 @@ function productList(p){
  const query=productQuery.trim().toLocaleLowerCase('ru'),matches=db.products.filter(q=>(!productGroupFilter||(productGroupFilter==='__ungrouped__'?!q.productGroup:q.productGroup===productGroupFilter))&&catalogueCategoryMatches(q)&&catalogueStatusMatches(db,q,cataloguePresenceFilters,catalogueModelStates.get(db.id+':'+q.id)??null)&&[q.name,q.sku,q.productGroup,q.variantNote,q.colorCode].filter(Boolean).join(' ').toLocaleLowerCase('ru').includes(query));
  const groupedPages=catalogueProductBatches(matches,productPageSize),pages=groupedPages.length;productPage=Math.min(productPage,pages-1);
  const visible=groupedPages.slice(0,productPage+1).flat(),offset=0,names=[...new Set(visible.map(q=>q.productGroup||''))];
- return `<div class="product-list-count">${matches.length?'Показано '+(offset+1)+'–'+(offset+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<div class="catalogue-product-row"><button type="button" class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc([q.sku,q.name,q.variantNote,q.colorCode].filter(Boolean).join(' · '))}" ${q.id===p.id?'aria-current="true"':''}><img class="product-list-image" data-product-image="${esc(q.id)}" alt="" hidden><span class="product-label"><span class="sku-with-copy"><strong class="product-sku">${esc(q.sku||'Без артикула')}</strong>${skuCopyButton(q.sku)}</span><small class="product-name">${esc(q.name)}</small>${q.variantNote||q.colorCode?`<small>${esc([q.variantNote,q.colorCode].filter(Boolean).join(' · '))}</small>`:''}${catalogueStatusBadges(q)}</span></button>${catalogueFileActions(q)}</div>`).join('')}</details>`).join('')+`<div class="catalogue-scroll-status" ${productPage<pages-1?'data-catalogue-more':''}>${productPage<pages-1?'Прокрутите ниже — подгрузятся следующие товары':matches.length?'Все товары загружены':''}</div>`;
+ return `<div class="product-list-count">${matches.length?'Показано '+(offset+1)+'–'+(offset+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<div class="catalogue-product-row"><button type="button" class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc([q.sku,q.name,q.variantNote,q.colorCode].filter(Boolean).join(' · '))}" ${q.id===p.id?'aria-current="true"':''}><img class="product-list-image" data-product-image="${esc(q.id)}" alt="" hidden><span class="product-label"><span class="sku-with-copy"><strong class="product-sku">${esc(q.sku||'Без артикула')}</strong>${skuCopyButton(q.sku)}</span><small class="product-name">${esc(q.name)}</small>${q.variantNote||q.colorCode?`<small>${esc([q.variantNote,q.colorCode].filter(Boolean).join(' · '))}</small>`:''}<span class="catalogue-profit-summary" data-product-profit-summary>${profitSummary(q)}</span>${catalogueStatusBadges(q)}</span></button>${catalogueFileActions(q)}</div>`).join('')}</details>`).join('')+`<div class="catalogue-scroll-status" ${productPage<pages-1?'data-catalogue-more':''}>${productPage<pages-1?'Прокрутите ниже — подгрузятся следующие товары':matches.length?'Все товары загружены':''}</div>`;
 }
 function appendCatalogueBatch(list){
  if(!list.isConnected||!list.querySelector('[data-catalogue-more]'))return;
@@ -551,13 +551,51 @@ function openMarketplaceProfitPicker(fields){
   dialog.remove();
   if(dialog.returnValue!=='apply'||!ids.size)return;
   for(const row of targets)if(ids.has(row.id))for(const field of values)field.apply(row,field.value);
-  if(await save())toast('Поля обновлены · товаров: '+ids.size);
+  if(await save()){
+   for(const row of targets)if(ids.has(row.id)){
+    const host=document.querySelector(`[data-product="${CSS.escape(row.id)}"] [data-product-profit-summary]`);
+    if(host)host.innerHTML=profitSummary(row);
+   }
+   toast('Поля обновлены · товаров: '+ids.size);
+  }
  },{once:true});
  document.body.append(dialog);
  dialog.showModal();
  hydrateProductImages(dialog);
 }
+function marketplaceProfitAmount(p,r,key){
+ const market=key.startsWith('ozon')?'ozon':'wb';
+ const price=p.marketplaces[market].price;
+ const payout=p.marketplaceProfit?.[key],rate=p.tax;
+ if(!Number.isFinite(rate)||rate<0||rate>=100||!Number.isFinite(payout)||r.invalid.length||
+    (rate>0&&(!Number.isFinite(price)||price<=0)))return null;
+ const logistics=p.marketplaceLogistics?.[market]??{};
+ const uplift=2*(100-logistics.buyout);
+ const delivery=market==='ozon'?logistics.fbo:logistics.delivery;
+ const surcharge=Number.isFinite(logistics.buyout)&&(uplift===0||Number.isFinite(delivery))
+  ? uplift===0?0:delivery*uplift/100 : null;
+ const tax=rate===0?0:price*rate/100;
+ const cost=key==='ozonFbo'?r.ozonFboCost:r.cost;
+ return {amount:payout-tax-cost-(surcharge??0),tax,surcharge,partial:!!r.missing.length||surcharge===null};
+}
+function profitSummary(p,r){
+ if(!Object.values(p.marketplaceProfit??{}).some(Number.isFinite))return '';
+ r??=calculate(p);
+ return profitMarkets.map(([market,fbs,warehouse,scheme])=>{
+  const entries=market==='Ozon'?[[warehouse,scheme],[fbs,'FBS']]:[[fbs,'FBS'],[warehouse,scheme]];
+  const amounts=entries.map(([key,label])=>{
+   const result=marketplaceProfitAmount(p,r,key);
+   return result?`<span>${label} ${result.partial?'≈ ':''}${rub(result.amount)}</span>`:'';
+  }).filter(Boolean);
+  return amounts.length?`<span class="profit-summary-market"><b>${market==='Ozon'?'Ozon':'WB'}</b> ${amounts.join(' ')}</span>`:'';
+ }).join('');
+}
 function renderMarketplaceProfit(p,r){
+ const summary=profitSummary(p,r);
+ for(const host of document.querySelectorAll('[data-product-profit-summary]')){
+  const row=host.closest('[data-product]');
+  if(!row||row.dataset.product===p.id)host.innerHTML=summary;
+ }
  const rate=p.tax;
  for(const [,fbs,warehouse] of profitMarkets){
   const market=fbs==='ozonFbs'?'ozon':'wb';
@@ -591,8 +629,8 @@ function renderMarketplaceProfit(p,r){
    else if(rate>0&&(!Number.isFinite(price)||price<=0))output.textContent='Укажите цену продажи для расчёта налога';
    else if(r.invalid.length)output.textContent='Исправьте себестоимость';
    else{
-    const tax=rate===0?0:price*rate/100;
-    output.textContent=`${r.missing.length||surcharge===null?'Предварительная прибыль':'Прибыль'} · ${rub(payout-tax-(key==='ozonFbo'?r.ozonFboCost:r.cost)-(surcharge??0))} · налог вычтен: ${rub(tax)}`+(surcharge===null?' · без доплаты за невыкуп':'');
+    const result=marketplaceProfitAmount(p,r,key);
+    output.textContent=`${result.partial?'Предварительная прибыль':'Прибыль'} · ${rub(result.amount)} · налог вычтен: ${rub(result.tax)}`+(result.surcharge===null?' · без доплаты за невыкуп':'');
    }
   }
  }

@@ -655,3 +655,13 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit-targets img{width:42px;height:56px;object-fit:contain;border-radius:6px;flex:none}
 .cost-spread-field{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
 .cost-spread-field>label{min-width:0}
+.cost-spread-field{align-items:end}
+.cost-spread-field>label>input:last-child,.cost-spread-field>label>select:last-child{margin-bottom:0}
+.cost-product-image:has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:120px minmax(0,1fr) minmax(0,1fr)}
+.cost-product-image:has(>img[hidden]):has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:repeat(2,minmax(0,1fr))}
+.image-profit-summary{align-self:start;padding:14px;border:1px solid #d7e0d0;border-radius:10px}
+.image-profit-summary:has([data-product-profit-summary]:empty),.catalogue-profit-summary:empty{display:none}
+.image-profit-summary [data-product-profit-summary],.catalogue-profit-summary{display:flex;flex-wrap:wrap;gap:6px 12px}
+.catalogue-profit-summary{font-size:12px;margin:4px 0}
+.profit-summary-market{display:inline-flex;flex-wrap:wrap;gap:4px 8px}
+@media(max-width:800px){.cost-product-image .image-profit-summary{grid-column:1/-1}.cost-product-image:has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:88px minmax(0,1fr)}.cost-product-image:has(>img[hidden]):has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:minmax(0,1fr)}}
