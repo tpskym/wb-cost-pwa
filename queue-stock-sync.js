@@ -1,6 +1,6 @@
-import {freshnessState} from './data-freshness.js?v=0.2.329';
-import {loadWarehouseStocks} from './warehouse-stocks.js?v=0.2.329';
-import {marketRequest,redact} from './marketplace-api.js?v=0.2.329';
+import {freshnessState} from './data-freshness.js?v=0.2.330';
+import {loadWarehouseStocks} from './warehouse-stocks.js?v=0.2.330';
+import {marketRequest,redact} from './marketplace-api.js?v=0.2.330';
 export const queueStockSources={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'};
 export function queueStockFreshness(database,now=Date.now()){return Object.entries(queueStockSources).map(([source,label])=>{const snapshot=database.stockSnapshots?.find(snapshot=>snapshot.source===source);return {source,label,updatedAt:snapshot?.updatedAt,state:freshnessState(snapshot?.updatedAt,now)};});}
 export function renderQueueStockFreshness(database,now=Date.now()){

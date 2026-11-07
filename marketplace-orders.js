@@ -1,9 +1,9 @@
-import {openStockLabelDialog} from './product-labels.js?v=0.2.329';
-import {skuCopyButton} from './sku-copy.js?v=0.2.329';
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.329';
-import {marketRequest} from './marketplace-api.js?v=0.2.329';
-import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.329';
-import {redact} from './marketplace-api.js?v=0.2.329';
+import {openStockLabelDialog} from './product-labels.js?v=0.2.330';
+import {skuCopyButton} from './sku-copy.js?v=0.2.330';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.330';
+import {marketRequest} from './marketplace-api.js?v=0.2.330';
+import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.330';
+import {redact} from './marketplace-api.js?v=0.2.330';
 export const orderSources={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'};
 const routes={wbOrders:['wb','GET','https://marketplace-api.wildberries.ru/api/v3/orders','Маркетплейс'],wbStatuses:['wb','POST','https://marketplace-api.wildberries.ru/api/v3/orders/status','Маркетплейс'],wbReportOrders:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/orders','Статистика'],wbReportSales:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/sales','Статистика'],ozonFbs:['ozon','POST','https://api-seller.ozon.ru/v4/posting/fbs/list','Posting FBS read-only'],ozonFbo:['ozon','POST','https://api-seller.ozon.ru/v3/posting/fbo/list','Posting FBO']};
 const lastRequest=new Map();
@@ -47,11 +47,11 @@ const chartDateLabel=(day,period)=>period==='months'?day.slice(5,7)+'.'+day.slic
 export function renderRollingOrders5Days(rows,containerWidth=720,period='days'){const days=chartVisiblePeriods(rollingChartPeriods(rows,period),containerWidth);if(!days.length)return '';const width=Math.max(400,Math.round(containerWidth)||400,days.length*40+60),left=42,right=18,top=42,bottom=218,step=(width-left-right)/days.length,tick=Math.max(.2,Math.ceil(Math.max(...days.map(d=>d.average))/4*5)/5),maximum=tick*4,x=i=>left+step*(i+.5),y=n=>bottom-n/maximum*(bottom-top),path=smoothOrderPath(days.map((d,i)=>[x(i),y(d.average)])),fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1}),latest=days.at(-1);return `<div class="orders-chart-head"><div><small class="orders-chart-eyebrow">СКОЛЬЗЯЩЕЕ СРЕДНЕЕ</small><h3>Среднее число заказов за день</h3><p>Окно 5 дней · WB и Ozon вместе${period==='days'?'':' · на конец периода'}</p></div><div class="rolling-latest"><strong>${fmt(latest.average)}</strong><span>в день<br>на ${latest.day.split('-').reverse().join('.')}</span></div></div><p class="rolling-explanation">Каждая точка — среднее за этот день и 4 предыдущих. Дни без заказов учитываются. По загруженным данным, до вычета возвратов.</p><div class="orders-chart-scroll"><svg role="img" aria-label="Скользящее среднее заказов за 5 дней" viewBox="0 0 ${width} 260" data-visible-periods="${days.length}" style="width:100%;height:auto;min-width:0"><defs><radialGradient id="rolling-value-badge" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#f3f8eb"/><stop offset="100%" stop-color="#cbdcbb"/></radialGradient><linearGradient id="rolling-five-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6b9460" stop-opacity=".23"/><stop offset="100%" stop-color="#6b9460" stop-opacity=".025"/></linearGradient></defs>${[0,1,2,3,4].map(i=>{const v=maximum*i/4;return `<g class="chart-axis"><line x1="${left}" x2="${width-right}" y1="${y(v)}" y2="${y(v)}" stroke="#e7ece2" stroke-dasharray="3 5"/><text x="${left-12}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text></g>`;}).join('')}<path d="${path} L ${x(days.length-1)} ${bottom} L ${x(0)} ${bottom} Z" fill="url(#rolling-five-fill)"/><path d="${path}" fill="none" stroke="#5a8351" stroke-width="2.7" stroke-linecap="round"/>${days.map((d,i)=>`<g><title>${d.day}: ${fmt(d.average)} заказа в день</title><circle cx="${x(i)}" cy="${y(d.average)}" r="3" fill="#5a8351" stroke="white" stroke-width="1.5"/><circle class="rolling-value-badge" cx="${x(i)}" cy="${y(d.average)-17}" r="12" fill="url(#rolling-value-badge)" stroke="#c4d5b4" stroke-width="1"/><text class="rolling-point-number" x="${x(i)}" y="${y(d.average)-13.5}" text-anchor="middle">${fmt(d.average)}</text>${chartShowsDate(i,days.length,Math.max(160,Number(containerWidth)||400))?`<text class="chart-date" x="${x(i)}" y="244" text-anchor="middle">${chartDateLabel(d.periodDay||d.day,period)}</text>`:''}</g>`).join('')}</svg></div><p class="orders-stats-note">Окно всегда составляет 5 календарных дней; отсутствующие в загруженных данных заказы не учитываются.</p>`;}
 const returnedOrderLine=row=>/возврат|возвращ[её]н|returned/i.test([row.status,row.substatus,row.rawStatus].join(' '));
 const cancelledOrderLine=row=>/отмен|cancel|declined|defect|not_accepted/i.test([row.status,row.rawStatus].join(' '));
+const orderCostBreakdown=[['materials','Материалы'],['printing','Печать'],['electricity','Электричество'],['labor','Труд']];
 function orderMoney(items,profitForRow){
- const result={revenue:0,missingRevenue:0,profit:0,missingProfit:0,lines:0,saleLines:0};
+ const result={revenue:0,missingRevenue:0,profit:0,missingProfit:0,cost:0,missingCost:0,profitRevenue:0,materials:0,printing:0,electricity:0,labor:0,lines:0,saleLines:0};
  for(const row of items){
-  const returned=returnedOrderLine(row);
-  if(!returned&&cancelledOrderLine(row))continue;
+  const returned=returnedOrderLine(row)||cancelledOrderLine(row);
   result.lines++;
   const hasPrice=row.currency==='RUB'&&Number.isFinite(row.price);
   if(!returned){
@@ -59,9 +59,19 @@ function orderMoney(items,profitForRow){
    if(hasPrice)result.revenue+=row.price*row.quantity;
    else result.missingRevenue++;
   }
-  const profit=returned||hasPrice?profitForRow?.(row,returned):null;
-  if(Number.isFinite(profit))result.profit+=profit*row.quantity;
-  else result.missingProfit++;
+  const amounts=profitForRow?.(row,returned)??{};
+  const {profit,cost}=amounts;
+  if(Number.isFinite(profit)){
+   result.profit+=profit*row.quantity;
+   if(!returned&&hasPrice){
+    result.profitRevenue+=row.price*row.quantity;
+    for(const [key] of orderCostBreakdown)result[key]+=(amounts[key]??0)*row.quantity;
+   }
+  }else result.missingProfit++;
+  if(!returned){
+   if(Number.isFinite(cost))result.cost+=cost*row.quantity;
+   else result.missingCost++;
+  }
 
  }
  return result;
@@ -69,15 +79,15 @@ function orderMoney(items,profitForRow){
 export function orderPeriodStatistics(rows,now=new Date(),includeMoney,profitForRow){
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(now),orders=new Map();for(const row of rows){if(!row.orderId)continue;const key=row.source+':'+row.orderId;if(!orders.has(key))orders.set(key,[]);orders.get(key).push(row);}
  const entries=[...orders.values()].map(items=>{const row=items.find(r=>r.orderedAt)||items[0],stamp=row.orderedAt&&new Date(/(?:Z|[+-]\d\d:\d\d)$/.test(row.orderedAt)?row.orderedAt:row.orderedAt+'+03:00'),day=stamp&&Number.isFinite(stamp.getTime())?new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(stamp):'',returned=items.every(returnedOrderLine),cancelled=!returned&&items.every(cancelledOrderLine);return {day,returned,cancelled,money:includeMoney?orderMoney(items,profitForRow):null};});
- return [['month',today.slice(0,7)],['year',today.slice(0,4)],['all','']].map(([key,prefix])=>{const selected=entries.filter(r=>(!r.day||r.day<=today)&&(!prefix||r.day.startsWith(prefix))),returns=selected.filter(r=>r.returned).length,cancelled=selected.filter(r=>r.cancelled).length;return {key,total:selected.length,returns,cancelled,net:selected.length-returns-cancelled,...(includeMoney?{money:selected.filter(row=>!row.cancelled).reduce((sum,row)=>{for(const metric of Object.keys(sum))sum[metric]+=row.money[metric];return sum;},orderMoney([]))}:{})};});
+ return [['month',today.slice(0,7)],['year',today.slice(0,4)],['all','']].map(([key,prefix])=>{const selected=entries.filter(r=>(!r.day||r.day<=today)&&(!prefix||r.day.startsWith(prefix))),returns=selected.filter(r=>r.returned).length,cancelled=selected.filter(r=>r.cancelled).length;return {key,total:selected.length,returns,cancelled,net:selected.length-returns-cancelled,...(includeMoney?{money:selected.reduce((sum,row)=>{for(const metric of Object.keys(sum))sum[metric]+=row.money[metric];return sum;},orderMoney([]))}:{})};});
 }
 function renderOrderMoney(money,showProfit){
  if(!money)return '';
  const format=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
- const {revenue,missingRevenue,profit,missingProfit,lines,saleLines}=money;
- return `<dl class="orders-period-money"><div><dt>Сумма заказов</dt><dd>${missingRevenue&&missingRevenue===saleLines?'Нет данных':format.format(revenue)}</dd>${missingRevenue?`<small>Без данных по ${missingRevenue} поз.</small>`:''}</div>${showProfit?`<div><dt>Расчётная прибыль</dt><dd>${missingProfit&&missingProfit===lines?'Нет данных':format.format(profit)}</dd>${missingProfit?`<small>Без расчёта по ${missingProfit} поз.</small>`:""}</div>`:''}</dl>`;
+ const {revenue,missingRevenue,profit,missingProfit,cost,missingCost,profitRevenue,lines,saleLines}=money;
+ return `<dl class="orders-period-money"><div><dt>Сумма заказов</dt><dd>${missingRevenue&&missingRevenue===saleLines?'Нет данных':format.format(revenue)}</dd>${missingRevenue?`<small>Без данных по ${missingRevenue} поз.</small>`:''}</div>${showProfit?`<div><dt>Расчётная прибыль</dt><dd>${missingProfit&&missingProfit===lines?'Нет данных':format.format(profit)}</dd>${missingProfit?`<small>Без расчёта по ${missingProfit} поз.</small>` :''}${profitRevenue>0?`<dl class="orders-profit-breakdown">${orderCostBreakdown.map(([key,label])=>`<div><dt>${label}</dt><dd>${format.format(money[key])}</dd></div>`).join('')}</dl>`:''}</div><div><dt>Себестоимость</dt><dd>${missingCost&&missingCost===saleLines?'Нет данных':format.format(cost)}</dd>${missingCost?`<small>Без расчёта по ${missingCost} поз.</small>`:''}</div><div><dt>Маржинальность</dt><dd>${profitRevenue>0?(profit/profitRevenue).toLocaleString('ru-RU',{style:'percent',maximumFractionDigits:1}):'—'}</dd>${missingProfit?'<small>По рассчитанным позициям</small>':''}</div>`:''}</dl>`;
 }
-export function renderOrderStatisticCards(rows,profitForRow){const statistics=orderPeriodStatistics(rows,new Date(),true,profitForRow),average=averageOrders7Days(rows),days=dailyOrderCounts(rows),totals=days.reduce((a,d)=>({wb:a.wb+d.wb,ozon:a.ozon+d.ozon}),{wb:0,ozon:0}),fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});return `<div class="orders-period-stats">${statistics.map(stat=>`<div><span>${stat.key==='month'?'В этом месяце':stat.key==='year'?'В этом году':'Всего в базе'}</span><strong>${stat.net}<small> ${stat.net%100>=11&&stat.net%100<=14?'заказов':stat.net%10===1?'заказ':stat.net%10>=2&&stat.net%10<=4?'заказа':'заказов'}</small></strong><small>Всего: ${stat.total} · возвраты: −${stat.returns}${stat.cancelled?' · отмены: −'+stat.cancelled:''}</small>${renderOrderMoney(stat.money,!!profitForRow)}</div>`).join('')}</div><p class="orders-stats-note">Заказы за вычетом известных полных возвратов и отмен. Итоги только по загруженным данным; частичный возврат не исключает весь заказ.</p><div class="orders-average orders-chart-metrics"><div class="chart-main-metric"><span>В среднем за день</span><strong>${fmt(average.total)}<small> / день</small></strong><small>Последние 7 дней · включая сегодня</small></div><div><span><i class="chart-wb"></i> Wildberries</span><strong>${fmt(average.wb)}<small> / день</small></strong><small>${totals.wb} за весь период</small></div><div><span><i class="chart-ozon"></i> Ozon</span><strong>${fmt(average.ozon)}<small> / день</small></strong><small>${totals.ozon} за весь период</small></div></div>`;}
+export function renderOrderStatisticCards(rows,profitForRow){const statistics=orderPeriodStatistics(rows,new Date(),true,profitForRow),average=averageOrders7Days(rows),days=dailyOrderCounts(rows),totals=days.reduce((a,d)=>({wb:a.wb+d.wb,ozon:a.ozon+d.ozon}),{wb:0,ozon:0}),fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});return `<div class="orders-period-stats">${statistics.map(stat=>`<div><span>${stat.key==='month'?'В этом месяце':stat.key==='year'?'В этом году':'Всего в базе'}</span><strong>${stat.net}<small> ${stat.net%100>=11&&stat.net%100<=14?'заказов':stat.net%10===1?'заказ':stat.net%10>=2&&stat.net%10<=4?'заказа':'заказов'}</small></strong><small>Всего: ${stat.total} · возвраты: −${stat.returns}${stat.cancelled?' · отмены: −'+stat.cancelled:''}</small>${renderOrderMoney(stat.money,!!profitForRow)}</div>`).join('')}</div><p class="orders-stats-note">Заказы за вычетом известных полных возвратов и отмен. Итоги только по загруженным данным; частичный возврат не исключает весь заказ. В прибыли возвраты и отмены учитываются как две доставки.</p><div class="orders-average orders-chart-metrics"><div class="chart-main-metric"><span>В среднем за день</span><strong>${fmt(average.total)}<small> / день</small></strong><small>Последние 7 дней · включая сегодня</small></div><div><span><i class="chart-wb"></i> Wildberries</span><strong>${fmt(average.wb)}<small> / день</small></strong><small>${totals.wb} за весь период</small></div><div><span><i class="chart-ozon"></i> Ozon</span><strong>${fmt(average.ozon)}<small> / день</small></strong><small>${totals.ozon} за весь период</small></div></div>`;}
 export function renderDailyOrders(rows,type='bars',containerWidth=720,period='days',showStatistics=true){
  const days=chartVisiblePeriods(orderChartPeriods(rows,period),containerWidth),average=averageOrders7Days(rows),statistics=orderPeriodStatistics(rows),fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});
  if(!days.length)return '<p>Нет загруженных заказов с датой для диаграммы.</p>';
