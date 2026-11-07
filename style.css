@@ -611,7 +611,11 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit{margin:24px 0 0;min-width:0;padding:16px;border:1px solid #dce4d5;border-radius:12px}
 .marketplace-profit legend{font-weight:700;padding:0 6px}
 .marketplace-profit-markets{display:grid;gap:18px}
-.marketplace-profit-markets>div+div{padding-top:16px;border-top:1px solid #dce4d5}
+.marketplace-profit-card{min-width:0;padding:18px;border:1px solid var(--profit-border);border-radius:12px;background:var(--profit-bg)}
+.marketplace-profit-card[data-profit-market="wb"]{--profit-bg:#faf5fc;--profit-border:#e4d4ec;--profit-accent:#704289}
+.marketplace-profit-card[data-profit-market="ozon"]{--profit-bg:#f2f7ff;--profit-border:#d3e0f4;--profit-accent:#345a98}
+.marketplace-profit-card .marketplace-profit-heading h3{color:var(--profit-accent)}
+.marketplace-profit-card .marketplace-logistics{border-color:var(--profit-border)}
 .marketplace-profit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .marketplace-profit h3{margin:0 0 10px;font-size:14px}
 .marketplace-profit input{min-height:44px;width:100%}
@@ -654,14 +658,31 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit-targets fieldset{min-width:0;display:grid;gap:8px;padding:10px}
 .marketplace-profit-targets img{width:42px;height:56px;object-fit:contain;border-radius:6px;flex:none}
 .cost-spread-field{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
-.cost-spread-field>label{min-width:0}
-.cost-spread-field{align-items:end}
-.cost-spread-field>label>input:last-child,.cost-spread-field>label>select:last-child{margin-bottom:0}
+.cost-spread-field:has(>label){grid-template-rows:1fr auto auto;row-gap:0;align-items:stretch}
+.cost-spread-field>label{min-width:0;display:grid;grid-column:1;grid-row:1 / 4;grid-template-rows:subgrid}
+.cost-spread-field>label>:is(input,select,.input-unit,.number-control){grid-row:2;margin-bottom:0;min-width:0}
+.cost-spread-field>label>:is(input,select){height:44px;min-height:44px}
+.cost-spread-field>label>:is(input,select,.input-unit,.number-control){align-self:end}
+.product-material-picker>.spread-marketplace-field{flex:0 0 44px}
+.product-material-picker>.material-spool-picker-button{min-width:0;flex:1}
+.cost-spread-field>label>small{grid-row:3}
+.cost-spread-field>label+.spread-marketplace-field{grid-column:2;grid-row:2;align-self:end;height:44px}
 .cost-product-image:has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:120px minmax(0,1fr) minmax(0,1fr)}
 .cost-product-image:has(>img[hidden]):has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:repeat(2,minmax(0,1fr))}
 .image-profit-summary{align-self:start;padding:14px;border:1px solid #d7e0d0;border-radius:10px}
 .image-profit-summary:has([data-product-profit-summary]:empty),.catalogue-profit-summary:empty{display:none}
 .image-profit-summary [data-product-profit-summary],.catalogue-profit-summary{display:flex;flex-wrap:wrap;gap:6px 12px}
 .catalogue-profit-summary{font-size:12px;margin:4px 0}
-.profit-summary-market{display:inline-flex;flex-wrap:wrap;gap:4px 8px}
+.profit-summary-market{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.image-profit-summary [data-product-profit-summary]{margin-top:10px;gap:8px}
+.image-profit-summary .profit-summary-market{flex:1 1 auto;padding:10px 12px;border:1px solid;border-radius:8px}
+.image-profit-summary [data-profit-market="wb"]{background:#faf5fc;border-color:#e4d4ec;color:#704289}
+.image-profit-summary [data-profit-market="ozon"]{background:#f2f7ff;border-color:#d3e0f4;color:#345a98}
+.profit-summary-value{display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}
+.profit-summary-value strong{font-variant-numeric:tabular-nums}
+.image-profit-summary .profit-summary-value strong{font-size:1.2em;color:#243732}
 @media(max-width:800px){.cost-product-image .image-profit-summary{grid-column:1/-1}.cost-product-image:has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:88px minmax(0,1fr)}.cost-product-image:has(>img[hidden]):has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:minmax(0,1fr)}}
+.marketplace-profit-card[data-profit-market="wb"] .marketplace-profit-fields{grid-template-columns:minmax(0,1fr)}
+
+.product-details-columns[data-product-categories]{grid-template-columns:minmax(0,1fr);gap:20px}
+[data-product-categories] .cost-spread-field{align-items:center}
