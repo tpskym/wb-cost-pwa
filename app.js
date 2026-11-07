@@ -1,42 +1,42 @@
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.312';
-import {attachCardDesignZip} from './attachments.js?v=0.2.312';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.312';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.312';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.312';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.312';
-import {mountExpenses} from './expenses.js?v=0.2.312';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.312';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.312';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.312';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.312';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.312';
-import {ensureProductImage} from './product-images.js?v=0.2.312';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.312';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.312';
-import {installImagePreview} from './image-preview.js?v=0.2.312';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.312';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.312';
-import {openCostReport} from './cost-report.js?v=0.2.312';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.312';
-import {mountReleaseHistory} from './release-history.js?v=0.2.312';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.312';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.312';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.312';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.312';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.312';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.312';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.312';
-import {mountSales} from './sales.js?v=0.2.312';
-import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.312';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.312';
-import {installNumberControls} from './number-controls.js?v=0.2.312';
-const APP_VERSION='0.2.312';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.313';
+import {attachCardDesignZip} from './attachments.js?v=0.2.313';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.313';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.313';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.313';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.313';
+import {mountExpenses} from './expenses.js?v=0.2.313';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.313';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.313';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.313';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.313';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.313';
+import {ensureProductImage} from './product-images.js?v=0.2.313';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.313';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.313';
+import {installImagePreview} from './image-preview.js?v=0.2.313';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.313';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.313';
+import {openCostReport} from './cost-report.js?v=0.2.313';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.313';
+import {mountReleaseHistory} from './release-history.js?v=0.2.313';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.313';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.313';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.313';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.313';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.313';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.313';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.313';
+import {mountSales} from './sales.js?v=0.2.313';
+import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.313';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.313';
+import {installNumberControls} from './number-controls.js?v=0.2.313';
+const APP_VERSION='0.2.313';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.312';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.312';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.312';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.312';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.312';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.313';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.313';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.313';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.313';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.313';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -444,10 +444,15 @@ function profitGroupTargets(source){
  return group?db.products.filter(row=>row.id!==source.id&&row.productGroup?.trim()===group):[];
 }
 function marketplaceProfitEditor(source){
+ const listing=loadedListingForSku(db.products,source.sku,'ozon');
+ const ozonURL=db.products.find(row=>row.id===listing?.ownerId)?.listingDrafts?.ozon?.productURL;
+ const copyOzonLink=typeof ozonURL==='string'&&/^https:\/\/(?:www\.)?ozon\.ru\/product\/[^\s]+$/i.test(ozonURL)
+  ? `<button type="button" data-copy-ozon-product="${esc(ozonURL)}">Скопировать ссылку на товар</button>`:'';
+
  return `<fieldset class="marketplace-profit"><legend>К выплате за изделие</legend>
  <p class="group-hint">Введите выплату из калькулятора площадки. Прибыль = выплата − налог − себестоимость − доплата за невыкуп. Укажите выплату, в которой площадка уже удержала обычную обработку и доставку.</p>
  <label>Ставка налога, %<input type="number" min="0" max="99.99" step="0.01" data-no-stepper data-profit-tax-rate value="${esc(source.tax??'')}" placeholder="Укажите ставку"></label>
- <div class="marketplace-profit-markets">${profitMarkets.map(([market,fbs,warehouse,scheme,url,linkText])=>`<div><div class="marketplace-profit-heading"><h3>${market}</h3><a href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${linkText} ${market} (новая вкладка)">${linkText} ↗</a></div><label>Цена продажи, ₽<input type="number" min="0" step="any" data-no-stepper data-profit-sale-price="${market==='Ozon'?'ozon':'wb'}" value="${esc(source.marketplaces?.[market==='Ozon'?'ozon':'wb']?.price??'')}" placeholder="Укажите цену продажи"></label><fieldset class="marketplace-logistics"><legend>Обработка и доставка</legend>
+ <div class="marketplace-profit-markets">${profitMarkets.map(([market,fbs,warehouse,scheme,url,linkText])=>`<div><div class="marketplace-profit-heading"><h3>${market}</h3><a href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${linkText} ${market} (новая вкладка)">${linkText} ↗</a>${market==='Ozon'?copyOzonLink:''}</div><label>Цена продажи, ₽<input type="number" min="0" step="any" data-no-stepper data-profit-sale-price="${market==='Ozon'?'ozon':'wb'}" value="${esc(source.marketplaces?.[market==='Ozon'?'ozon':'wb']?.price??'')}" placeholder="Укажите цену продажи"></label><fieldset class="marketplace-logistics"><legend>Обработка и доставка</legend>
  <div class="marketplace-logistics-fields">${[['handling','Обработка, ₽',null],['delivery','Доставка, ₽',null],['buyout','Выкуп, %',100]].map(([key,label,max])=>`<label>${label}<input type="number" min="0" ${max===null?'':`max="${max}"`} step="any" data-no-stepper data-profit-logistics="${key}" data-market="${market==='Ozon'?'ozon':'wb'}" value="${esc(source.marketplaceLogistics?.[market==='Ozon'?'ozon':'wb']?.[key]??'')}" placeholder="Не задано"></label>`).join('')}</div>
  <small data-logistics-result="${market==='Ozon'?'ozon':'wb'}"></small></fieldset><div class="marketplace-profit-fields">${[[fbs,'FBS'],[warehouse,scheme]].map(([key,label])=>`<div><label>${label}, ₽<input type="number" step="any" data-no-stepper data-marketplace-profit="${key}" value="${esc(source.marketplaceProfit?.[key]??'')}" placeholder="Не задано"></label><small data-profit-result="${key}"></small></div>`).join('')}</div></div>`).join('')}</div>
  <button type="button" id="spread-marketplace-profit">Распространить на товары группы</button></fieldset>`;
@@ -594,6 +599,12 @@ function openVariantColorPicker(){
 }
 function bind(){
  const profitProduct=product();
+ const copyOzonProduct=$('[data-copy-ozon-product]');
+ if(copyOzonProduct)copyOzonProduct.onclick=safe(async()=>{
+  await navigator.clipboard.writeText(copyOzonProduct.dataset.copyOzonProduct);
+  copyOzonProduct.textContent='✓ Ссылка скопирована';
+  setTimeout(()=>{copyOzonProduct.textContent='Скопировать ссылку на товар';},2200);
+ });
  const bindProfitNumber=(input,set)=>{
   input.oninput=()=>{
    if(!input.validity.valid)return;
