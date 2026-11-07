@@ -1,5 +1,5 @@
-import {validateExpensesDatabase} from './expenses.js?v=0.2.319';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.319';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.320';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.320';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -61,7 +61,7 @@ export function calculate(p){
  ];
  const detailKeys=['grams','printerPrice','watts','labor','maintenance','components','design','defect','box','outer','labelPack','labelPrinter','bubblePrice','card','tape','rent','software','bank','otherMonthly','otherUnit','logistics','delivery','acceptance','storage','penalties','loss','commission','acquiring','ads',...p.custom.map(c=>'custom:'+c.id),'tax'];
  detailRows.forEach((row,i)=>row.push(detailKeys[i]));
- return {detailRows,platformFees,platformPayout:price-platformFees,commissionCost:price*commission/100,deliveryCost:wbDelivery+price*deliveryPct/100+(b>0?(logistics+(1-b)*reverse)/b:0),totalExpenses:fixed+price*rate,totalExpensesPercent:price?(fixed+price*rate)/price*100:null,costPercent:price?cost/price*100:null,platformPercent:price?platformFees/price*100:null,missing:[...new Set(missing)],invalid:[...new Set(invalid)],production,packaging,overhead,cost,salesFixed,fixed,rate,min,target,profit,price,margin:price?profit/price*100:null,markup:cost? (price-cost)/cost*100:null,roi:fixed?profit/fixed*100:null,tax:price*tax/100,fees:price*pct/100,payout:price*(1-pct/100)-salesFixed,monthlyProfit:volume?profit*volume:null,breakVolume:price*(1-rate)-(fixed-(volume?monthly/volume:0))>0?monthly/(price*(1-rate)-(fixed-(volume?monthly/volume:0))):null,rows:[['Материал',material],['Амортизация 3D-принтера',amort],['Электричество',energy],['Труд',labor],['Обслуживание',maint],['Комплектующие и разработка',components+design],['Резерв брака',defectCost],['Упаковка и этикетки',packaging],['Накладные',overhead],['Доставка, невыкуп и прочее',salesFixed]]};
+ return {detailRows,platformFees,platformPayout:price-platformFees,commissionCost:price*commission/100,deliveryCost:wbDelivery+price*deliveryPct/100+(b>0?(logistics+(1-b)*reverse)/b:0),totalExpenses:fixed+price*rate,totalExpensesPercent:price?(fixed+price*rate)/price*100:null,costPercent:price?cost/price*100:null,platformPercent:price?platformFees/price*100:null,missing:[...new Set(missing)],invalid:[...new Set(invalid)],production,packaging,outerBoxCost:outer,overhead,cost,salesFixed,fixed,rate,min,target,profit,price,margin:price?profit/price*100:null,markup:cost? (price-cost)/cost*100:null,roi:fixed?profit/fixed*100:null,tax:price*tax/100,fees:price*pct/100,payout:price*(1-pct/100)-salesFixed,monthlyProfit:volume?profit*volume:null,breakVolume:price*(1-rate)-(fixed-(volume?monthly/volume:0))>0?monthly/(price*(1-rate)-(fixed-(volume?monthly/volume:0))):null,rows:[['Материал',material],['Амортизация 3D-принтера',amort],['Электричество',energy],['Труд',labor],['Обслуживание',maint],['Комплектующие и разработка',components+design],['Резерв брака',defectCost],['Упаковка и этикетки',packaging],['Накладные',overhead],['Доставка, невыкуп и прочее',salesFixed]]};
 }
 export function createTemplate(p,name){
  const title=name.trim();if(!title)throw Error('Введите имя шаблона');
@@ -151,7 +151,7 @@ export function calculateManual(p){
  const active=markets[p.platform?.startsWith('Ozon')?'ozon':'wb'];
  const detailRows=base.detailRows.filter(row=>fields.find(f=>f[0]===row[2])?.[3]!=='sales'&&!['tax'].includes(row[2]));
  detailRows.push(...p.custom.filter(c=>c.mode==='unit').map(c=>[c.name,c.amount||0,'custom:'+c.id]));
- return {...base,cost,detailRows,missing:[...new Set(missing)],invalid:[...new Set(invalid)],markets,profit:active.profit,price:active.price,tax:active.tax,margin:active.margin,rows:base.rows.filter(([name])=>name!=='Доставка, невыкуп и прочее').concat([['Дополнительные затраты',extra]])};
+ return {...base,cost,ozonFboCost:cost-base.outerBoxCost,detailRows,missing:[...new Set(missing)],invalid:[...new Set(invalid)],markets,profit:active.profit,price:active.price,tax:active.tax,margin:active.margin,rows:base.rows.filter(([name])=>name!=='Доставка, невыкуп и прочее').concat([['Дополнительные затраты',extra]])};
 }
 
 export function productCostsBySku(products,sku){const key=String(sku||'').trim();if(!key)return [];return products.filter(product=>String(product.sku||'').trim()===key).map(product=>{const result=calculateManual(structuredClone(product));return {id:product.id,productURLs:Object.fromEntries(Object.entries(product.listingDrafts||{}).map(([market,draft])=>[market,draft.productURL||''])),name:product.name,sku:product.sku,cost:result.invalid.length?null:result.cost,missing:result.missing.length,invalid:result.invalid.length,rows:result.rows};});}
