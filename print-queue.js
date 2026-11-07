@@ -1,15 +1,15 @@
-import {printActionIcon} from './print-action-controls.js?v=0.2.310';
-import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.310';
-import {skuCopyButton} from './sku-copy.js?v=0.2.310';
-import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.310';
-import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.310';
-import {openPrintCompletion} from './print-completion.js?v=0.2.310';
-import {listFiles} from './attachments.js?v=0.2.310';
-import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.310';
-import {blankProduct} from './calc.js?v=0.2.310';
-import {renderStockAddition,mountStockAdditions,validateAdditionTarget,stockAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.310';
+import {printActionIcon} from './print-action-controls.js?v=0.2.311';
+import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.311';
+import {skuCopyButton} from './sku-copy.js?v=0.2.311';
+import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.311';
+import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.311';
+import {openPrintCompletion} from './print-completion.js?v=0.2.311';
+import {listFiles} from './attachments.js?v=0.2.311';
+import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.311';
+import {blankProduct} from './calc.js?v=0.2.311';
+import {renderStockAddition,mountStockAdditions,validateAdditionTarget,stockAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.311';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-import {movePrintJob,mergeActivePrintJobs,setRequestedQuantity,minimumRequestedQuantity,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.310';
+import {movePrintJob,mergeActivePrintJobs,setRequestedQuantity,minimumRequestedQuantity,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.311';
 const integer=(n)=>{if(!Number.isSafeInteger(n)||n<1||n>1000000)throw Error('Введите целое число от 1 до 1000000');return n;};
 export function openEnqueueDialog({database,sku='',quantity=1,market='',save,notify=()=>{},document:doc=globalThis.document}){
  const dialog=doc.createElement('dialog');dialog.className='print-queue-dialog enqueue-dialog';dialog.setAttribute('aria-label','Добавить в очередь печати');

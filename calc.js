@@ -1,5 +1,5 @@
-import {validateExpensesDatabase} from './expenses.js?v=0.2.310';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.310';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.311';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.311';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -104,6 +104,16 @@ export function validateDB(x){
  if(p.printModel!==undefined&&(!p.printModel||typeof p.printModel!=='object'||!['ownerId','fileId'].every(k=>typeof p.printModel[k]==='string'&&p.printModel[k].length>0&&p.printModel[k].length<200)))throw Error('Некорректная модель печати');
  p.packagingType??='box';if(!['box','bag'].includes(p.packagingType))throw Error('Некорректный тип упаковки');
  p.measurements??={};if(typeof p.measurements!=='object'||Array.isArray(p.measurements))throw Error('Некорректные размеры товара');for(const part of ['product','packaged']){const dimensions=p.measurements[part];if(dimensions!==undefined&&(!dimensions||typeof dimensions!=='object'||Array.isArray(dimensions)))throw Error('Некорректные размеры товара');for(const key of ['width','height','depth']){const value=dimensions?.[key];if(value!=null&&!(typeof value==='number'&&Number.isFinite(value)&&value>=0))throw Error('Некорректные размеры товара');}}for(const key of ['productWeight','packagingWeight']){const value=p.measurements[key];if(value!=null&&!(typeof value==='number'&&Number.isFinite(value)&&value>=0))throw Error('Некорректный вес товара');}
+ if(p.marketplaceLogistics!==undefined){
+  const logistics=p.marketplaceLogistics;
+  if(!logistics||typeof logistics!=='object'||Array.isArray(logistics))throw Error('Некорректные параметры логистики');
+  for(const [market,settings] of Object.entries(logistics)){
+   if(!['wb','ozon'].includes(market)||!settings||typeof settings!=='object'||Array.isArray(settings))throw Error('Некорректные параметры логистики');
+   for(const [key,value] of Object.entries(settings)){
+    if(!['handling','delivery','buyout'].includes(key)||(value!==null&&(!Number.isFinite(value)||value<0||(key==='buyout'&&value>100))))throw Error('Некорректное значение логистики');
+   }
+  }
+ }
  if(p.marketplaceProfit!==undefined){
   const profit=p.marketplaceProfit;
   if(!profit||typeof profit!=='object'||Array.isArray(profit)||Object.entries(profit).some(([key,value])=>!['wbFbs','wbFbw','ozonFbs','ozonFbo'].includes(key)||!Number.isFinite(value)))throw Error('Некорректная прибыль маркетплейса');
