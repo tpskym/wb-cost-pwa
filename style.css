@@ -610,8 +610,9 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 
 .marketplace-profit{margin:24px 0 0;min-width:0;padding:16px;border:1px solid #dce4d5;border-radius:12px}
 .marketplace-profit legend{font-weight:700;padding:0 6px}
-.marketplace-profit-markets,.marketplace-profit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.marketplace-profit-markets{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.marketplace-profit-markets{display:grid;gap:18px}
+.marketplace-profit-markets>div+div{padding-top:16px;border-top:1px solid #dce4d5}
+.marketplace-profit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .marketplace-profit h3{margin:0 0 10px;font-size:14px}
 .marketplace-profit input{min-height:44px;width:100%}
 .marketplace-profit>button{margin-top:20px}
@@ -620,3 +621,22 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit-targets label{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border:1px solid #dce4d5;border-radius:10px;overflow-wrap:anywhere}
 .marketplace-profit-targets input{width:auto;margin:0}
 .marketplace-profit-targets small{display:block}
+
+@container (min-width:1051px){
+ .queue-results>.queue-table-scroll .queue-table thead th:first-child{width:52%}
+ .queue-results>.queue-table-scroll .queue-product-identity{
+  --queue-photo-width:clamp(96px,9cqw,144px);
+  grid-template-columns:var(--queue-photo-width) minmax(0,1fr);
+  gap:16px;
+ }
+ .queue-results>.queue-table-scroll .queue-product-photo{
+  width:100%;
+  height:auto;
+  aspect-ratio:3 / 4;
+ }
+ .queue-results>.queue-table-scroll .queue-product-photo :is(.table-product-image,img){
+  width:100%;
+  height:100%;
+  object-fit:cover;
+ }
+}
