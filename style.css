@@ -598,3 +598,25 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .costs-transfer-list label{display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
 .costs-transfer-list input[type=checkbox]{flex:none;width:auto}
 .costs-transfer-list [data-transfer-file]{margin-left:16px}
+
+#app>.product-catalogue{overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;overflow-anchor:none}
+#app>.product-catalogue .product-list{flex:none;overflow:visible;scrollbar-gutter:auto;padding-right:0}
+#app>.product-catalogue .catalogue-filter-panel{max-height:none;overflow:visible;padding-right:0}
+.editor>.cost-editor-tabs{display:flex;flex-wrap:wrap;gap:10px;padding:14px;background:#e7eee2;border-bottom:1px solid #c4d3c0}
+.editor>.cost-editor-tabs>button{min-height:44px;padding:10px 14px;border:1px solid #aabca7;border-radius:8px;background:#fff;color:#244634;font-size:14px;font-weight:750;white-space:normal;text-align:left}
+.editor>.cost-editor-tabs>button[aria-selected="true"]{background:#28543d;color:#fff;border-color:#28543d;box-shadow:0 2px 5px #24373230}
+.editor>.cost-editor-tabs>button:hover:not([aria-selected="true"]){background:#f2f7ed;border-color:#52795e}
+.costs-transfer-list [data-transfer-part]{margin-left:16px}
+
+.marketplace-profit{margin:24px 0 0;min-width:0;padding:16px;border:1px solid #dce4d5;border-radius:12px}
+.marketplace-profit legend{font-weight:700;padding:0 6px}
+.marketplace-profit-markets,.marketplace-profit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.marketplace-profit-markets{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.marketplace-profit h3{margin:0 0 10px;font-size:14px}
+.marketplace-profit input{min-height:44px;width:100%}
+.marketplace-profit>button{margin-top:20px}
+.marketplace-profit-picker{width:min(560px,calc(100vw - 24px))}
+.marketplace-profit-targets{display:grid;gap:10px;max-height:45vh;overflow:auto;margin:16px 0 22px}
+.marketplace-profit-targets label{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border:1px solid #dce4d5;border-radius:10px;overflow-wrap:anywhere}
+.marketplace-profit-targets input{width:auto;margin:0}
+.marketplace-profit-targets small{display:block}

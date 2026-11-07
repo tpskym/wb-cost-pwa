@@ -45,3 +45,18 @@ test('plate layouts survive full restore and selected layouts can update models 
  assert.equal(restored.records[0].owner,'destination:'+existing.id);
  assert.equal(restored.records[0].plateQuantity,4);
 });
+
+test('selective card archive applies an included label and preserves unchecked parameters and model',async()=>{
+ const {database}=fixture(),source=database.products[0];
+ source.sku='existing';
+ source.transferParts={parameters:false,label:true};
+ const localProduct={...blankProduct(),sku:'existing',name:'Local name',printModel:{ownerId:'local-product',fileId:'existing-model'}};
+ localProduct.id='local-product';
+ const local={...database,id:'local',products:[localProduct]};
+ const parsed=await parseFullBackup(await createFullBackup(database,[],{mode:'costs'}));
+ const restored=stageFullRestore(parsed,{localDatabase:local}).database.products[0];
+ assert.equal(restored.name,'Local name');
+ assert.deepEqual(restored.labelPdf,source.labelPdf);
+ assert.deepEqual(restored.printModel,localProduct.printModel);
+ assert.equal(restored.transferParts,undefined);
+});
