@@ -1,42 +1,42 @@
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.306';
-import {attachCardDesignZip} from './attachments.js?v=0.2.306';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.306';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.306';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.306';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.306';
-import {mountExpenses} from './expenses.js?v=0.2.306';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.306';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.306';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.306';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.306';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.306';
-import {ensureProductImage} from './product-images.js?v=0.2.306';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.306';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.306';
-import {installImagePreview} from './image-preview.js?v=0.2.306';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.306';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.306';
-import {openCostReport} from './cost-report.js?v=0.2.306';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.306';
-import {mountReleaseHistory} from './release-history.js?v=0.2.306';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.306';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.306';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.306';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.306';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.306';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.306';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.306';
-import {mountSales} from './sales.js?v=0.2.306';
-import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.306';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.306';
-import {installNumberControls} from './number-controls.js?v=0.2.306';
-const APP_VERSION='0.2.306';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.307';
+import {attachCardDesignZip} from './attachments.js?v=0.2.307';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.307';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.307';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.307';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.307';
+import {mountExpenses} from './expenses.js?v=0.2.307';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.307';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.307';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.307';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.307';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.307';
+import {ensureProductImage} from './product-images.js?v=0.2.307';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.307';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.307';
+import {installImagePreview} from './image-preview.js?v=0.2.307';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.307';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.307';
+import {openCostReport} from './cost-report.js?v=0.2.307';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.307';
+import {mountReleaseHistory} from './release-history.js?v=0.2.307';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.307';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.307';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.307';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.307';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.307';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.307';
+import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.307';
+import {mountSales} from './sales.js?v=0.2.307';
+import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.307';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.307';
+import {installNumberControls} from './number-controls.js?v=0.2.307';
+const APP_VERSION='0.2.307';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.306';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.306';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.306';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.306';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.306';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.307';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.307';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.307';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.307';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.307';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -57,12 +57,44 @@ function selectedBackupMode(){try{return localStorage.getItem('workshop-backup-m
 function updateBackupModeLabels(){const name=backupModes[selectedBackupMode()];for(const [id,label]of [['full-export','Скачать ZIP'],['export','Скачать JSON'],['drive-create','Выгрузить в Google Drive']]){const button=document.getElementById(id);if(button)button.textContent=label+' · '+name;}}
 function lockBackupUI(){document.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);}
 function showArchiveProgress(title){const dialog=document.createElement('dialog');dialog.className='product-category-dialog archive-progress-dialog';dialog.innerHTML='<h2></h2><p data-progress-stage role="status"></p><progress max="100" aria-label="Прогресс архива"></progress><p data-progress-detail></p>';dialog.querySelector('h2').textContent=title;dialog.oncancel=event=>event.preventDefault();document.body.append(dialog);dialog.showModal();return {update({stage,done,total,unit}){dialog.querySelector('[data-progress-stage]').textContent=stage;const bar=dialog.querySelector('progress'),detail=dialog.querySelector('[data-progress-detail]');if(Number.isFinite(total)&&total>0&&Number.isFinite(done)){const percent=Math.min(100,Math.round(done/total*100));bar.value=percent;detail.textContent=percent+'%'+(unit==='files'?' · '+done+' из '+total+' файлов':unit==='bytes'?' · '+(done/1048576).toFixed(1)+' из '+(total/1048576).toFixed(1)+' МБ':'');}else{bar.removeAttribute('value');detail.textContent='Пожалуйста, дождитесь завершения';}},close(){dialog.close();dialog.remove();}};}
-async function exportFullArchive(){
- if(fullBackupBusy)return;if(recoveryRaw){exportDB();return toast('Сначала восстановите базу. Скачан исходный JSON для восстановления.');}
- fullBackupBusy=true;lockBackupUI();const progress=showArchiveProgress('Создание архива');progress.update({stage:'Собираем товары и файлы'});toast(backupModes[selectedBackupMode()]+': собираю базу и файлы товаров…');
- try{const snapshot=structuredClone(db);let unavailablePhotos=0;for(const product of snapshot.products){try{if(!await ensureProductImage(snapshot,product,{download:false}))unavailablePhotos++;}catch{unavailablePhotos++;}}const records=(await Promise.all([...snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)),listFiles(snapshot.id+':marketplace-photos')])).flat();downloadBlob(await createFullBackup(snapshot,records,{mode:selectedBackupMode(),onProgress:progress.update}),'workshop-'+selectedBackupMode()+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.zip');toast('Полный архив подготовлен: '+snapshot.products.length+' товаров, '+records.length+' файлов'+(unavailablePhotos?' · без сохранённого фото: '+unavailablePhotos:''));}finally{progress.close();fullBackupBusy=false;render();}
+async function prepareCostsExport(database, records, mode) {
+ if(mode!=='costs')return {database,records};
+ const files=records.map(record=>({...record,productId:record.owner.slice(database.id.length+1)}));
+ const selection=await selectCostsTransfer({database,files},{exporting:true});
+ return selection&&{database:selection.database,records:selection.files.map(({productId,...record})=>record)};
 }
-function selectCostsRestore(parsed) {
+async function exportFullArchive(){
+ if(fullBackupBusy)return;
+ if(recoveryRaw){exportDB();return toast('Сначала восстановите базу. Скачан исходный JSON для восстановления.');}
+ fullBackupBusy=true;
+ lockBackupUI();
+ let progress;
+ try{
+  const mode=selectedBackupMode();
+  await modelMigration;
+  const snapshot=structuredClone(db);
+  let records=(await Promise.all([...snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)),listFiles(snapshot.id+':marketplace-photos')])).flat();
+  const selection=await prepareCostsExport(snapshot,records,mode);
+  if(!selection)return;
+  progress=showArchiveProgress('Создание архива');
+  progress.update({stage:'Собираем товары и файлы'});
+  const chosen=selection.database, included=selection.records;
+  const photos=new Set(included.filter(file=>file.category==='product-image').map(file=>file.owner));
+  let unavailablePhotos=0;
+  for(const product of chosen.products){
+   const owner=chosen.id+':'+product.id;
+   if(photos.has(owner))continue;
+   try{
+    if(!await ensureProductImage(chosen,product,{download:false}))unavailablePhotos++;
+    included.push(...(await listFiles(owner)).filter(file=>file.category==='product-image'));
+   }catch{unavailablePhotos++;}
+  }
+  const zip=await createFullBackup(chosen,included,{mode,onProgress:progress.update});
+  downloadBlob(zip,'workshop-'+mode+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.zip');
+  toast('Архив подготовлен: '+chosen.products.length+' товаров'+(unavailablePhotos?' · без сохранённого фото: '+unavailablePhotos:''));
+ }finally{progress?.close();fullBackupBusy=false;render();}
+}
+function selectCostsTransfer(parsed,{exporting=false}={}) {
  const products = parsed.database.products;
  const models = parsed.files.filter(file => file.category === 'model');
  const modelsByProduct = new Map(products.map(product => [
@@ -73,10 +105,10 @@ function selectCostsRestore(parsed) {
  const dialog = document.createElement('dialog');
  dialog.className = 'costs-transfer-picker';
  dialog.setAttribute('aria-label', 'Выбор товаров и моделей');
- dialog.innerHTML = `<h2>Что перенести из архива</h2>
+ dialog.innerHTML = `<h2>${exporting?'Что выгрузить в архив':'Что перенести из архива'}</h2>
  <label>Поиск по артикулу или названию<input type="search" data-transfer-search placeholder="Введите часть артикула"></label>
  <div class="file-actions"><button type="button" data-transfer-mark="all">Отметить найденные</button><button type="button" data-transfer-mark="none">Снять все отметки</button></div>
- <label class="checkbox"><input type="checkbox" data-transfer-models-only> У существующих товаров обновить только модели</label>
+ ${exporting?'':'<label class="checkbox"><input type="checkbox" data-transfer-models-only> У существующих товаров обновить только модели</label>'}
  <div class="costs-transfer-list"></div>
  <p data-transfer-summary role="status"></p>
  <form method="dialog" class="file-actions"><button value="apply">Продолжить</button><button value="cancel">Отмена</button></form>`;
@@ -134,7 +166,7 @@ function selectCostsRestore(parsed) {
  draw();
  return new Promise(resolve=>{
   dialog.addEventListener('close',()=>{
-   const modelsOnly=dialog.querySelector('[data-transfer-models-only]').checked;
+   const modelsOnly=!!dialog.querySelector('[data-transfer-models-only]')?.checked;
    const result=dialog.returnValue==='apply'?{
     database:{...parsed.database,products:products.filter(product=>selectedProducts.has(product.id)),templates:!modelsOnly&&selectedProducts.size===products.length?parsed.database.templates:[]},
     files:parsed.files.filter(file=>selectedProducts.has(file.productId)&&(file.category!=='model'||selectedModels.has(file))),
@@ -151,7 +183,7 @@ async function restoreFullArchive(file,{cloud=false}={}){
  if(!file||fullBackupBusy&&!cloud)return;fullBackupBusy=true;lockBackupUI();const progress=showArchiveProgress('Загрузка из архива');progress.update({stage:'Читаем архив'});
  try{toast('Проверяю полный архив…');let parsed=await parseFullBackup(file,{onProgress:progress.update});const mode=backupMode(parsed.database);progress.close();
  if(mode==='costs'){
-  parsed=await selectCostsRestore(parsed);
+  parsed=await selectCostsTransfer(parsed);
   if(!parsed)return;
  }
  if(!await confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? '+backupModes[mode]+'. '+(mode==='costs'?(parsed.modelsOnly?'У существующих товаров будут обновлены только выбранные модели. Новые товары будут добавлены.':'Будут добавлены и обновлены выбранные товары и файлы.'):'Нормы WB/Ozon, затраты и остальные переносимые данные будут заменены содержимым архива. Очередь печати и остатки филамента сохранятся.')+' Предыдущая база и её файлы останутся доступны через «Вернуть предыдущую базу».'))return;
@@ -364,7 +396,24 @@ async function api(path,options={}){if(!token)throw Error('Сначала вой
 async function runDriveBackup(action){if(fullBackupBusy)return;if(recoveryRaw)throw Error('Сначала восстановите исправную базу');const reopenDialog=!!$('#sync')?.open;googleError=null;const help=$('#google-error-help');if(help)help.innerHTML='';fullBackupBusy=true;lockBackupUI();try{await action();}catch(error){googleError=error;googleStatus='Обмен с Google Drive не завершён. Подробности ниже.';throw error;}finally{fullBackupBusy=false;render();if(reopenDialog)$('#sync')?.showModal();}}
 function driveProgress(message){googleStatus=message;const status=$('#google-status');if(status)status.textContent=message;}
 async function driveLoad(){return runDriveBackup(async()=>{const accessToken=await ensureGoogle();driveProgress('Ищу полную базу в Google Drive…');const file=await findDriveBackup(accessToken,{fileId:config.driveFileId});if(!file)throw Error('Полной базы в Google Drive пока нет. На компьютере с данными нажмите «Выгрузить всё в Google Drive».');driveProgress('Скачиваю базу, фотографии и модели из Google Drive · обновлено '+new Date(file.modifiedTime).toLocaleString('ru-RU')+'…');const blob=await downloadDriveBackup(file,accessToken);const restored=await restoreFullArchive(blob,{cloud:true});if(restored){rememberDriveFile(file.id);driveProgress('Загрузка из Google Drive завершена');}else driveProgress('Загрузка отменена. Текущая база сохранена.');});}
-async function driveCreate(){return runDriveBackup(async()=>{const accessToken=await ensureGoogle();driveProgress(backupModes[selectedBackupMode()]+': собираю базу с фотографиями и моделями…');await modelMigration;await databaseStorage.flush();const snapshot=createBackupSnapshot(db,selectedBackupMode()),records=(await Promise.all([...snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)),listFiles(snapshot.id+':marketplace-photos')])).flat(),blob=await createFullBackup(snapshot,records,{mode:selectedBackupMode(),onProgress:({stage,done,total})=>driveProgress(stage+(total?' · '+Math.round(done/total*100)+'%':''))});const file=await uploadDriveBackup(blob,accessToken,{fileId:config.driveFileId,onProgress:(done,total)=>driveProgress('Выгружаю всё в Google Drive: '+Math.round(done/total*100)+'%')});rememberDriveFile(file.id);driveProgress(backupModes[selectedBackupMode()]+' сохранён в Google Drive: '+snapshot.products.length+' товаров, '+records.length+' файлов. Один облачный файл обновлён.');toast(googleStatus);});}
+async function driveCreate(){
+ return runDriveBackup(async()=>{
+  const mode=selectedBackupMode();
+  const accessToken=await ensureGoogle();
+  await modelMigration;
+  await databaseStorage.flush();
+  const snapshot=createBackupSnapshot(db,mode);
+  const records=(await Promise.all([...snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)),listFiles(snapshot.id+':marketplace-photos')])).flat();
+  const selection=await prepareCostsExport(snapshot,records,mode);
+  if(!selection)return;
+  driveProgress(backupModes[mode]+': собираю базу с фотографиями и моделями…');
+  const blob=await createFullBackup(selection.database,selection.records,{mode,onProgress:({stage,done,total})=>driveProgress(stage+(total?' · '+Math.round(done/total*100)+'%':''))});
+  const file=await uploadDriveBackup(blob,accessToken,{fileId:config.driveFileId,onProgress:(done,total)=>driveProgress('Выгружаю в Google Drive: '+Math.round(done/total*100)+'%')});
+  rememberDriveFile(file.id);
+  driveProgress(backupModes[mode]+' сохранён в Google Drive: '+selection.database.products.length+' товаров.');
+  toast(googleStatus);
+ });
+}
 function updateDriveControls(){const input=$('#client-id');if(!input)return;const valid=validGoogleClientId(input.value);$('#google-connect').disabled=!valid||fullBackupBusy||!!googlePending;$('#google-connect').textContent=config.googleAccount?'Сменить аккаунт Google':'Подключить Google Drive';$('#drive-client-hint').textContent=valid?(config.googleAccount?'Запомнен аккаунт '+config.googleAccount+'. Нажмите «Выгрузить» или «Загрузить» — приложение подключится само.':'Client ID заполнен. Можно сразу нажать «Выгрузить» или «Загрузить».'):'Сначала выполните шаг 1 и вставьте Client ID. После этого кнопка станет доступна.';for(const id of ['drive-load','drive-create'])$('#'+id).disabled=!valid||fullBackupBusy||!!googlePending;$('#google-out').disabled=(!token&&!config.googleAccount)||fullBackupBusy;$('#google-status').textContent=googleStatus;const errorHelp=$('#google-error-help');if(errorHelp)errorHelp.innerHTML=renderGoogleDriveError(googleError);const link=$('#drive-link');if(link){link.hidden=!driveId;if(driveId)link.href='https://drive.google.com/file/d/'+encodeURIComponent(driveId)+'/view';}}
 async function connectGoogle(chooseAccount=true){
  if(googlePending)return googlePending;
