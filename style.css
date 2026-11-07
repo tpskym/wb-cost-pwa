@@ -686,3 +686,26 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 
 .product-details-columns[data-product-categories]{grid-template-columns:minmax(0,1fr);gap:20px}
 [data-product-categories] .cost-spread-field{align-items:center}
+[data-cost-price]{display:grid;align-content:start;gap:12px;min-width:0}
+[data-cost-price] h4,[data-cost-price] ul{margin:0}
+[data-cost-price] button{justify-self:start}
+.editor{container-type:inline-size}
+.editor>.identity{margin:20px 25px 0}
+.editor>.identity[hidden]{display:none}
+@container (max-width:760px){
+ .editor>.identity .product-name-variant,.editor>.identity .variant-controls{grid-column:1/-1}
+ .editor>.identity .identity-sku,.editor>.identity .identity-barcode{grid-column:span 6}
+ .editor>.identity .identity-group-block{grid-template-columns:minmax(0,1fr)}
+}
+@container (max-width:440px){
+ .editor>.identity{margin-inline:12px}
+ .editor>.identity .product-name-variant{grid-template-columns:minmax(0,1fr)}
+ .editor>.identity .identity-sku,.editor>.identity .identity-barcode{grid-column:1/-1}
+ .editor>.identity .variant-controls{display:grid;grid-template-columns:minmax(0,1fr)}
+ .editor>.identity .label-prompt-actions>div{grid-template-columns:minmax(0,1fr)}
+}
+
+.queue-table thead th.queue-accounted-heading{white-space:normal}
+.orders-period-money{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));gap:10px;margin:12px 0 0;padding-top:10px;border-top:1px solid #e0e5da}
+.orders-period-money dt{font-size:12px;color:#60705c}
+.orders-period-money dd{margin:4px 0 0;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
