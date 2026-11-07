@@ -20,3 +20,28 @@ test('full ZIP preserves sales and payouts while excluding local filament invent
 });
 test('product thumbnail survives full ZIP backup and restore with its variant owner',async()=>{const {database}=fixture(),record={id:'thumbnail',owner:database.id+':'+database.products[1].id,name:'product.webp',category:'product-image',createdAt:'2026-10-27T10:00:00Z',blob:new Blob([new Uint8Array([1,5,9,255])],{type:'image/webp'})};const parsed=await parseFullBackup(await createFullBackup(database,[record])),staged=stageFullRestore(parsed);assert.equal(staged.records[0].category,'product-image');assert.equal(staged.records[0].owner,staged.database.id+':'+database.products[1].id);assert.equal(staged.records[0].blob.type,'image/webp');assert.deepEqual(new Uint8Array(await staged.records[0].blob.arrayBuffer()),new Uint8Array([1,5,9,255]));});
 test('ZIP excludes filament inventory, credentials and all print jobs',async()=>{const {database}=fixture();database.accessToken='private-google';database.apiCredentials={wbToken:'private-wb',ozonKey:'private-ozon'};database.filamentStock=[{id:'spool',material:'',colorCode:'white',colorName:'White',originalColorName:'White',quantity:4,minimumSpools:1,normalSpools:3}];const parsed=await parseFullBackup(await createFullBackup(database,[]));assert.equal(parsed.database.accessToken,undefined);assert.equal(parsed.database.apiCredentials,undefined);assert.deepEqual(parsed.database.filamentStock,[]);assert.equal(database.accessToken,'private-google');});
+
+test('plate layouts survive full restore and selected layouts can update models without changing existing costs',async()=>{
+ const {database,records}=fixture();
+ const [source,newProduct]=database.products;
+ source.sku='existing';
+ source.plateCapacity=4;
+ records.push({...records[0],id:'plate-four',name:'four.3mf',plateQuantity:4});
+ const full=stageFullRestore(await parseFullBackup(await createFullBackup(database,records)));
+ assert.equal(full.database.products[0].plateCapacity,4);
+ assert.equal(full.records.find(file=>file.name==='four.3mf').plateQuantity,4);
+ const existing={...blankProduct(),sku:source.sku,name:'Local name',plateCapacity:2};
+ const untouched=blankProduct();
+ const local={...database,id:'destination',products:[existing,untouched],templates:[]};
+ const costs=await parseFullBackup(await createFullBackup(database,records,{mode:'costs'}));
+ costs.files=costs.files.filter(file=>file.plateQuantity===4);
+ const restored=stageFullRestore({...costs,modelsOnly:true},{localDatabase:local});
+ assert.equal(restored.database.products[0].id,existing.id);
+ assert.equal(restored.database.products[0].name,'Local name');
+ assert.equal(restored.database.products[0].plateCapacity,4);
+ assert.deepEqual(restored.database.products[1],untouched);
+ assert.ok(restored.database.products.some(product=>product.id===newProduct.id));
+ assert.equal(restored.records.length,1);
+ assert.equal(restored.records[0].owner,'destination:'+existing.id);
+ assert.equal(restored.records[0].plateQuantity,4);
+});

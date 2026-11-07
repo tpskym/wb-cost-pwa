@@ -581,3 +581,20 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .label-primary-actions .label-prompt-action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;width:auto;padding:10px 14px;font-size:14px;line-height:1.4}.label-primary-actions .label-prompt-action svg{width:20px;height:20px;flex:0 0 20px}.label-primary-actions{flex-wrap:wrap}
 
 .api-key-transfer>label{display:block;margin:20px 0}.api-key-transfer textarea{display:block;width:100%;margin-top:10px}.api-key-transfer>.file-actions{margin-top:20px}.api-key-transfer [role="status"]{overflow-wrap:anywhere}
+
+.plate-settings{margin-block:20px}
+.plate-settings .file-actions{align-items:center;margin-top:10px}
+.plate-settings output{min-width:3ch;text-align:center;font-weight:700}
+.plate-slot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0;border-top:1px solid #e4e8df}
+.plate-slot span{overflow-wrap:anywhere;min-width:0}
+.plate-picker{width:min(340px,calc(100% - 32px));max-height:85dvh}
+.plate-keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0}
+.plate-keypad button{min-height:48px;font-size:20px}
+
+.costs-transfer-picker{width:min(650px,calc(100% - 32px));max-height:90dvh}
+.costs-transfer-picker .file-actions{margin-top:14px}
+.costs-transfer-list{max-height:42dvh;overflow:auto;margin-top:14px}
+.costs-transfer-list fieldset{margin:0 0 8px;padding:10px;min-width:0}
+.costs-transfer-list label{display:flex;align-items:center;gap:8px;overflow-wrap:anywhere}
+.costs-transfer-list input[type=checkbox]{flex:none;width:auto}
+.costs-transfer-list [data-transfer-file]{margin-left:16px}
