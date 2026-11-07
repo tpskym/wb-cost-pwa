@@ -1,42 +1,42 @@
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.318';
-import {attachCardDesignZip} from './attachments.js?v=0.2.318';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.318';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.318';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.318';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.318';
-import {mountExpenses} from './expenses.js?v=0.2.318';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.318';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.318';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.318';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.318';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.318';
-import {ensureProductImage} from './product-images.js?v=0.2.318';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.318';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.318';
-import {installImagePreview} from './image-preview.js?v=0.2.318';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.318';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.318';
-import {openCostReport} from './cost-report.js?v=0.2.318';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.318';
-import {mountReleaseHistory} from './release-history.js?v=0.2.318';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.318';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.318';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.318';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.318';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.318';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.318';
-import {mountFilamentStock,mountProductFilaments} from './filament-stock.js?v=0.2.318';
-import {mountSales} from './sales.js?v=0.2.318';
-import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.318';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.318';
-import {installNumberControls} from './number-controls.js?v=0.2.318';
-const APP_VERSION='0.2.318';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.319';
+import {attachCardDesignZip} from './attachments.js?v=0.2.319';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.319';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.319';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.319';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.319';
+import {mountExpenses} from './expenses.js?v=0.2.319';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.319';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.319';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.319';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.319';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.319';
+import {ensureProductImage} from './product-images.js?v=0.2.319';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.319';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.319';
+import {installImagePreview} from './image-preview.js?v=0.2.319';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.319';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.319';
+import {openCostReport} from './cost-report.js?v=0.2.319';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.319';
+import {mountReleaseHistory} from './release-history.js?v=0.2.319';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.319';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.319';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.319';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.319';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.319';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.319';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.319';
+import {mountSales} from './sales.js?v=0.2.319';
+import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.319';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.319';
+import {installNumberControls} from './number-controls.js?v=0.2.319';
+const APP_VERSION='0.2.319';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.318';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.318';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.318';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.318';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.318';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.319';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.319';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.319';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.319';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual as calculate,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.319';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -427,7 +427,14 @@ function renderFields(){const p=product();$('#fields').classList.toggle('importa
  $('#fields').querySelectorAll('[data-field]').forEach(el=>el.addEventListener('input',()=>{p.values[el.dataset.field]=el.value===''?null:Number(el.value);el.closest('label').querySelector('small').textContent=el.value===''?'Не заполнено · 0 введите явно':'';save();renderResults();}));
  const packagingType=$('#fields [data-packaging-type]');if(packagingType)packagingType.onchange=()=>{p.packagingType=packagingType.value;save();renderFields();};
  if($('#shipping-mode'))$('#shipping-mode').onchange=e=>{p.shippingMode=e.target.value;save();renderFields();renderResults();};
- for(const k of ['printer','material'])if($('#'+k))$('#'+k).oninput=e=>{p[k]=e.target.value;save();};if($('#product-filament-colors'))mountProductFilaments({root:$('#product-filament-colors'),product:p,stock:db.filamentStock||[],save});bindDescriptions();if(['important','marketplace'].includes(tab))mountProductDetails({root:$('#fields'),product:p,products:db.products,save,getSourcePhoto:async source=>(await ensureProductImage(db,source,{download:false}))?.blob,loadCategory:market=>pullProductCategory(p,market,{products:db.products,credentials:getMarketplaceCredentials()})});}
+ for(const k of ['printer','material'])if($('#'+k))$('#'+k).oninput=e=>{p[k]=e.target.value;save();};if($('#product-filament-colors'))mountProductFilaments({root:$('#product-filament-colors'),product:p,stock:db.filamentStock||[],save});bindDescriptions();if(['important','marketplace'].includes(tab))mountProductDetails({root:$('#fields'),product:p,products:db.products,save,getSourcePhoto:async source=>(await ensureProductImage(db,source,{download:false}))?.blob,loadCategory:market=>pullProductCategory(p,market,{products:db.products,credentials:getMarketplaceCredentials()}),onCategoriesRendered:host=>{
+ for(const button of host.querySelectorAll('[data-category-market]')){
+  const market=button.dataset.categoryMarket;
+  addCostFieldSpread(button,(row,value)=>{(row.marketplaceCategories??={})[market]=structuredClone(value);},{
+   label:'Категория '+(market==='wb'?'WB':'Ozon'),read:()=>categoriesFromProduct(p)[market]
+  });
+ }
+ }});bindCostFieldSpread($('#fields'),p);}
 function groupedCalculation(p,r){
  const amountCell=amount=>`<td>${r.invalid.length?'—':rub(amount)}</td>`;
  const rowHTML=([name,amount])=>`<tr><td>${esc(name)}</td>${amountCell(amount)}</tr>`;
@@ -453,9 +460,53 @@ function marketplaceProfitEditor(source){
  ${market==='Ozon'?'<small>При невыкупе возврат и повторная доставка считаются по FBO.</small>':''}<small data-logistics-result="${market==='Ozon'?'ozon':'wb'}"></small></fieldset><div class="marketplace-profit-fields">${(market==='Ozon'?[[warehouse,scheme],[fbs,'FBS']]:[[fbs,'FBS'],[warehouse,scheme]]).map(([key,label])=>`<div><label>${label}, ₽<input type="number" step="any" data-no-stepper data-marketplace-profit="${key}" value="${esc(source.marketplaceProfit?.[key]??'')}" placeholder="Не задано"></label><small data-profit-result="${key}"></small></div>`).join('')}</div></div>`).join('')}</div>
  <button type="button" id="spread-marketplace-profit">Распространить на все товары</button></fieldset>`;
 }
+function addCostFieldSpread(anchor,apply,{input,label=anchor.childNodes[0]?.textContent.trim(),read=()=>{
+ if(!input?.validity.valid||input.value==='')return null;
+ return input.type==='number'?input.valueAsNumber:input.value.trim();
+}}={}){
+ const field={apply,label,read};
+ const button=document.createElement('button');
+ button.type='button';
+ button.className='spread-marketplace-field';
+ button.textContent='Распространить';
+ button.setAttribute('aria-label','Распространить поле «'+label+'»');
+ button.onclick=()=>openMarketplaceProfitPicker([field]);
+ if(anchor.parentElement.matches('.form-grid,.measurement-grid')){
+  const wrapper=document.createElement('div');
+  wrapper.className='cost-spread-field';
+  anchor.before(wrapper);
+  wrapper.append(anchor,button);
+ }else anchor.after(button);
+ return field;
+}
+function bindCostFieldSpread(root,source){
+ const bind=(selector,apply)=>{
+  for(const input of root.querySelectorAll(selector))addCostFieldSpread(input.closest('label'),(row,value)=>apply(row,input,value),{input,label:input.closest('label').childNodes[0]?.textContent.trim()});
+ };
+ bind('[data-field]',(row,input,value)=>{row.values[input.dataset.field]=value;});
+ bind('#printer,#material',(row,input,value)=>{row[input.id]=value;});
+ bind('[data-packaging-type]',(row,input,value)=>{row.packagingType=value;});
+ bind('[data-measurement]',(row,input,value)=>{
+  const [part,key]=input.dataset.measurement.split('.');
+  const measurements=row.measurements??={};
+  if(key)(measurements[part]??={})[key]=value;
+  else measurements[part]=value;
+ });
+ bind('[data-marketplace-code]',(row,input,value)=>{
+  const [market,key]=input.dataset.marketplaceCode.split('.');
+  ((row.marketplaceCodes??={})[market]??={})[key]=value;
+ });
+ for(const select of root.querySelectorAll('[data-material-color-slot]')){
+  const index=Number(select.dataset.materialColorSlot);
+  addCostFieldSpread(select.closest('.product-material-color-slot').querySelector('small'),(row,value)=>{
+   const slots=materialColorSlots(row);
+   slots[index]=structuredClone(value);
+   row.colorCode=slots.filter(slot=>slot.code).map(slot=>[slot.code,slot.originalColorName||slot.colorName].filter(Boolean).join(' ')).join(' / ');
+  },{label:'Цвет '+(index+1),read:()=>{const slot=materialColorSlots(source)[index];return slot.code?slot:null;}});
+ }
+}
 function openMarketplaceProfitPicker(fields){
- const values=fields.filter(field=>field.input.validity.valid&&field.input.value!==''&&Number.isFinite(field.input.valueAsNumber))
-  .map(field=>({...field,value:field.input.valueAsNumber}));
+ const values=fields.map(field=>({...field,value:field.read()})).filter(({value})=>value!=null&&value!=='');
  if(!values.length)return toast('Сначала заполните поле');
  const targets=db.products.filter(row=>row.id!==product().id);
  if(!targets.length)return toast('В каталоге нет других товаров');
@@ -469,7 +520,7 @@ function openMarketplaceProfitPicker(fields){
  dialog.className='marketplace-profit-picker';
  dialog.setAttribute('aria-labelledby','marketplace-profit-picker-title');
  dialog.innerHTML=`<form method="dialog"><div class="modal-head"><h2 id="marketplace-profit-picker-title">Распространить на товары</h2></div>
- <p>${fields.length===1?esc(values[0].label)+': '+esc(values[0].value):'Все заполненные поля блока'} заменят соответствующие значения у выбранных товаров.</p>
+ <p>${fields.length===1?esc(values[0].label)+': '+esc(values[0].value?.label??values[0].value?.code??values[0].value):'Все заполненные поля блока'} заменят соответствующие значения у выбранных товаров.</p>
  <button type="button" data-select-all-targets>Выбрать все товары</button>
  <div class="marketplace-profit-targets">${[...groups].map(([group,rows])=>`<fieldset><legend>${esc(group||'Без группы')} · ${rows.length}</legend>
  <label><input type="checkbox" data-select-profit-group>Выбрать всю группу</label>
@@ -667,20 +718,22 @@ function bind(){
   save();
   renderMarketplaceProfit(profitProduct,calculate(profitProduct));
  });
+ const description=$('.identity [data-product-description]');
+ addCostFieldSpread(description,(row,value)=>{row.description=value;},{
+  input:description,label:'Описание товара'
+ });
+ for(const input of document.querySelectorAll('[data-stock-market][data-stock-key]')){
+  const {stockMarket,stockKey}=input.dataset;
+  addCostFieldSpread(input.closest('label'),(row,value)=>{
+   const rules=row.stockTargets??={};
+   (rules[stockMarket]??={minimum:null,normal:null})[stockKey]=value;
+  },{input,label:(stockMarket==='wb'?'WB':'Ozon')+' · '+input.closest('label').childNodes[0].textContent.trim()});
+ }
  const spreadFields=[];
- const addSpread=(input,apply)=>{
-  const label=input.closest('label');
-  const market=input.closest('.marketplace-profit-markets>div')?.querySelector('h3')?.textContent;
-  const field={input,apply,label:[market,label.textContent.trim()].filter(Boolean).join(' · ')};
-  spreadFields.push(field);
-  const button=document.createElement('button');
-  button.type='button';
-  button.className='spread-marketplace-field';
-  button.textContent='Распространить';
-  button.setAttribute('aria-label','Распространить поле «'+field.label+'»');
-  button.onclick=()=>openMarketplaceProfitPicker([field]);
-  label.after(button);
- };
+ const addSpread=(input,apply)=>spreadFields.push(addCostFieldSpread(input.closest('label'),apply,{
+  input,
+  label:[input.closest('.marketplace-profit-markets>div')?.querySelector('h3')?.textContent,input.closest('label').childNodes[0].textContent.trim()].filter(Boolean).join(' · ')
+ }));
  addSpread($('[data-profit-tax-rate]'),(row,value)=>{row.tax=value;});
  for(const input of document.querySelectorAll('[data-profit-sale-price]'))addSpread(input,(row,value)=>{
   ensureMarketplaces(row)[input.dataset.profitSalePrice].price=value;

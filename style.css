@@ -652,3 +652,4 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .spread-marketplace-field{min-height:44px;margin-top:8px;padding:8px 10px;font-size:14px;max-width:100%;overflow-wrap:anywhere}
 .marketplace-profit-targets fieldset{min-width:0;display:grid;gap:8px;padding:10px}
 .marketplace-profit-targets img{width:42px;height:56px;object-fit:contain;border-radius:6px;flex:none}
+.cost-spread-field{min-width:0}
