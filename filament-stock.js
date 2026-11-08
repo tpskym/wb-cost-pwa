@@ -1,5 +1,5 @@
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-export const filamentTypes=['PLA Basic','PLA Lite'];
+export const filamentTypes=['PLA Basic','PLA Lite','PETG Basic'];
 // Screen previews are approximate; the stored colour names remain authoritative.
 export function filamentSwatch(row){
  const name=String(row.originalColorName||row.colorName||'').trim().toLocaleLowerCase();

@@ -55,12 +55,43 @@ root.innerHTML=`<section class="panel expenses-workspace"><div class="expenses-h
 const drawCostPrices=()=>{
  const {printers=[],filaments=[]}=database.costPrices??{};
  $('#cost-printer-models').innerHTML=printers.map(row=>`<option value="${esc(row.model)}"></option>`).join('');
- $('[data-cost-price-list="printers"]').innerHTML=printers.map(row=>`<li>${esc(row.model)} · ${money(row.price)}</li>`).join('');
+ $('[data-cost-price-list="printers"]').innerHTML=printers.map((row,index)=>`<li>${esc(row.model)} · ${money(row.price)} <button type="button" data-edit-cost-price="${index}">Изменить</button></li>`).join('');
  const options=$('[data-cost-price="filaments"] select').options;
- $('[data-cost-price-list="filaments"]').innerHTML=filaments.map(row=>`<li>${esc(Array.from(options).find(option=>option.value===row.key)?.textContent||JSON.parse(row.key).join(' · '))} · ${money(row.price)} за моток · ${money(round(row.price/row.spoolKg))}/кг</li>`).join('');
+ $('[data-cost-price-list="filaments"]').innerHTML=filaments.map((row,index)=>`<li>${esc(Array.from(options).find(option=>option.value===row.key)?.textContent||JSON.parse(row.key).join(' · '))} · ${money(row.price)} за моток · ${money(round(row.price/row.spoolKg))}/кг <button type="button" data-edit-cost-price="${index}">Изменить</button></li>`).join('');
 };
 drawCostPrices();
-for(const editor of root.querySelectorAll('[data-cost-price]'))editor.onsubmit=async event=>{
+for(const editor of root.querySelectorAll('[data-cost-price]')){
+ const kind=editor.dataset.costPrice;
+ const fields=editor.elements;
+ const price=fields.namedItem('price');
+ const fillFilament=(key,row)=>{
+  const select=fields.namedItem('key');
+  if(key && !Array.from(select.options).some(option=>option.value===key)){
+   const option=doc.createElement('option');
+   option.value=key;
+   option.textContent=JSON.parse(key).join(' · ');
+   select.append(option);
+  }
+  select.value=key;
+  fields.namedItem('spoolKg').value=row?.spoolKg??1;
+  price.value=row?.price??'';
+ };
+ if(kind==='filaments')fields.namedItem('key').onchange=event=>{
+  const key=event.target.value;
+  fillFilament(key,database.costPrices?.filaments?.find(row=>row.key===key));
+ };
+ editor.onclick=event=>{
+  const button=event.target.closest('[data-edit-cost-price]');
+  if(!button||busy)return;
+  const row=database.costPrices?.[kind]?.[Number(button.dataset.editCostPrice)];
+  if(!row)return;
+  if(kind==='printers'){
+   fields.namedItem('model').value=row.model;
+   price.value=row.price;
+  }else fillFilament(row.key,row);
+  price.focus();
+ };
+ editor.onsubmit=async event=>{
  event.preventDefault();
  if(busy)return;
  const kind=editor.dataset.costPrice, isPrinter=kind==='printers', key=isPrinter?'model':'key';
@@ -81,7 +112,8 @@ for(const editor of root.querySelectorAll('[data-cost-price]'))editor.onsubmit=a
   message.textContent='Цена для себестоимости сохранена';
  }catch(error){database.costPrices=before;message.textContent=error.message;}
  finally{busy=false;}
-};
+ };
+}
 const form=$('[data-expense-form]'),field=name=>form.elements.namedItem(name),status=message=>{$('[data-expense-status]').textContent=message;},numeric=name=>field(name).value===''?null:Number(field(name).value);const drawTypes=()=>{
  const container=$('[data-expense-types]'),signature=JSON.stringify(articles().map(item=>[item.id,item.name]));
  if(container.dataset.signature!==signature){

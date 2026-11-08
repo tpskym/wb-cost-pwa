@@ -1,5 +1,5 @@
-import {nativeOpenerPlatform,windowsOpenerEnabled} from './windows-opener.js?v=0.2.335';
-import {workingDownloads} from './working-downloads.js?v=0.2.335';
+import {nativeOpenerPlatform,windowsOpenerEnabled} from './windows-opener.js?v=0.2.336';
+import {workingDownloads} from './working-downloads.js?v=0.2.336';
 export async function readLabelPdf(file){
  if(!file||file.size>2*1024*1024)throw Error('PDF должен быть не больше 2 МБ');
  const bytes=new Uint8Array(await file.arrayBuffer());

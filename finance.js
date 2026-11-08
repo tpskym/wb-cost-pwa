@@ -1,4 +1,4 @@
-import {chartPeriodKey, orderPeriodStatistics} from './marketplace-orders.js?v=0.2.335';
+import {chartPeriodKey, orderPeriodStatistics} from './marketplace-orders.js?v=0.2.336';
 
 const periods = {days:'По дням', weeks:'По неделям', months:'По месяцам', years:'По годам', all:'Всего'};
 const moneyFormat = new Intl.NumberFormat('ru-RU', {style:'currency', currency:'RUB'});
