@@ -724,6 +724,7 @@ button:is(.spread-marketplace-field,#spread-marketplace-profit):hover:not(:disab
 main:not([data-workspace="finance"]) .finance-only,
 main[data-workspace="finance"]>.heading,
 main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile-products){display:none!important}
+.finance-panel{padding:clamp(16px,3vw,24px)}
 .finance-panel .orders-chart-types{justify-content:flex-start;flex-wrap:wrap;margin:20px 0}
 .finance-table{overflow:auto}
 .finance-table table{width:100%;border-collapse:collapse}
