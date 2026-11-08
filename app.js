@@ -1,42 +1,42 @@
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.331';
-import {attachCardDesignZip} from './attachments.js?v=0.2.331';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.331';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.331';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.331';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.331';
-import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.331';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.331';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.331';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.331';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.331';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.331';
-import {ensureProductImage} from './product-images.js?v=0.2.331';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.331';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.331';
-import {installImagePreview} from './image-preview.js?v=0.2.331';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.331';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.331';
-import {openCostReport} from './cost-report.js?v=0.2.331';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.331';
-import {mountReleaseHistory} from './release-history.js?v=0.2.331';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.331';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.331';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.331';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.331';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.331';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.331';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.331';
-import {mountSales} from './sales.js?v=0.2.331';
-import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.331';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.331';
-import {installNumberControls} from './number-controls.js?v=0.2.331';
-const APP_VERSION='0.2.331';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.332';
+import {attachCardDesignZip} from './attachments.js?v=0.2.332';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.332';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.332';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.332';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.332';
+import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.332';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.332';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.332';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup,databaseForCloud,preserveLocalPrintQueue} from './google-drive-backup.js?v=0.2.332';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.332';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.332';
+import {ensureProductImage} from './product-images.js?v=0.2.332';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.332';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.332';
+import {installImagePreview} from './image-preview.js?v=0.2.332';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.332';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.332';
+import {openCostReport} from './cost-report.js?v=0.2.332';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.332';
+import {mountReleaseHistory} from './release-history.js?v=0.2.332';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.332';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.332';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.332';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.332';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.332';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.332';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.332';
+import {mountSales} from './sales.js?v=0.2.332';
+import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.332';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.332';
+import {installNumberControls} from './number-controls.js?v=0.2.332';
+const APP_VERSION='0.2.332';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.331';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.331';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.331';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.331';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.331';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.332';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.332';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.332';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.332';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.332';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -230,7 +230,8 @@ async function restoreFullArchive(file,{cloud=false}={}){
  }finally{progress.close();if(!cloud){fullBackupBusy=false;render();}}
 }
 async function changeDB(x){x=applyBackupSnapshot(x,db);validateDB(x);await backup();const previous=db,oldSelected=selected;recoveryRaw=null;db=x;selected=db.products[0].id;const result=save();if((result?.then?await result:result)===false){db=previous;selected=oldSelected;throw Error('Не удалось сохранить загруженную базу');}render();}
-function downloadBlob(blob,name){if(/\.(3mf|stl|step|stp|obj|gcode)$/i.test(name))return workingDownloads.save(blob,name,'model',{notify:toast});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+function downloadBlob(blob,name){if(/\.(3mf|stl|step|stp|obj|gcode)$/i.test(name))return workingDownloads.save(blob,name,'model',{notify:toast});return downloadBrowserFile(blob,name);}
+function downloadBrowserFile(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 const productImageUrls=new Map();
 async function hydrateProductImages(scope=document){
  for(const img of scope.querySelectorAll('[data-product-image]')){
@@ -255,7 +256,7 @@ async function plateModels(database, product) {
  }
  return choices;
 }
-async function openPlateModel(product) {
+async function openPlateModel(product, saveFile=downloadBlob) {
  await modelMigration.catch(()=>{});
  const choices = await plateModels(db, product);
  if (!choices.size) throw Error('Прикрепите модель в разделе «Файлы товара».');
@@ -263,7 +264,7 @@ async function openPlateModel(product) {
  const capacity = product.plateCapacity || 1;
  if (capacity === 1) {
   const file = choices.get(1);
-  return downloadBlob(file.blob, file.name);
+  return saveFile(file.blob, file.name);
  }
  const dialog = document.createElement('dialog');
  dialog.className = 'plate-picker';
@@ -276,7 +277,7 @@ async function openPlateModel(product) {
  dialog.querySelectorAll('[data-plate-choice]').forEach(button=>button.onclick=safe(async()=>{
   const file=choices.get(Number(button.dataset.plateChoice));
   dialog.close();
-  await downloadBlob(file.blob,file.name);
+  await saveFile(file.blob,file.name);
  }));
  document.body.append(dialog);
  dialog.showModal();
@@ -288,10 +289,10 @@ async function renderFiles(){
  await modelMigration.catch(()=>{});const p=product(),owner=db.id+':'+p.id,container=$('#product-files');
  try{const files=await listFiles(owner),models=(await groupPrintModels(db,p)).filter(file=>!file.plateQuantity);const capacity=p.plateCapacity||1;const plateFiles=files.filter(file=>file.category==='model'&&file.plateQuantity).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));let chosenModel=null;try{chosenModel=await selectedPrintModel(db,p);}catch{}for(const file of files){if(['source','ready'].includes(file.category)){file.category=p.platform?.startsWith('Ozon')?'source-ozon':'source-wb';await putFile(file);}}if(container!==$('#product-files')||product().id!==p.id)return;
  const fileList=key=>`<ul class="attachment-list">${files.filter(f=>f.category===key).map(f=>`<li><span>${esc(f.name)}<small>${(f.blob.size/1024/1024).toFixed(2)} МБ · ${esc(new Date(f.createdAt).toLocaleString('ru-RU'))}</small></span><button data-file-download="${f.id}">Скачать</button><button data-file-delete="${f.id}">Удалить</button></li>`).join('')||'<li class="empty">Файлы этого товара пока не добавлены</li>'}</ul>`;
- container.innerHTML=fileCategories.filter(([key])=>key==='model').map(([key,title,hint])=>key==='model'?`<fieldset class="packaging-group print-model-panel"><legend>${title}</legend><p class="group-hint">Укажите вместимость пластины и прикрепите готовый файл раскладки для каждого количества. Основная модель используется для одной детали.</p><div class="print-model-toolbar"><div class="print-model-actions"><label class="file-button print-model-upload">${chosenModel?'Заменить файл для 1 шт.':'Прикрепить файл для 1 шт.'}<input type="file" data-file-upload="model" hidden></label><button type="button" id="print-model-download" ${chosenModel||plateFiles.some(file=>file.plateQuantity<=capacity)?'':'disabled'}>Печать модели</button></div><label>Модель для 1 детали<select id="print-model-select"><option value="">${models.length?'Выберите сохранённый файл':'Модель ещё не выбрана'}</option>${models.map(f=>`<option value="${esc(f.id)}" ${chosenModel?.id===f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select></label></div><div class="print-model-meta"><span>Модель варианта: <strong>${esc(p.sku||p.name)}</strong></span>${chosenModel?`<span>${(chosenModel.blob.size/1024/1024).toFixed(2)} МБ</span>`:'<span>Загрузите файл или выберите из сохранённых.</span>'}</div>${renderPlateSettings(capacity,plateFiles)}<details class="print-model-library"><summary>Сохранённые файлы товара · ${files.filter(f=>f.category==='model').length}</summary>${fileList('model')}<button data-file-zip="model" ${files.some(f=>f.category==='model')?'':'disabled'}>Скачать модели товара ZIP</button></details></fieldset>`:`<fieldset class="packaging-group"><legend>${title}</legend><p class="group-hint">${hint}</p><div class="file-actions"><label class="file-button">Добавить файлы<input type="file" multiple data-file-upload="${key}" hidden></label><button data-file-zip="${key}" ${files.some(f=>f.category===key)?'':'disabled'}>Скачать исходники ZIP</button></div>${fileList(key)}</fieldset>`).join('');
+ container.innerHTML=fileCategories.filter(([key])=>key==='model').map(([key,title,hint])=>key==='model'?`<fieldset class="packaging-group print-model-panel"><legend>${title}</legend><p class="group-hint">Укажите вместимость пластины и прикрепите готовый файл раскладки для каждого количества. Основная модель используется для одной детали.</p><div class="print-model-toolbar"><div class="print-model-actions"><label class="file-button print-model-upload">${chosenModel?'Заменить файл для 1 шт.':'Прикрепить файл для 1 шт.'}<input type="file" data-file-upload="model" hidden></label><div class="print-model-output-actions"><button type="button" id="print-model-download" ${chosenModel||plateFiles.some(file=>file.plateQuantity<=capacity)?'':'disabled'}>Печать модели</button><button type="button" id="download-model-file" ${chosenModel||plateFiles.some(file=>file.plateQuantity<=capacity)?'':'disabled'}>Скачать модель</button></div></div><label>Модель для 1 детали<select id="print-model-select"><option value="">${models.length?'Выберите сохранённый файл':'Модель ещё не выбрана'}</option>${models.map(f=>`<option value="${esc(f.id)}" ${chosenModel?.id===f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select></label></div><div class="print-model-meta"><span>Модель варианта: <strong>${esc(p.sku||p.name)}</strong></span>${chosenModel?`<span>${(chosenModel.blob.size/1024/1024).toFixed(2)} МБ</span>`:'<span>Загрузите файл или выберите из сохранённых.</span>'}</div>${renderPlateSettings(capacity,plateFiles)}<details class="print-model-library"><summary>Сохранённые файлы товара · ${files.filter(f=>f.category==='model').length}</summary>${fileList('model')}<button data-file-zip="model" ${files.some(f=>f.category==='model')?'':'disabled'}>Скачать модели товара ZIP</button></details></fieldset>`:`<fieldset class="packaging-group"><legend>${title}</legend><p class="group-hint">${hint}</p><div class="file-actions"><label class="file-button">Добавить файлы<input type="file" multiple data-file-upload="${key}" hidden></label><button data-file-zip="${key}" ${files.some(f=>f.category===key)?'':'disabled'}>Скачать исходники ZIP</button></div>${fileList(key)}</fieldset>`).join('');
  const design=$('#card-design-files');if(design){design.innerHTML=`<div class="card-design-actions"><label class="file-button card-design-upload">${actionIcon('upload')}<span>Прикрепить ZIP-архив</span><input type="file" accept=".zip,application/zip" data-design-zip hidden></label><label class="file-button card-design-upload">${actionIcon('upload')}<span>Выбрать файлы и сохранить ZIP</span><input type="file" multiple data-design-upload hidden></label></div>${fileList('card-design')}<p class="card-design-status" role="status"></p>`;design.querySelector('[data-design-zip]').onchange=safe(async event=>{if(recoveryRaw)throw Error('Сначала восстановите базу расчётов');const file=event.target.files[0];if(!file)return;const record=await attachCardDesignZip(owner,file);await putFile(record);await renderFiles();toast(record.zipNameWarning||'ZIP-архив сохранён в приложении');});design.querySelector('[data-design-upload]').onchange=safe(async event=>{if(recoveryRaw)throw Error('Сначала восстановите базу расчётов');const input=event.target;if(!input.files.length)return;input.disabled=true;const status=design.querySelector('[role=status]');status.textContent='Создаю и сохраняю архив…';try{const record=await createCardDesignArchive(owner,input.files,p.sku||p.name);await putFile(record);await renderFiles();toast('Архив материалов сохранён в приложении');}catch(error){input.disabled=false;status.textContent=error.message;throw error;}});}
  $('#all-product-files').disabled=!files.length;
- container.querySelector('#print-model-select').onchange=safe(async event=>{const file=models.find(f=>f.id===event.target.value);if(!file)return;assignPrintModel(db,p,file);save();await renderFiles();await refreshCatalogueFileStates();});container.querySelector('#print-model-download').onclick=safe(()=>openPlateModel(p));
+ container.querySelector('#print-model-select').onchange=safe(async event=>{const file=models.find(f=>f.id===event.target.value);if(!file)return;assignPrintModel(db,p,file);save();await renderFiles();await refreshCatalogueFileStates();});container.querySelector('#print-model-download').onclick=safe(()=>openPlateModel(p));container.querySelector('#download-model-file').onclick=safe(()=>openPlateModel(p,downloadBrowserFile));
  container.querySelectorAll('[data-plate-step]').forEach(button=>button.onclick=safe(async()=>{
   if(recoveryRaw)throw Error('Сначала восстановите базу расчётов');
   const previous=p.plateCapacity;
