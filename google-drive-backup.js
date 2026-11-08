@@ -32,7 +32,43 @@ export async function uploadDriveBackup(blob,token,{fetcher=fetch,onProgress=()=
  }
  throw Error('Пустой архив нельзя загрузить');
 }
-export async function downloadDriveBackup(file,token,{fetcher=fetch}={}){const response=await check(await fetcher(API+'/'+encodeURIComponent(file.id)+'?alt=media',{headers:auth(token)}),'Скачивание архива');const blob=await response.blob();if(file.size!==undefined&&blob.size!==Number(file.size))throw Error('Файл из Google Drive загружен не полностью. Повторите загрузку.');return blob;}
+export async function downloadDriveBackup(file,token,{fetcher=fetch,onProgress=()=>{}}={}){
+ const controller=new AbortController();
+ let timeout;
+ const resetTimeout=()=>{
+  clearTimeout(timeout);
+  timeout=setTimeout(()=>controller.abort(),60000);
+ };
+ const total=Number(file.size)||undefined;
+ onProgress(0,total);
+ resetTimeout();
+ try{
+  const response=await check(await fetcher(API+'/'+encodeURIComponent(file.id)+'?alt=media',{headers:auth(token),signal:controller.signal}),'Скачивание архива');
+  const reader=response.body?.getReader?.();
+  let blob;
+  if(reader){
+   const chunks=[];
+   let received=0;
+   try{
+    while(true){
+     const {done,value}=await reader.read();
+     if(done)break;
+     resetTimeout();
+     chunks.push(value);
+     received+=value.byteLength;
+     onProgress(received,total);
+    }
+   }finally{reader.releaseLock();}
+   blob=new Blob(chunks,{type:'application/zip'});
+  }else blob=await response.blob();
+  if(file.size!==undefined&&blob.size!==Number(file.size))throw Error('Файл из Google Drive загружен не полностью. Повторите загрузку.');
+  onProgress(blob.size,total);
+  return blob;
+ }catch(error){
+  if(controller.signal.aborted)throw Error('Google Drive не передавал данные 60 секунд. Повторите загрузку.');
+  throw error;
+ }finally{clearTimeout(timeout);}
+}
 
 // Cloud exchange excludes the device's print queue, including its archive.
 function queueAdditionIds(database){return new Set((database.printQueue||[]).flatMap(job=>(job.batches||[]).map(batch=>batch.additionId).filter(Boolean)));}
