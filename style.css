@@ -716,5 +716,5 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .orders-profit-breakdown>div{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 8px}
 .orders-period-money .orders-profit-breakdown dd{margin:0;font-size:12px;font-weight:600}
 
-.print-model-output-actions{display:grid;gap:10px}
-.print-model-output-actions>button{min-height:44px;margin:0}
+
+.working-file-saved>button[data-download-model]{width:100%;margin-bottom:10px}
