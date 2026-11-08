@@ -1,9 +1,9 @@
-import {openStockLabelDialog} from './product-labels.js?v=0.2.334';
-import {skuCopyButton} from './sku-copy.js?v=0.2.334';
-import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.334';
-import {marketRequest} from './marketplace-api.js?v=0.2.334';
-import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.334';
-import {redact} from './marketplace-api.js?v=0.2.334';
+import {openStockLabelDialog} from './product-labels.js?v=0.2.335';
+import {skuCopyButton} from './sku-copy.js?v=0.2.335';
+import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.335';
+import {marketRequest} from './marketplace-api.js?v=0.2.335';
+import {tableProductPhoto,bindTablePhotos,enrichRowPhotos} from './marketplace-metrics.js?v=0.2.335';
+import {redact} from './marketplace-api.js?v=0.2.335';
 export const orderSources={'wb-fbs':'WB · FBS','wb-fbw':'WB · FBW','ozon-fbs':'Ozon · FBS','ozon-fbo':'Ozon · FBO'};
 const routes={wbOrders:['wb','GET','https://marketplace-api.wildberries.ru/api/v3/orders','Маркетплейс'],wbStatuses:['wb','POST','https://marketplace-api.wildberries.ru/api/v3/orders/status','Маркетплейс'],wbReportOrders:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/orders','Статистика'],wbReportSales:['wb','GET','https://statistics-api.wildberries.ru/api/v1/supplier/sales','Статистика'],ozonFbs:['ozon','POST','https://api-seller.ozon.ru/v4/posting/fbs/list','Posting FBS read-only'],ozonFbo:['ozon','POST','https://api-seller.ozon.ru/v3/posting/fbo/list','Posting FBO']};
 const lastRequest=new Map();
@@ -51,7 +51,7 @@ const orderCostBreakdown=[['materials','Материалы'],['printing','Печ
 const purchasedOrderLine=row=>['sold','delivered','posting_received','posting_delivered'].some(status=>[row.rawStatus,row.status,row.substatus].includes(status))||
  ['Получен покупателем / выкуплен','Доставлен','Получен в ПВЗ','Доставлен курьером'].some(status=>[row.status,row.substatus].includes(status));
 function orderMoney(items,profitForRow){
- const result={revenue:0,missingRevenue:0,profit:0,missingProfit:0,purchasedProfit:0,purchasedLines:0,missingPurchasedProfit:0,cost:0,missingCost:0,profitRevenue:0,materials:0,printing:0,electricity:0,labor:0,lines:0,saleLines:0};
+ const result={revenue:0,missingRevenue:0,profit:0,missingProfit:0,purchasedProfit:0,returnLoss:0,missingReturnLoss:0,packaging:0,purchasedLines:0,missingPurchasedProfit:0,cost:0,missingCost:0,profitRevenue:0,materials:0,printing:0,electricity:0,labor:0,lines:0,saleLines:0};
  for(const row of items){
   const returned=returnedOrderLine(row)||cancelledOrderLine(row);
   result.lines++;
@@ -68,15 +68,22 @@ function orderMoney(items,profitForRow){
    if(Number.isFinite(profit))result.purchasedProfit+=profit*row.quantity;
    else result.missingPurchasedProfit++;
   }
+  if(returned){
+   if(Number.isFinite(profit))result.returnLoss+=profit*row.quantity;
+   else result.missingReturnLoss++;
+  }
   if(Number.isFinite(profit)){
    result.profit+=profit*row.quantity;
    if(!returned&&hasPrice){
     result.profitRevenue+=row.price*row.quantity;
-    for(const [key] of orderCostBreakdown)result[key]+=(amounts[key]??0)*row.quantity;
    }
   }else result.missingProfit++;
   if(!returned){
-   if(Number.isFinite(cost))result.cost+=cost*row.quantity;
+   if(Number.isFinite(cost)){
+    result.cost+=cost*row.quantity;
+    for(const [key] of orderCostBreakdown)result[key]+=(amounts[key]??0)*row.quantity;
+    result.packaging+=(amounts.packaging??0)*row.quantity;
+   }
    else result.missingCost++;
   }
 

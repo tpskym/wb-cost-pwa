@@ -720,3 +720,21 @@ button:is(.spread-marketplace-field,#spread-marketplace-profit):hover:not(:disab
 
 
 .working-file-saved>button[data-download-model]{width:100%;margin-bottom:10px}
+
+main:not([data-workspace="finance"]) .finance-only,
+main[data-workspace="finance"]>.heading,
+main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile-products){display:none!important}
+.finance-panel .orders-chart-types{justify-content:flex-start;flex-wrap:wrap;margin:20px 0}
+.finance-table{overflow:auto}
+.finance-table table{width:100%;border-collapse:collapse}
+.finance-table :is(th,td){padding:12px;text-align:right;border-bottom:1px solid #dfe5d8}
+.finance-table thead{background:#edf3e3}
+.finance-table th:first-child{text-align:left}
+.finance-table td{white-space:nowrap}
+.finance-table small{display:block;color:#687660}
+.finance-promotion{background:#edf3e3;color:#405b34}
+
+.finance-reserve{margin:20px 0;padding:16px 20px;border:1px solid #b8cba2;border-radius:12px;background:#edf3e3;color:#405b34}
+.finance-reserve h2{margin:0 0 8px;font-size:16px}
+.finance-reserve strong{display:block;font-size:24px}
+.finance-reserve small{display:block;margin-top:6px}
