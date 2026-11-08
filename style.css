@@ -656,6 +656,8 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit-heading h3{margin:0}
 .marketplace-profit-heading a{display:inline-flex;align-items:center;min-height:44px;color:#425a39;font-size:14px;text-underline-offset:3px}
 .spread-marketplace-field{display:grid;place-items:center;width:44px;min-height:44px;padding:0;margin:0}
+button:is(.spread-marketplace-field,#spread-marketplace-profit){background:#edf3e3;border-color:#b8cba2;color:#405b34}
+button:is(.spread-marketplace-field,#spread-marketplace-profit):hover:not(:disabled){background:#e2ecd5;border-color:#9eb789}
 .spread-marketplace-field svg{width:18px;height:18px}
 .marketplace-profit-targets fieldset{min-width:0;display:grid;gap:8px;padding:10px}
 .marketplace-profit-targets img{width:42px;height:56px;object-fit:contain;border-radius:6px;flex:none}
