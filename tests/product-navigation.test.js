@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.348');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.349');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -156,6 +156,8 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  wb.querySelector('[data-price-adjust="10"]').click();
  assert.equal(wbSlider.valueAsNumber,oldEnd+10);
  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/782,85/);
+ assert.equal($('#product-list [data-product-profit-summary]'),null);
+ assert.ok($('.image-profit-summary [data-product-profit-summary] strong'));
  await settle();
  const database=await readDatabase();
  const current=database.products.find(p=>p.id===$('#mobile-product').value);
@@ -174,7 +176,7 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
   assert.ok(values[0].endsWith(money.format(expected)),values[0]);
  };
  assertPrice('wb','break-even',Math.ceil((10+cost)/0.725-1e-9));
- assertPrice('wb','cost-profit',Math.ceil((10+2*cost)/0.725-1e-9));
+ assertPrice('wb','suggested',Math.ceil((10+1.8*cost)/0.725-1e-9));
  enter(wbAcquiring,0);
  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/798,00/);
  assertPrice('wb','break-even',Math.ceil((10+cost)/0.74-1e-9));
@@ -182,9 +184,11 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assert.equal(saved.marketplaceLogistics.wb.acquiring,0);
  enter($('[data-market="ozon"][data-profit-logistics="buyout"]'),80);
  assertPrice('ozon','break-even',Math.ceil((20+4+cost)/0.69-1e-9));
- assertPrice('ozon','cost-profit',Math.ceil((20+4+2*cost)/0.69-1e-9));
+ assertPrice('ozon','suggested',Math.ceil((20+4+1.8*cost)/0.69-1e-9));
+ assert.equal(ozonPrice.value,'0');
+ assert.ok($('[data-fbs-suggested]').closest('.fbs-suggested-price'));
  enter($('[data-market="ozon"][data-profit-logistics="fbs"]'),301);
- for(const kind of ['break-even','cost-profit'])assert.deepEqual(prices('ozon',kind),Array(2).fill('Недостижимо до 300 ₽'));
+ for(const kind of ['break-even','suggested'])assert.deepEqual(prices('ozon',kind),Array(2).fill('Недостижимо до 300 ₽'));
 });
 
 test('multiline product description appears once above Important with its card import action and persists',async()=>{
