@@ -744,3 +744,11 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .finance-reserve strong{display:block;font-size:24px}
 .finance-reserve small{display:block;margin-top:6px}
 [data-cost-price-list] li{margin-block:8px}[data-edit-cost-price]{margin-inline-start:10px;min-height:44px}
+
+.webdav-settings{margin:0 0 24px;padding:22px;border:1px solid #d9e4ce;border-radius:14px;background:#f6f9f1}
+.webdav-settings legend{padding:0 8px;font-size:18px;font-weight:700}
+.webdav-settings ol{padding-inline-start:24px;line-height:1.65}
+.webdav-settings [data-webdav-folder]{color:#536a4c}
+.webdav-settings .sync-actions{margin-top:20px;flex-wrap:wrap}
+.webdav-conflict p{overflow-wrap:anywhere}
+@media(max-width:600px){.webdav-settings{padding:16px}.webdav-settings .sync-actions button{flex:1 1 100%}}
