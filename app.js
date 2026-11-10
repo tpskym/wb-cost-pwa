@@ -1,43 +1,43 @@
-import {mountFinance} from './finance.js?v=0.2.347';
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.347';
-import {attachCardDesignZip} from './attachments.js?v=0.2.347';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.347';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.347';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.347';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.347';
-import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.347';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.347';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.347';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.347';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.347';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.347';
-import {ensureProductImage} from './product-images.js?v=0.2.347';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.347';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.347';
-import {installImagePreview} from './image-preview.js?v=0.2.347';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.347';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.347';
-import {openCostReport} from './cost-report.js?v=0.2.347';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.347';
-import {mountReleaseHistory} from './release-history.js?v=0.2.347';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.347';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.347';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.347';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.347';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.347';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.347';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.347';
-import {mountSales} from './sales.js?v=0.2.347';
-import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.347';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.347';
-import {installNumberControls} from './number-controls.js?v=0.2.347';
-const APP_VERSION='0.2.347';
+import {mountFinance} from './finance.js?v=0.2.348';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.348';
+import {attachCardDesignZip} from './attachments.js?v=0.2.348';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.348';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.348';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.348';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot} from './backup-modes.js?v=0.2.348';
+import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.348';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.348';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.348';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.348';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.348';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.348';
+import {ensureProductImage} from './product-images.js?v=0.2.348';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.348';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.348';
+import {installImagePreview} from './image-preview.js?v=0.2.348';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.348';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.348';
+import {openCostReport} from './cost-report.js?v=0.2.348';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.348';
+import {mountReleaseHistory} from './release-history.js?v=0.2.348';
+import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.348';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.348';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.348';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.348';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.348';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.348';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.348';
+import {mountSales} from './sales.js?v=0.2.348';
+import {sharedListingChangesApplied,applySharedListingChanges,pullProductBarcodes} from './marketplace-api.js?v=0.2.348';
+import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.348';
+import {installNumberControls} from './number-controls.js?v=0.2.348';
+const APP_VERSION='0.2.348';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.347';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.347';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.347';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.347';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.347';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.348';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.348';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.348';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.348';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.348';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#finance'?'finance':globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -491,12 +491,16 @@ function groupedCalculation(p,r){
   return `<tr class="calculation-section"><th>${esc(title)}</th>${amountCell(total)}</tr>`+subgroups.map(([name,rows])=>`<tr class="calculation-subgroup"><th>${esc(name)}</th>${amountCell(rows.reduce((sum,row)=>sum+row[1],0))}</tr>${rows.map(rowHTML).join('')}${!rows.length?`<tr><td colspan="2" class="group-hint">${name==='План продаж'?'Объём продаж используется для распределения постоянных расходов; отдельной суммы затрат нет.':'Отдельных расходов нет: параметры этой группы используются в расчёте других строк.'}</td></tr>`:''}`).join('');
  }).join('');
 }
+function profitLogistics(product,market){
+ const settings=product.marketplaceLogistics?.[market];
+ return market==='wb'?{acquiring:1.5,...settings}:settings??{};
+}
 function marketplacePayoutTerms(product,key){
- if(key==='ozonFbo'||key==='ozonFbs'){
-  const {commission,acquiring,fbo,fbs}=product.marketplaceLogistics?.ozon??{};
-  return {commission:[commission,acquiring].every(Number.isFinite)?commission+acquiring:null,delivery:key==='ozonFbo'?fbo:fbs};
- }
- return product.marketplaceLogistics?.wb??{};
+ const {commission,acquiring,delivery,fbo,fbs}=profitLogistics(product,key.startsWith('ozon')?'ozon':'wb');
+ return {
+  commission:[commission,acquiring].every(Number.isFinite)?commission+acquiring:null,
+  delivery:key==='ozonFbo'?fbo:key==='ozonFbs'?fbs:delivery
+ };
 }
 function marketplacePayout(product,key,price=product.marketplaces?.[key.startsWith('ozon')?'ozon':'wb']?.price){
  const {commission,delivery}=marketplacePayoutTerms(product,key);
@@ -560,10 +564,10 @@ function marketplaceProfitEditor(source){
   ? `<button type="button" data-copy-ozon-product="${esc(ozonURL)}">Скопировать ссылку на товар</button>`:'';
 
  return `<fieldset class="marketplace-profit"><legend>К выплате за изделие</legend>
- <p class="group-hint">Для Wildberries выплата рассчитывается из цены продажи за вычетом комиссии и доставки. Для Ozon выплата рассчитывается из цены продажи за вычетом вознаграждения, эквайринга, обработки и доставки. Из выплаты вычитаются налог, себестоимость и доплата за невыкуп.</p>
+ <p class="group-hint">Для Wildberries выплата рассчитывается из цены продажи за вычетом комиссии, эквайринга и доставки. Для Ozon выплата рассчитывается из цены продажи за вычетом вознаграждения, эквайринга, обработки и доставки. Из выплаты вычитаются налог, себестоимость и доплата за невыкуп.</p>
  <label>Ставка налога, %<input type="number" min="0" max="99.99" step="0.01" data-no-stepper data-profit-tax-rate value="${esc(source.tax??'')}" placeholder="Укажите ставку"></label>
  <div class="marketplace-profit-markets">${profitMarkets.map(([market,fbs,warehouse,scheme,url,linkText])=>`<div class="marketplace-profit-card" data-profit-market="${market==='Ozon'?'ozon':'wb'}"><div class="marketplace-profit-heading"><h3>${market}</h3><a href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${linkText} ${market} (новая вкладка)">${linkText} ↗</a>${market==='Ozon'?copyOzonLink:''}</div>${marketplaceSalePrice(source,market==='Ozon'?'ozon':'wb')}<fieldset class="marketplace-logistics"><legend>Обработка и доставка</legend>
- <div class="marketplace-logistics-fields">${(market==='Ozon'?[['commission','Вознаграждение Ozon, %',100],['acquiring','Эквайринг, %',100],['fbo','FBO, ₽',null],['fbs','FBS, ₽',null],['buyout','Выкуп, %',100]]:[['commission','Комиссия, %',100],['delivery','Доставка, ₽',null],['buyout','Выкуп, %',100]]).map(([key,label,max])=>`<div><label>${label}<input type="number" min="0" ${max===null?'':`max="${max}"`} step="any" data-no-stepper data-profit-logistics="${key}" data-market="${market==='Ozon'?'ozon':'wb'}" value="${esc(source.marketplaceLogistics?.[market==='Ozon'?'ozon':'wb']?.[key]??'')}" placeholder="Не задано"></label></div>`).join('')}</div>
+ <div class="marketplace-logistics-fields">${(market==='Ozon'?[['commission','Вознаграждение Ozon, %',100],['acquiring','Эквайринг, %',100],['fbo','FBO, ₽',null],['fbs','FBS, ₽',null],['buyout','Выкуп, %',100]]:[['commission','Комиссия, %',100],['acquiring','Эквайринг, %',100],['delivery','Доставка, ₽',null],['buyout','Выкуп, %',100]]).map(([key,label,max])=>`<div><label>${label}<input type="number" min="0" ${max===null?'':`max="${max}"`} step="any" data-no-stepper data-profit-logistics="${key}" data-market="${market==='Ozon'?'ozon':'wb'}" value="${esc(profitLogistics(source,market==='Ozon'?'ozon':'wb')[key]??'')}" placeholder="Не задано"></label></div>`).join('')}</div>
  ${market==='Ozon'?'<small>При невыкупе возврат и повторная доставка считаются по FBO.</small>':''}<small data-logistics-result="${market==='Ozon'?'ozon':'wb'}"></small></fieldset><div class="marketplace-profit-fields">${(market==='Ozon'?[[warehouse,scheme],[fbs,'FBS']]:[[fbs,'']]).map(([key,label])=>`<div>${label?`<strong>${label}</strong>`:''}<div>К выплате · <output data-calculated-payout="${key}"></output></div><div class="marketplace-profit-result" data-profit-result="${key}"></div></div>`).join('')}</div><div class="fbs-price-targets" data-fbs-prices="${market==='Ozon'?'ozon':'wb'}"></div></div>`).join('')}</div>
  <button type="button" id="spread-marketplace-profit">Распространить на все товары</button></fieldset>`;
 }
@@ -713,7 +717,7 @@ function renderFbsPriceTargets(p,r,market){
  const title=market==='ozon'?'Ozon FBS':'WB FBS';
  const unavailable=market==='ozon'?'Недостижимо до 300 ₽':'Недостижимо при этих тарифах';
  const value=price=>price===null?unavailable:(prices.partial?'≈ ':'')+rub(price);
- const content=!prices?'<small>Заполните налог, комиссию и расходы FBS.</small>':`<dl>
+ const content=!prices?'<small>Заполните налог, комиссию, эквайринг и расходы FBS.</small>':`<dl>
   <div><dt>Без убытка</dt><dd data-fbs-break-even>${value(prices.breakEven)}</dd></div>
   <div><dt>Прибыль = себестоимости</dt><dd data-fbs-cost-profit>${value(prices.costProfit)}</dd></div>
  </dl>`;
@@ -768,7 +772,7 @@ function renderMarketplaceProfit(p,r){
   const market=fbs==='ozonFbs'?'ozon':'wb';
   renderFbsPriceTargets(p,r,market);
   const price=p.marketplaces[market].price;
-  const {commission,delivery,buyout,fbs:fbsCost,fbo:fboCost}=p.marketplaceLogistics?.[market]??{};
+  const {commission,acquiring,delivery,buyout,fbs:fbsCost,fbo:fboCost}=profitLogistics(p,market);
   const uplift=Number.isFinite(buyout)?2*(100-buyout):null;
   const extraDelivery=market==='ozon'?fboCost:delivery;
   const surcharge=uplift===0?0:uplift!==null&&Number.isFinite(extraDelivery)?extraDelivery*uplift/100:null;
@@ -776,7 +780,8 @@ function renderMarketplaceProfit(p,r){
   if(logisticsOutput&&market==='wb')logisticsOutput.textContent=uplift===null?'Укажите процент выкупа для расчёта доплаты':
    `${new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(100+uplift)} доставок на 100 товаров · доставка +${new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(uplift)}%`+(!Number.isFinite(delivery)?' · укажите стоимость доставки':
     ` · ${rub(delivery+surcharge)} с учётом выкупа · доплата ${rub(surcharge)}`+
-    (Number.isFinite(commission)&&Number.isFinite(price)?` · комиссия ${rub(price*commission/100)} учтена в выплате`:''));
+    (Number.isFinite(commission)&&Number.isFinite(price)?` · комиссия ${rub(price*commission/100)}`:'')+
+    (Number.isFinite(acquiring)&&Number.isFinite(price)?` · эквайринг ${rub(price*acquiring/100)}`:''));
 
   if(logisticsOutput&&market==='ozon'){
    if(uplift===null)logisticsOutput.textContent='Укажите процент выкупа для расчёта доплаты';
@@ -796,7 +801,7 @@ function renderMarketplaceProfit(p,r){
    const payoutOutput=$(`[data-calculated-payout="${key}"]`);
    if(payoutOutput)payoutOutput.textContent=Number.isFinite(payout)?rub(payout):'—';
    if(!Number.isFinite(rate)||rate<0||rate>=100)output.textContent='Укажите ставку налога';
-   else if(!Number.isFinite(payout))output.textContent=market==='ozon'?'Укажите цену, оба процента и расходы по схеме':'Укажите цену, комиссию и доставку';
+   else if(!Number.isFinite(payout))output.textContent=market==='ozon'?'Укажите цену, оба процента и расходы по схеме':'Укажите цену, комиссию, эквайринг и доставку';
    else if(r.invalid.length)output.textContent='Исправьте себестоимость';
    else{
     const result=marketplaceProfitAmount(p,r,key);

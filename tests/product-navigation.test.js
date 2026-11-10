@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.347');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.348');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -144,6 +144,8 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assert.equal(profit.dataset.profitTone,'loss');
  assert.match(profit.querySelector('strong').textContent,/-/);
  assert.match(profit.querySelector('small').textContent,/Налог вычтен: 0,00/);
+ const wbAcquiring=wb.querySelector('[data-profit-logistics=acquiring]');
+ assert.equal(wbAcquiring.value,'1.5');
  const wbPrice=wb.querySelector('[data-profit-sale-price]');
  const wbSlider=wb.querySelector('[data-price-range]');
  assert.equal(wbPrice.max,'');
@@ -153,14 +155,14 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assert.ok(Number(wbSlider.max)>oldEnd);
  wb.querySelector('[data-price-adjust="10"]').click();
  assert.equal(wbSlider.valueAsNumber,oldEnd+10);
- assert.match($('[data-calculated-payout="wbFbs"]').textContent,/798/);
+ assert.match($('[data-calculated-payout="wbFbs"]').textContent,/782,85/);
  await settle();
  const database=await readDatabase();
  const current=database.products.find(p=>p.id===$('#mobile-product').value);
  assert.equal(current.marketplaces.wb.price,oldEnd+10);
  assert.equal(current.marketplaces.ozon.price,0);
 
- const {calculateManual}=await import('../calc.js');
+ const {calculateManual,validateDB}=await import('../calc.js');
  const {configuredCostPrices}=await import('../expenses.js');
  const {cost}=calculateManual({...current,values:{...current.values,...configuredCostPrices(database,current)}});
  const prices=(market,kind)=>[...document.querySelectorAll(`[data-fbs-prices="${market}"] [data-fbs-${kind}]`)].map(el=>el.textContent);
@@ -171,8 +173,13 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
   assert.equal(values[0],values[1]);
   assert.ok(values[0].endsWith(money.format(expected)),values[0]);
  };
+ assertPrice('wb','break-even',Math.ceil((10+cost)/0.725-1e-9));
+ assertPrice('wb','cost-profit',Math.ceil((10+2*cost)/0.725-1e-9));
+ enter(wbAcquiring,0);
+ assert.match($('[data-calculated-payout="wbFbs"]').textContent,/798,00/);
  assertPrice('wb','break-even',Math.ceil((10+cost)/0.74-1e-9));
- assertPrice('wb','cost-profit',Math.ceil((10+2*cost)/0.74-1e-9));
+ const saved=validateDB(await readDatabase()).products.find(p=>p.id===current.id);
+ assert.equal(saved.marketplaceLogistics.wb.acquiring,0);
  enter($('[data-market="ozon"][data-profit-logistics="buyout"]'),80);
  assertPrice('ozon','break-even',Math.ceil((20+4+cost)/0.69-1e-9));
  assertPrice('ozon','cost-profit',Math.ceil((20+4+2*cost)/0.69-1e-9));
