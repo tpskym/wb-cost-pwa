@@ -60,3 +60,17 @@ test('selective card archive applies an included label and preserves unchecked p
  assert.deepEqual(restored.printModel,localProduct.printModel);
  assert.equal(restored.transferParts,undefined);
 });
+
+test('initial transfer replaces local products and filament while excluding credentials',async()=>{
+ const {database,records}=fixture();
+ database.filamentStock=[{id:'spool',material:'PLA Basic',colorCode:'10100',colorName:'White',originalColorName:'Jade White',quantity:3,minimumSpools:1,normalSpools:5}];
+ database.credentials={password:'example'};
+ const local={...fixture().database,filamentStock:[]};
+ const parsed=await parseFullBackup(await createFullBackup(database,records,{replaceAll:true}));
+ const staged=stageFullRestore(parsed,{localDatabase:local});
+ assert.equal(parsed.replaceAll,true);
+ assert.equal(staged.database.products[0].id,database.products[0].id);
+ assert.equal(staged.database.filamentStock[0].quantity,3);
+ assert.equal(staged.database.credentials,undefined);
+ assert.equal(staged.records.length,records.length);
+});
