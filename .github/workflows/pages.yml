@@ -126,6 +126,25 @@ jobs:
           python -m PyInstaller --noconfirm --noconsole --onefile --name Workshop-WebDAV webdav-helper/bridge.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Compress-Archive -Path dist/Workshop-WebDAV.exe -DestinationPath workshop-webdav-windows.zip
+      - name: Verify packaged WebDAV component starts
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            executable=dist/Workshop-WebDAV.exe
+          else
+            executable=dist/Workshop-WebDAV.app/Contents/MacOS/Workshop-WebDAV
+          fi
+          "$executable" &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for ((attempt=0; attempt<30; attempt++)); do
+            if curl --noproxy '*' --fail --silent --max-time 2 http://127.0.0.1:48739/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Packaged component did not respond on 127.0.0.1:48739" >&2
+          exit 1
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.archive }}

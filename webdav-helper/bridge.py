@@ -273,6 +273,12 @@ class Handler(BaseHTTPRequestHandler):
             raise Problem(405, "Метод не поддерживается.")
 
     def dispatch(self):
+        if self.command == "GET" and self.path == "/health":
+            if self.headers.get("Origin") not in (None, ORIGIN):
+                return self.send_error(403)
+            if self.headers.get("Host") != f"127.0.0.1:{self.server.server_port}":
+                return self.send_error(403)
+            return self.send_bytes(200, "Компонент WebDAV работает. Вернитесь в «Мастерскую» и нажмите «Проверить подключение».".encode())
         if not self.allowed() or self.headers.get("X-Workshop-WebDAV") != "1":
             return self.send_error(403)
         try:

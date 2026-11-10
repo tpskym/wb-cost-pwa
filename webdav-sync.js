@@ -1,7 +1,7 @@
-import {createFullBackup, parseFullBackup} from './full-backup.js?v=0.2.343';
-import {validateDB} from './calc.js?v=0.2.343';
-import {stripBackupSecrets} from './google-drive-backup.js?v=0.2.343';
-import {equal, mergeSyncSnapshots} from './sync-merge.js?v=0.2.343';
+import {createFullBackup, parseFullBackup} from './full-backup.js?v=0.2.344';
+import {validateDB} from './calc.js?v=0.2.344';
+import {stripBackupSecrets} from './google-drive-backup.js?v=0.2.344';
+import {equal, mergeSyncSnapshots} from './sync-merge.js?v=0.2.344';
 
 export const initialArchiveName = 'workshop-initial-transfer.zip';
 const seedMarkerName = 'workshop-sync-source.json';

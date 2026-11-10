@@ -1,14 +1,38 @@
 const bridge = 'http://127.0.0.1:48739';
+export const webDavHealthUrl = bridge + '/health';
+
+function loopbackOptions() {
+  if (!/Chrom(e|ium)\//.test(globalThis.navigator?.userAgent || '')) return {};
+  try {
+    const options = {targetAddressSpace: 'loopback'};
+    new Request(bridge, options);
+    return options;
+  } catch {
+    return {};
+  }
+}
+
+async function loopbackAccessDenied() {
+  try {
+    return (await navigator.permissions.query({name: 'loopback-network'})).state === 'denied';
+  } catch {
+    return false;
+  }
+}
 
 async function request(path, {account, method = 'GET', body} = {}) {
   let response;
   try {
     response = await fetch(bridge + path, {
       method, body, cache: 'no-store', redirect: 'error', credentials: 'omit',
+      ...loopbackOptions(),
       headers: {'X-Workshop-WebDAV': '1', ...(account && {'X-Workshop-Account': account})},
     });
   } catch {
-    throw Error('Запустите компонент WebDAV и разрешите браузеру доступ к локальной сети, если он запросит разрешение.');
+    if (await loopbackAccessDenied()) {
+      throw Error('Разрешите локальные подключения для Мастерской в настройках сайта и повторите проверку.');
+    }
+    throw Error('Мастерская не может связаться с WebDAV. В разделе «Бэкап» откройте ссылку «Проверить запуск компонента».');
   }
   if (response.ok) return response;
   const message = await response.text();

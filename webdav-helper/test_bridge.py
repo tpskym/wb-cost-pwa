@@ -100,6 +100,20 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.request("GET", "/connection", Origin="https://example.com")[0], 403)
         self.assertEqual(WorkshopServer.current(self.server).account, login["account"])
 
+    def test_health_can_be_opened_directly_without_reading_credentials(self):
+        self.store.load = lambda: self.fail("Health must not read credentials")
+        with self.subTest("direct navigation"):
+            connection = HTTPConnection("127.0.0.1", self.server.server_port)
+            try:
+                connection.request("GET", "/health")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertIn("Компонент WebDAV работает", response.read().decode())
+            finally:
+                connection.close()
+        self.assertEqual(self.request("GET", "/health", Origin="https://example.com")[0], 403)
+        self.assertEqual(self.request("GET", "/health", Host="localhost")[0], 403)
+
     def test_encrypted_access_requires_correct_password_and_explicit_mail_restore(self):
         login = {"account": "seller@example.test", "password": "fake-mail-password"}
         self.request("POST", "/connection", login)
