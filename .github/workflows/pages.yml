@@ -43,7 +43,7 @@ jobs:
             }
             core.setOutput('run-id', reuse);
   deploy:
-    needs: [windows-helper, macos-helper, webdav-tests]
+    needs: [windows-helper, macos-helper]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -65,89 +65,16 @@ jobs:
         with:
           name: workshop-macos
           path: .
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: workshop-webdav-*
-          merge-multiple: true
-          path: .
       - run: |
           mkdir public
           cp -R pdfjs public/
-          cp workshop-webdav-*.zip webdav-client.js webdav-sync.js sync-merge.js sync-scheduler.js catalogue-resize.js print-action-controls.js backup-modes.js expenses.js workshop-macos.zip windows-opener.js workshop-windows.zip index.html app.js model-preview.js model-preview-runtime.js working-downloads.js google-drive-backup.js queue-stock-sync.js database-storage.js google-drive-setup.js product-images.js database-backup.js availability-filters.js sku-copy.js image-preview.js catalogue-status.js product-photo-picker.js group-label-picker.js cost-report.js print-completion.js label-thumbnail.js release-history.js marketplace-prices.js ozon-rich-text.js print-queue.js print-queue-state.js workspace-history.js product-labels.js data-freshness.js stock-additions.js warehouse-stocks.js listing-templates.js marketplace-orders.js remote-media.js sales.js finance.js filament-stock.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
+          cp catalogue-resize.js print-action-controls.js backup-modes.js expenses.js workshop-macos.zip windows-opener.js workshop-windows.zip index.html app.js model-preview.js model-preview-runtime.js working-downloads.js google-drive-backup.js queue-stock-sync.js database-storage.js google-drive-setup.js product-images.js database-backup.js availability-filters.js sku-copy.js image-preview.js catalogue-status.js product-photo-picker.js group-label-picker.js cost-report.js print-completion.js label-thumbnail.js release-history.js marketplace-prices.js ozon-rich-text.js print-queue.js print-queue-state.js workspace-history.js product-labels.js data-freshness.js stock-additions.js warehouse-stocks.js listing-templates.js marketplace-orders.js remote-media.js sales.js finance.js filament-stock.js number-controls.js calc.js attachments.js full-backup.js marketplace-api.js marketplace-metrics.js marketplace-ui.js listing-fields.js ai-prompt.js listing-editor.js wb-prices.js price-editor.js category-catalog.js style.css sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
       - uses: actions/deploy-pages@v4
         id: deployment
-
-  webdav-tests:
-    strategy:
-      matrix:
-        include:
-          - os: macos-15
-            archive: workshop-webdav-macos
-          - os: windows-latest
-            archive: workshop-webdav-windows
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: node --test tests/webdav-sync.test.js
-      - run: python -m pip install -r webdav-helper/requirements.txt
-      - run: python -m unittest discover -s webdav-helper
-      - name: Test macOS Keychain and package component
-        if: runner.os == 'macOS'
-        env:
-          ARCHIVE: ${{ matrix.archive }}
-        run: |
-          keychain="$RUNNER_TEMP/workshop-test.keychain-db"
-          password="$(openssl rand -hex 16)"
-          security create-keychain -p "$password" "$keychain"
-          security list-keychains -d user -s "$keychain"
-          security default-keychain -s "$keychain"
-          security unlock-keychain -p "$password" "$keychain"
-          python webdav-helper/test_system_vault.py
-          security delete-keychain "$keychain"
-          python -m PyInstaller --noconfirm --windowed --onedir --name Workshop-WebDAV --osx-bundle-identifier io.github.tpskym.workshop.webdav webdav-helper/bridge.py
-          ditto -c -k --sequesterRsrc --keepParent dist/Workshop-WebDAV.app "$ARCHIVE.zip"
-      - name: Test Windows Credential Manager and package component
-        if: runner.os == 'Windows'
-        run: |
-          python webdav-helper/test_system_vault.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -m PyInstaller --noconfirm --noconsole --onefile --name Workshop-WebDAV webdav-helper/bridge.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Compress-Archive -Path dist/Workshop-WebDAV.exe -DestinationPath workshop-webdav-windows.zip
-      - name: Verify packaged WebDAV component starts
-        shell: bash
-        run: |
-          if [[ "$RUNNER_OS" == Windows ]]; then
-            executable=dist/Workshop-WebDAV.exe
-          else
-            executable=dist/Workshop-WebDAV.app/Contents/MacOS/Workshop-WebDAV
-          fi
-          "$executable" &
-          pid=$!
-          trap 'kill "$pid" 2>/dev/null || true' EXIT
-          for ((attempt=0; attempt<30; attempt++)); do
-            if curl --noproxy '*' --fail --silent --max-time 2 http://127.0.0.1:48739/health >/dev/null; then
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "Packaged component did not respond on 127.0.0.1:48739" >&2
-          exit 1
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.archive }}
-          path: ${{ matrix.archive }}.zip
-          if-no-files-found: error
 
   windows-helper:
     runs-on: windows-latest

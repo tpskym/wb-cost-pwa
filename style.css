@@ -798,26 +798,8 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .finance-reserve small{display:block;margin-top:6px}
 [data-cost-price-list] li{margin-block:8px}[data-edit-cost-price]{margin-inline-start:10px;min-height:44px}
 
-.webdav-settings{margin:0 0 24px;padding:22px;border:1px solid #d9e4ce;border-radius:14px;background:#f6f9f1}
-.webdav-settings legend{padding:0 8px;font-size:18px;font-weight:700}
-.webdav-settings ol{padding-inline-start:24px;line-height:1.65}
-.webdav-settings [data-webdav-folder]{color:#536a4c}
-.webdav-settings .sync-actions{margin-top:20px;flex-wrap:wrap}
-.webdav-settings .sync-actions button,[data-webdav-issue] button{min-height:44px;padding:10px 14px;font-size:14px}
-.webdav-conflict p{overflow-wrap:anywhere}
-@media(max-width:600px){.webdav-settings{padding:16px}.webdav-settings .sync-actions button{flex:1 1 100%}}
-.webdav-install a,.webdav-connection button{display:inline-flex;align-items:center;min-height:44px}
-.webdav-connection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
-.webdav-connection label{display:grid;gap:8px;min-width:0}
-.webdav-connection input{width:100%;min-height:44px}
-.webdav-connection .sync-actions{grid-column:1/-1;margin-top:8px}
-@media(max-width:600px){.webdav-connection{grid-template-columns:1fr}}
-.webdav-install .file-button{font-size:14px;padding:10px 14px}
-.backup-quick-actions{margin:0 0 20px}
-.backup-quick-actions button{min-height:44px;font-size:14px}
-.backup-option{display:flex;align-items:center;gap:10px;min-height:44px}
-.backup-option input[type="checkbox"]{width:auto;margin:0}
-.backup-access-dialog form{display:grid;gap:12px}
-.backup-access-dialog form>label:not(.backup-option){display:grid;gap:8px}
-.backup-access-dialog input[type="password"]{width:100%;min-height:44px}
-.backup-access-error{color:#962f25}
+#backup-workspace :is(.sync-actions button,.sync-actions .file-button,#google-connect,#client-id,[data-drive-full-backup],[data-copy-app-address],[data-storage-refresh]){
+  min-height:44px;
+  padding:10px 14px;
+  font-size:14px;
+}

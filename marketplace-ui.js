@@ -1,15 +1,15 @@
-import {validGoogleClientId} from './google-drive-setup.js?v=0.2.345';
-import {skuCopyButton} from './sku-copy.js?v=0.2.345';
-import {mountOzonRichText} from './ozon-rich-text.js?v=0.2.345';
-import {mountListingTemplates} from './listing-templates.js?v=0.2.345';
-import {renderRemoteMediaLinks,addManualRichImages,loadRemoteMedia,buildRemoteMediaArchive} from './remote-media.js?v=0.2.345';
-import {readOzonPrice} from './price-editor.js?v=0.2.345';
-import {readWBPrice} from './wb-prices.js?v=0.2.345';
-import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.345';
-import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.345';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.345';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.345';
-import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.345';
+import {validGoogleClientId} from './google-drive-setup.js?v=0.2.346';
+import {skuCopyButton} from './sku-copy.js?v=0.2.346';
+import {mountOzonRichText} from './ozon-rich-text.js?v=0.2.346';
+import {mountListingTemplates} from './listing-templates.js?v=0.2.346';
+import {renderRemoteMediaLinks,addManualRichImages,loadRemoteMedia,buildRemoteMediaArchive} from './remote-media.js?v=0.2.346';
+import {readOzonPrice} from './price-editor.js?v=0.2.346';
+import {readWBPrice} from './wb-prices.js?v=0.2.346';
+import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.346';
+import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.346';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.346';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.346';
+import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.346';
 const sharedEditSelections=new Map();
 const CREDENTIALS='workshop-marketplace-keys-v1';
 let credentials={wbToken:'',ozonKey:'',ozonClient:''},remember=false,selectedMarket='wb',selectedTab='cards';
@@ -17,12 +17,6 @@ try{const saved=JSON.parse(localStorage.getItem(CREDENTIALS)||'null');if(saved){
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function activateMarketplaceSettings(){selectedTab='settings';}
 export function getMarketplaceCredentials(){return {...credentials};}
-export function restoreMarketplaceCredentials(value){
- const restored=parseSharedCredentials(JSON.stringify({...value,type:'workshop-api-credentials',version:1}));
- localStorage.removeItem(CREDENTIALS);
- remember=false;
- credentials={wbToken:restored.wbToken,ozonKey:restored.ozonKey,ozonClient:restored.ozonClient};
-}
 function storeKeys(){if(remember)localStorage.setItem(CREDENTIALS,JSON.stringify(credentials));else localStorage.removeItem(CREDENTIALS);}
 export function parseSharedCredentials(text){
  if(typeof text!=='string'||text.length>50000)throw Error('Неверный формат ключей. Скопируйте их кнопкой «Поделиться токенами» в другом приложении «Мастерская».');

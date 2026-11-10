@@ -4,7 +4,6 @@ resources=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 app=$1
 /usr/bin/osacompile -o "$app" "$resources/Helper.applescript"
 /bin/cp "$resources/open-file.sh" "$app/Contents/Resources/open-file.sh"
-/bin/cp "$resources/webdav-check.sh" "$app/Contents/Resources/webdav-check.sh"
 plist="$app/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Add :CFBundleIdentifier string io.github.tpskym.workshop.files' "$plist"
 /usr/libexec/PlistBuddy -c 'Add :CFBundleURLTypes array' "$plist"
