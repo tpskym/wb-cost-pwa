@@ -750,5 +750,6 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .webdav-settings ol{padding-inline-start:24px;line-height:1.65}
 .webdav-settings [data-webdav-folder]{color:#536a4c}
 .webdav-settings .sync-actions{margin-top:20px;flex-wrap:wrap}
+.webdav-settings .sync-actions button,[data-webdav-issue] button{min-height:44px;padding:10px 14px;font-size:14px}
 .webdav-conflict p{overflow-wrap:anywhere}
 @media(max-width:600px){.webdav-settings{padding:16px}.webdav-settings .sync-actions button{flex:1 1 100%}}
