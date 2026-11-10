@@ -1,7 +1,7 @@
-import {createFullBackup, parseFullBackup} from './full-backup.js?v=0.2.342';
-import {validateDB} from './calc.js?v=0.2.342';
-import {stripBackupSecrets} from './google-drive-backup.js?v=0.2.342';
-import {equal, mergeSyncSnapshots} from './sync-merge.js?v=0.2.342';
+import {createFullBackup, parseFullBackup} from './full-backup.js?v=0.2.343';
+import {validateDB} from './calc.js?v=0.2.343';
+import {stripBackupSecrets} from './google-drive-backup.js?v=0.2.343';
+import {equal, mergeSyncSnapshots} from './sync-merge.js?v=0.2.343';
 
 export const initialArchiveName = 'workshop-initial-transfer.zip';
 const seedMarkerName = 'workshop-sync-source.json';
@@ -18,6 +18,7 @@ export function needsAction(message) {
 }
 
 export async function writeCloudFile(folder, name, content) {
+  if (folder.write) return folder.write(name, content);
   const handle = await folder.getFileHandle(name, {create: true});
   const writer = await handle.createWritable({mode: 'exclusive'});
   try {
@@ -30,6 +31,7 @@ export async function writeCloudFile(folder, name, content) {
 }
 
 export async function readCloudFile(folder, name) {
+  if (folder.read) return folder.read(name);
   return (await folder.getFileHandle(name)).getFile();
 }
 
@@ -114,12 +116,22 @@ async function readMarker(file) {
   return JSON.parse(await file.text());
 }
 
+async function* cloudFileNames(folder) {
+  if (folder.names) {
+    yield* await folder.names();
+    return;
+  }
+  for await (const handle of folder.values()) {
+    if (handle.kind === 'file') yield handle.name;
+  }
+}
+
 async function peersFor(state) {
   const peers = [];
-  for await (const handle of state.folder.values()) {
-    const device = handle.name.match(markerPattern)?.[1];
-    if (handle.kind !== 'file' || !device || device === state.device) continue;
-    const marker = await readMarker(await handle.getFile());
+  for await (const name of cloudFileNames(state.folder)) {
+    const device = name.match(markerPattern)?.[1];
+    if (!device || device === state.device) continue;
+    const marker = await readMarker(await readCloudFile(state.folder, name));
     if (marker.epoch !== state.epoch) continue;
     if (!idPattern.test(device) || !idPattern.test(marker.id) || !Array.isArray(marker.ancestors) ||
       marker.ancestors.length > ancestryLimit || marker.ancestors.some(id => !idPattern.test(id))) {

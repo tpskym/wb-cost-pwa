@@ -74,3 +74,16 @@ test('initial transfer replaces local products and filament while excluding cred
  assert.equal(staged.database.credentials,undefined);
  assert.equal(staged.records.length,records.length);
 });
+
+test('full ZIP keeps the encrypted access file separate from database and cost-only ZIP',async()=>{
+ const {database}=fixture();
+ const accessEnvelope={version:1,salt:'01'.repeat(16),iv:'02'.repeat(12),ciphertext:'03'.repeat(24)};
+ const full=await createFullBackup(database,[],{accessEnvelope,replaceAll:true});
+ const entries=await readZip(full);
+ assert.deepEqual(JSON.parse(await entries.get('workshop-access.json').text()),accessEnvelope);
+ assert.equal(JSON.parse(await entries.get('database.json').text()).accessEnvelope,undefined);
+ assert.deepEqual((await parseFullBackup(full)).accessEnvelope,accessEnvelope);
+ assert.equal((await parseFullBackup(await createFullBackup(database,[],{mode:'costs',accessEnvelope}))).accessEnvelope,undefined);
+ entries.delete('workshop-access.json');
+ await assert.rejects(()=>parseFullBackupEntries(entries),/файл доступов/);
+});

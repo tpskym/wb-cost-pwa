@@ -1,13 +1,22 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.342';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.342';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.342';
-import {validateDB} from './calc.js?v=0.2.342';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.343';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.343';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.343';
+import {validateDB} from './calc.js?v=0.2.343';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
-export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,onProgress=()=>{}}={}){
+const accessFilename='workshop-access.json';
+export function validateBackupAccess(value){
+ const {version,salt,iv,ciphertext}=value||{};
+ if(version!==1||typeof salt!=='string'||!/^[a-f0-9]{32}$/.test(salt)||typeof iv!=='string'||!/^[a-f0-9]{24}$/.test(iv)||
+    typeof ciphertext!=='string'||ciphertext.length<32||ciphertext.length>1000000||!(/^(?:[a-f0-9]{2})+$/.test(ciphertext)))throw Error('Некорректный зашифрованный файл доступов');
+ return {version,salt,iv,ciphertext};
+}
+export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,accessEnvelope,onProgress=()=>{}}={}){
  const db=validateDB(replaceAll?{...stripBackupSecrets(database),backupMode:"full"}:createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
  const files=[],entries=[];
  for(const record of records){if(mode==='costs'&&!['product-image','model','card-design'].includes(record.category))continue;const cache=record.category==='marketplace-image'&&record.owner===db.id+':marketplace-photos'&&typeof record.sku==='string'&&record.sku.trim();if(record.category==='marketplace-image'?!cache:!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:cache?null:owners.get(record.owner),...(cache?{sku:record.sku}:{}),...(record.plateQuantity?{plateQuantity:record.plateQuantity}:{}),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
- const manifest={format:'workshop-full-backup',version:1,...(replaceAll?{replaceAll:true}:{}),createdAt:new Date().toISOString(),database:'database.json',files};
+ const access=mode==='full'&&accessEnvelope?accessFilename:undefined;
+ if(access)entries.push({name:access,blob:new Blob([JSON.stringify(validateBackupAccess(accessEnvelope))])});
+ const manifest={access,format:'workshop-full-backup',version:1,...(replaceAll?{replaceAll:true}:{}),createdAt:new Date().toISOString(),database:'database.json',files};
  entries.unshift({name:'manifest.json',blob:new Blob([JSON.stringify(manifest,null,2)])},{name:'database.json',blob:new Blob([JSON.stringify(db,null,2)])});
  return makeZip(entries,{onProgress:(done,total)=>onProgress({stage:'Создание ZIP',done,total,unit:'bytes'})});
 }
@@ -25,9 +34,15 @@ export async function parseFullBackup(blob,{onProgress=()=>{}}={}){
   if(f.plateQuantity!==undefined&&(f.category!=='model'||!Number.isInteger(f.plateQuantity)||f.plateQuantity<2||f.plateQuantity>100))throw Error('Некорректное количество деталей в модели');
   used.add(f.path);files.push({...f,blob:new Blob([entries.get(f.path)],{type:f.type})});onProgress({stage:'Проверка файлов',done:files.length,total:manifest.files.length,unit:'files'});await new Promise(resolve=>setTimeout(resolve,0));
  }
- if(entries.size!==files.length+2)throw Error('Состав архива не совпадает с описанием');
+ let accessEnvelope;
+ if(manifest.access!==undefined){
+  const entry=entries.get(accessFilename);
+  if(manifest.access!==accessFilename||backupMode(database)!=='full'||!entry||entry.size>1100000)throw Error('Некорректный файл доступов в архиве');
+  accessEnvelope=validateBackupAccess(JSON.parse(await entry.text()));
+ }
+ if(entries.size!==files.length+2+Number(!!accessEnvelope))throw Error('Состав архива не совпадает с описанием');
  if(replaceAll&&backupMode(database)!=='full')throw Error('Для полной замены нужен полный архив');
- return {database,files,replaceAll};
+ return {database,files,replaceAll,...(accessEnvelope&&{accessEnvelope})};
 }
 export function stageFullRestore(parsed,{localDatabase}={}){
  const database=structuredClone(parsed.database);database.id=crypto.randomUUID();

@@ -1,4 +1,4 @@
-import {getFile,putFile,putFiles} from './attachments.js?v=0.2.342';
+import {getFile,putFile,putFiles} from './attachments.js?v=0.2.343';
 // IndexedDB is the only write target. localStorage is read solely for migration.
 export function createDatabaseStorage({storage=globalThis.localStorage,key='workshop-db-v1',read=getFile,write=putFile,writeBatch=putFiles,validate=raw=>JSON.parse(raw)}={}){
  let tail=Promise.resolve(),persisted=null,migrationError=null;
