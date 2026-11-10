@@ -1,9 +1,9 @@
-import {mountPriceEditor} from './price-editor.js?v=0.2.346';
-import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.346';
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.346';
-import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.346';
-import {wbBarcodeRemovalErrors,wbUpdateDraft} from './marketplace-api.js?v=0.2.346';
-import {listFiles} from './attachments.js?v=0.2.346';
+import {mountPriceEditor} from './price-editor.js?v=0.2.347';
+import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.347';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.347';
+import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.347';
+import {wbBarcodeRemovalErrors,wbUpdateDraft} from './marketplace-api.js?v=0.2.347';
+import {listFiles} from './attachments.js?v=0.2.347';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let disposeCurrent=()=>{};
 export function disposeListingEditor(){disposeCurrent();disposeCurrent=()=>{};}

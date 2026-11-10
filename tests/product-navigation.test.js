@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.346');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.347');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -106,6 +106,79 @@ test('Important tab edits the same production parameters without adding extra ca
 });
 
 test('cost summary contains cost breakdown without unused marketplace profit inputs',async()=>{document.querySelector('[data-space="cost"]').click();await settle();const root=document.querySelector('#results');assert.ok(root.querySelector('.big-number'));assert.ok(root.querySelector('.cost-list'));assert.ok(root.querySelector('details'));assert.equal(root.querySelector('[data-market-field]'),null);assert.equal(root.querySelector('[data-open-loaded-listing]'),null);assert.equal(root.querySelector('[data-market-profit]'),null);assert.doesNotMatch(root.textContent,/К переводу за товар|Налог на продажу|Маржа от цены/);});
+
+test('sale price controls recalculate the scheme payouts, profit table and saved prices',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const enter=(input,value)=>{input.value=value;input.dispatchEvent(new window.Event('input',{bubbles:true}));};
+ $('[data-space="cost"]').click();
+ await settle();
+ enter($('[data-profit-tax-rate]'),6);
+ for(const [market,fields] of [
+  ['wb',{commission:20,delivery:10,buyout:100}],
+  ['ozon',{commission:20,acquiring:5,fbo:10,fbs:20,buyout:100}]
+ ])for(const [field,value] of Object.entries(fields))enter($(`[data-profit-logistics="${field}"][data-market="${market}"]`),value);
+ const ozon=$('[data-profit-market="ozon"].marketplace-profit-card');
+ const wb=$('[data-profit-market="wb"].marketplace-profit-card');
+ const ozonPrice=ozon.querySelector('[data-profit-sale-price]');
+ const ozonSlider=ozon.querySelector('[data-price-range]');
+ assert.equal(ozonSlider.max,'300');
+ enter(ozonSlider,180);
+ assert.equal(ozonPrice.value,'180');
+ assert.match($('[data-calculated-payout="ozonFbo"]').textContent,/125/);
+ assert.match($('[data-calculated-payout="ozonFbs"]').textContent,/115/);
+ const profit=$('[data-profit-result="ozonFbo"]');
+ assert.match(profit.querySelector('small').textContent,/10,80/);
+ assert.ok(profit.querySelector('strong').textContent.includes('₽'));
+ assert.match($('[data-marketplace-profit-table]').textContent,/Ozon FBO.*Ozon FBS.*180,00.*125,00.*115,00/);
+ ozon.querySelector('[data-price-adjust="10"]').click();
+ assert.equal(ozonPrice.value,'190');
+ ozon.querySelector('[data-price-adjust="-1"]').click();
+ assert.equal(ozonSlider.value,'189');
+ enter(ozonSlider,295);
+ ozon.querySelector('[data-price-adjust="10"]').click();
+ assert.equal(ozonPrice.value,'300');
+ assert.equal(ozon.querySelector('[data-price-adjust="10"]').disabled,true);
+ enter(ozonSlider,0);
+ ozonSlider.dispatchEvent(new window.Event('change'));
+ assert.equal(ozon.querySelector('[data-price-adjust="-1"]').disabled,true);
+ assert.equal(profit.dataset.profitTone,'loss');
+ assert.match(profit.querySelector('strong').textContent,/-/);
+ assert.match(profit.querySelector('small').textContent,/Налог вычтен: 0,00/);
+ const wbPrice=wb.querySelector('[data-profit-sale-price]');
+ const wbSlider=wb.querySelector('[data-price-range]');
+ assert.equal(wbPrice.max,'');
+ const oldEnd=Number(wbSlider.max);
+ enter(wbSlider,oldEnd);
+ wbSlider.dispatchEvent(new window.Event('change'));
+ assert.ok(Number(wbSlider.max)>oldEnd);
+ wb.querySelector('[data-price-adjust="10"]').click();
+ assert.equal(wbSlider.valueAsNumber,oldEnd+10);
+ assert.match($('[data-calculated-payout="wbFbs"]').textContent,/798/);
+ await settle();
+ const database=await readDatabase();
+ const current=database.products.find(p=>p.id===$('#mobile-product').value);
+ assert.equal(current.marketplaces.wb.price,oldEnd+10);
+ assert.equal(current.marketplaces.ozon.price,0);
+
+ const {calculateManual}=await import('../calc.js');
+ const {configuredCostPrices}=await import('../expenses.js');
+ const {cost}=calculateManual({...current,values:{...current.values,...configuredCostPrices(database,current)}});
+ const prices=(market,kind)=>[...document.querySelectorAll(`[data-fbs-prices="${market}"] [data-fbs-${kind}]`)].map(el=>el.textContent);
+ const money=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
+ const assertPrice=(market,kind,expected)=>{
+  const values=prices(market,kind);
+  assert.equal(values.length,2);
+  assert.equal(values[0],values[1]);
+  assert.ok(values[0].endsWith(money.format(expected)),values[0]);
+ };
+ assertPrice('wb','break-even',Math.ceil((10+cost)/0.74-1e-9));
+ assertPrice('wb','cost-profit',Math.ceil((10+2*cost)/0.74-1e-9));
+ enter($('[data-market="ozon"][data-profit-logistics="buyout"]'),80);
+ assertPrice('ozon','break-even',Math.ceil((20+4+cost)/0.69-1e-9));
+ assertPrice('ozon','cost-profit',Math.ceil((20+4+2*cost)/0.69-1e-9));
+ enter($('[data-market="ozon"][data-profit-logistics="fbs"]'),301);
+ for(const kind of ['break-even','cost-profit'])assert.deepEqual(prices('ozon',kind),Array(2).fill('Недостижимо до 300 ₽'));
+});
 
 test('multiline product description appears once above Important with its card import action and persists',async()=>{
  const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();$('[data-tab="important"]').click();await settle();const text='Описание товара\nВторая строка';assert.equal($('#fields [data-product-description]'),null);assert.equal(document.querySelectorAll('[data-product-description]').length,1);const input=$('#description-identity');assert.ok(input);assert.ok(input.closest('.product-description-editor').querySelector('[data-description-pull]'));input.value=text;input.dispatchEvent(new window.Event('input',{bubbles:true}));assert.equal($('#description-identity').value,text);await settle();const id=$('#mobile-product').value;assert.equal((await readDatabase()).products.find(p=>p.id===id).description,text);$('[data-tab="production"]').click();await settle();assert.equal($('#description-identity').value,text);assert.equal(document.querySelectorAll('[data-product-description]').length,1);
