@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.369');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.370');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -193,6 +193,8 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assertPrice('wb','break-even',Math.ceil((20+cost)/0.725-1e-9));
  assertPrice('wb','working',Math.ceil((20+1.4*cost)/0.725-1e-9));
  assertPrice('wb','suggested',Math.ceil((20+1.8*cost)/0.725-1e-9));
+ assertPrice('wb','working-profit',cost*0.4);
+ assertPrice('wb','suggested-profit',cost*0.8);
  for(const host of document.querySelectorAll('[data-fbs-prices="wb"]'))assert.doesNotMatch(host.textContent,/цена до скидки/i);
  enter(wbAcquiring,0);
  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/780,80/);
@@ -203,12 +205,25 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assertPrice('ozon','break-even',Math.ceil((20+4+ozonCost)/0.69-1e-9));
  assertPrice('ozon','working',Math.ceil((20+4+1.4*ozonCost)/0.69-1e-9));
  assertPrice('ozon','suggested',Math.ceil((20+4+1.8*ozonCost)/0.69-1e-9));
+ assertPrice('ozon','working-profit',ozonCost*0.4);
  assert.equal(ozonPrice.value,'0');
  assert.ok($('[data-fbs-suggested]').closest('.fbs-suggested-price'));
  enter(ozonSlider,180);
  assert.equal($('[data-profit-result="ozonFbs"] strong').textContent,money.format(115-10.8-4-ozonCost));
- enter($('[data-market="ozon"][data-profit-logistics="fbs"]'),301);
- for(const kind of ['break-even','working','suggested'])assert.deepEqual(prices('ozon',kind),Array(2).fill('Недостижимо до 300 ₽'));
+ const ozonDelivery=$('[data-market="ozon"][data-profit-logistics="fbs"]');
+ enter(ozonDelivery,300*0.69-4-1.6*ozonCost);
+ assertPrice('ozon','working-profit',ozonCost*0.4);
+ assert.deepEqual(prices('ozon','working-percent'),[]);
+ assertPrice('ozon','suggested',300);
+ assertPrice('ozon','suggested-profit',ozonCost*0.6);
+ for(const label of prices('ozon','suggested-percent'))assert.match(label,/60,00%$/);
+ enter(ozonDelivery,301);
+ assert.deepEqual(prices('ozon','break-even'),Array(2).fill('Недостижимо до 300 ₽'));
+ const cappedLoss=300*0.69-301-4-ozonCost;
+ for(const kind of ['working','suggested']){
+  assertPrice('ozon',kind,300);
+  assertPrice('ozon',kind+'-profit',cappedLoss);
+ }
 });
 
 test('multiline product description appears once above Important with its card import action and persists',async()=>{

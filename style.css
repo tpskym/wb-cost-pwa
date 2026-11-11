@@ -735,6 +735,7 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-price-targets dl>.fbs-suggested-price{border-color:#c4d5b9;background:#edf5e7;color:#284835}
 .fbs-suggested-price strong{font-weight:800}
 .fbs-working-price small,.fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
+.fbs-target-profit{display:flex;flex-wrap:wrap;gap:2px 8px;width:fit-content;max-width:100%;margin-top:6px;padding:3px 7px;border:1px solid #343c282e;border-radius:5px;background:#ffffffa8;font-variant-numeric:tabular-nums}
 @container (228px <= width < 414px){
  .fbs-price-targets dl{grid-template-columns:repeat(2,minmax(0,1fr))}
  .fbs-suggested-price{grid-column:1/-1}
