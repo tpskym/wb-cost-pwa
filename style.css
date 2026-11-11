@@ -728,9 +728,10 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-logistics-fields{display:grid;align-items:stretch;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:12px}
 .marketplace-logistics small{display:block;margin-top:10px;color:#425a39}
 .marketplace-logistics small[hidden]{display:none}
-.profit-commission-action{margin-top:20px}
-.profit-commission-action button{min-height:44px;padding:10px 12px;font-size:14px;white-space:normal}
-.profit-commission-action small:empty{display:none}
+.marketplace-tariff-actions{margin-top:20px}
+.marketplace-tariff-actions>div{display:flex;flex-wrap:wrap;gap:10px}
+.marketplace-tariff-actions button{min-height:44px;max-width:100%;padding:10px 12px;font-size:14px;white-space:normal}
+.marketplace-tariff-actions small:empty{display:none}
 .marketplace-profit-heading{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px}
 .marketplace-profit-heading h3{margin:0}
 .marketplace-profit-heading a{display:inline-flex;align-items:center;min-height:44px;color:#425a39;font-size:14px;text-underline-offset:3px}
