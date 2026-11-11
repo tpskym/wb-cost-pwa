@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.359');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.360');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -115,7 +115,7 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  await settle();
  enter($('[data-profit-tax-rate]'),6);
  for(const [market,fields] of [
-  ['wb',{commission:20,dispatchHours:48,delivery:10,buyout:100}],
+  ['wb',{commissionOverride:20,dispatchHours:48,deliveryOverride:10,buyout:100}],
   ['ozon',{commissionFbo:20,commissionFbs:20,acquiring:5,fbo:10,fbs:20,buyout:100}]
  ])for(const [field,value] of Object.entries(fields))enter($(`[data-profit-logistics="${field}"][data-market="${market}"]`),value);
  const ozon=$('[data-profit-market="ozon"].marketplace-profit-card');
@@ -262,6 +262,8 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   await $('[data-pull-commission="ozon"]').onclick();
   const wbField=key=>'[data-market="wb"][data-profit-logistics="'+key+'"]';
   assert.equal($(wbField('commission')).value,'37');
+  assert.equal($(wbField('commission')).readOnly,true);
+  assert.equal($(wbField('delivery')).readOnly,true);
   enter('[data-profit-sale-price="wb"]',395);
   $('[data-tab="important"]').click();
   for(const [side,mm] of Object.entries({width:110,height:120,depth:90})){
@@ -272,36 +274,43 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   await $('[data-calculate-delivery="wb"]').onclick();
   assert.equal($(wbField('delivery')).value,'82.6744');
   enter(wbField('buyout'),93);
-  const deliveryValue=$('[data-wb-fbs-delivery]');
-  assert.match(deliveryValue.textContent,/88,90/);
+  const deliveryValue=$(wbField('deliveryOverride'));
+  assert.equal(deliveryValue.value,'88.9');
   assert.match($('[data-calculated-payout="wbFbs"]').textContent,/167,85/);
   enter(wbField('buyout'),90);
-  assert.match(deliveryValue.textContent,/91,86/);
+  assert.equal(deliveryValue.value,'91.86');
   assert.match($('[data-calculated-payout="wbFbs"]').textContent,/164,89/);
   enter(wbField('buyout'),0);
-  assert.equal(deliveryValue.parentElement.hidden,true);
+  assert.equal(deliveryValue.value,'');
   assert.equal($('[data-calculated-payout="wbFbs"]').textContent,'—');
   enter(wbField('buyout'),93);
   const hours=$(wbField('dispatchHours'));
   assert.equal(hours.value,'24');
-  const appliedRate=$('[data-wb-fbs-rate]');
-  assert.equal(appliedRate.parentElement.hidden,false);
-  assert.equal(appliedRate.textContent,'33,5%');
+  const appliedRate=$(wbField('commissionOverride'));
+  assert.equal(appliedRate.value,'33.5');
   for(const value of ['0','']){
    enter(wbField('dispatchHours'),value);
    hours.dispatchEvent(new window.Event('change',{bubbles:true}));
    assert.equal(hours.value,'24');
-   assert.equal(appliedRate.textContent,'33,5%');
+   assert.equal(appliedRate.value,'33.5');
    assert.equal((await readDatabase()).products.find(product=>product.sku==='SKU-0').marketplaceLogistics.wb.dispatchHours,24);
   }
   const defaultPrice=$('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent;
   enter(wbField('dispatchHours'),43);
-  assert.equal(appliedRate.textContent,'37%');
+  assert.equal(appliedRate.value,'37');
   assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   enter(wbField('dispatchHours'),30);
-  assert.equal(appliedRate.textContent,'33,5%');
+  assert.equal(appliedRate.value,'33.5');
   assert.match($('[data-logistics-result="wb"]').textContent,/132,33/);
   assert.equal($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
+  enter(wbField('commissionOverride'),20);
+  enter(wbField('deliveryOverride'),60);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/250,08/);
+  assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
+  enter(wbField('buyout'),90);
+  assert.equal(deliveryValue.value,'60');
+  assert.equal(appliedRate.value,'20');
+  enter(wbField('buyout'),93);
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbo"]').value,'12.5');
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbs"]').value,'22.5');
   assert.match($('[data-calculated-payout="ozonFbo"]').textContent,/161,00/);
@@ -310,6 +319,13 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   const stored=validateDB(await readDatabase()).products.find(product=>product.sku==='SKU-0');
   assert.equal(stored.marketplaceLogistics.wb.commission,37);
   assert.equal(stored.marketplaceLogistics.wb.dispatchHours,30);
+  assert.equal(stored.marketplaceLogistics.wb.commissionOverride,20);
+  assert.equal(stored.marketplaceLogistics.wb.deliveryOverride,60);
+  enter(wbField('commissionOverride'),'');
+  enter(wbField('deliveryOverride'),'');
+  assert.equal(appliedRate.value,'33.5');
+  assert.equal(deliveryValue.value,'88.9');
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/167,85/);
   assert.equal(stored.marketplaceLogistics.ozon.commissionFbo,12.5);
   assert.equal(stored.marketplaceLogistics.ozon.commissionFbs,22.5);
   await $('[data-pull-commission="wb"]').onclick();
