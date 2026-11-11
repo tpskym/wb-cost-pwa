@@ -7,6 +7,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
  Object.assign(globalThis,{document:dom.window.document,window:dom.window,localStorage:dom.window.localStorage,location:dom.window.location,history:dom.window.history,indexedDB,confirm:()=>true});dom.window.scrollTo=()=>{};
  const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,marketplaceCategories:i%2?{}:{wb:{id:12,label:'Дом'},ozon:{id:22,typeId:23,label:'Аксессуары'}},productGroup:'Каталог '+Math.floor(i/5)}));
+ products[0].marketplaceLogistics={ozon:{commission:23}};
  localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products,templates:[],costPrices:{printers:[{model:"Bambu Lab A1",price:45000}],filaments:[]}}));
  await import('../app.js');
  const $=s=>document.querySelector(s);
@@ -15,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.353');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.354');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -115,7 +116,7 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  enter($('[data-profit-tax-rate]'),6);
  for(const [market,fields] of [
   ['wb',{commission:20,delivery:10,buyout:100}],
-  ['ozon',{commission:20,acquiring:5,fbo:10,fbs:20,buyout:100}]
+  ['ozon',{commissionFbo:20,commissionFbs:20,acquiring:5,fbo:10,fbs:20,buyout:100}]
  ])for(const [field,value] of Object.entries(fields))enter($(`[data-profit-logistics="${field}"][data-market="${market}"]`),value);
  const ozon=$('[data-profit-market="ozon"].marketplace-profit-card');
  const wb=$('[data-profit-market="wb"].marketplace-profit-card');
@@ -215,3 +216,64 @@ test('label prompts are grouped and description prompt includes skill rules and 
 test('label files prompt button opens the current product label prompt without needing an attached PDF',()=>{const button=document.querySelector('#label-file-prompt');assert.ok(button);assert.ok(button.querySelector('svg'));button.click();const prompt=document.querySelector('#label-prompt-text');assert.ok(prompt);assert.match(prompt.value,/PrintScaling=None/);assert.ok(prompt.value.includes('Артикул: '+document.querySelector('#sku').value));document.querySelector('[data-prompt-close]').click();});
 
 test('model upload replaces the previous file rather than growing the product model library',async()=>{const owner=(await readDatabase()).id+':'+document.querySelector('#product-list .chosen[data-product]').dataset.product;const upload=async name=>{let input;for(let attempt=0;attempt<100;attempt++){input=document.querySelector('[data-file-upload=model]');if(input)break;await new Promise(resolve=>setTimeout(resolve,20));}assert.ok(input,'model upload form is ready');const file=new Blob(['model bytes']);Object.defineProperty(file,'name',{value:name});Object.defineProperty(input,'files',{value:[file]});await input.onchange();await settle();};await upload('first.3mf');await upload('replacement.3mf');const {listFiles}=await import('../attachments.js');const models=(await listFiles(owner)).filter(f=>f.category==='model');assert.equal(models.length,1);assert.equal(models[0].name,'replacement.3mf');assert.equal(document.querySelector('#print-model-select').selectedOptions[0].textContent,'replacement.3mf');});
+
+
+test('calculator pulls WB commission by subject and Ozon rates by the exact seller article',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const enter=(selector,value)=>{const input=$(selector);input.value=value;input.dispatchEvent(new window.Event('input',{bubbles:true}));};
+ const originalFetch=globalThis.fetch;
+ const calls=[];
+ globalThis.fetch=async(url,options)=>{
+  calls.push({url,method:options.method,body:options.body});
+  if(url==='https://common-api.wildberries.ru/api/v1/tariffs/commission?locale=ru'){
+   return Response.json({report:[
+    {subjectID:31,parentID:12,kgvpMarketplace:3},
+    {subjectID:12,kgvpMarketplace:17.5,paidStorageKgvp:10},
+   ]});
+  }
+  if(url==='https://api-seller.ozon.ru/v5/product/info/prices'){
+   return Response.json({items:[
+    {offer_id:'another-product',commissions:{sales_percent_fbo:4,sales_percent_fbs:5}},
+    {offer_id:'SKU-0',price:{marketing_seller_price:'200'},
+     commissions:{sales_percent_fbo:12.5,sales_percent_fbs:22.5}},
+   ]});
+  }
+  throw Error('Unexpected request '+url);
+ };
+ try{
+  $('[data-space="api"]').click();
+  $('#wb-api-token').value='test-wb-token';
+  $('#ozon-client').value='1000';
+  $('#ozon-api-key').value='test-ozon-key';
+  $('#api-save-keys').click();
+  $('[data-space="cost"]').click();
+  enter('#product-search','SKU-0');
+  $('#product-list [data-product]').click();
+  await settle();
+  assert.equal($('#sku').value,'SKU-0');
+  assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbo"]').value,'23');
+  assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbs"]').value,'23');
+  enter('[data-profit-sale-price="ozon"]',200);
+  enter('[data-market="ozon"][data-profit-logistics="acquiring"]',2);
+  enter('[data-market="ozon"][data-profit-logistics="fbo"]',10);
+  enter('[data-market="ozon"][data-profit-logistics="fbs"]',20);
+  await $('[data-pull-commission="wb"]').onclick();
+  await $('[data-pull-commission="ozon"]').onclick();
+  assert.equal($('[data-market="wb"][data-profit-logistics="commission"]').value,'17.5');
+  assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbo"]').value,'12.5');
+  assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbs"]').value,'22.5');
+  assert.match($('[data-calculated-payout="ozonFbo"]').textContent,/161,00/);
+  assert.match($('[data-calculated-payout="ozonFbs"]').textContent,/131,00/);
+  const {validateDB}=await import('../calc.js');
+  const stored=validateDB(await readDatabase()).products.find(product=>product.sku==='SKU-0');
+  assert.equal(stored.marketplaceLogistics.wb.commission,17.5);
+  assert.equal(stored.marketplaceLogistics.ozon.commissionFbo,12.5);
+  assert.equal(stored.marketplaceLogistics.ozon.commissionFbs,22.5);
+  await $('[data-pull-commission="wb"]').onclick();
+  assert.equal(calls.filter(call=>call.url.includes('/tariffs/commission')).length,1);
+  const ozonCall=calls.find(call=>call.url.includes('/product/info/prices'));
+  assert.deepEqual(JSON.parse(ozonCall.body).filter.offer_id,['SKU-0']);
+ }finally{
+  globalThis.fetch=originalFetch;
+ }
+});

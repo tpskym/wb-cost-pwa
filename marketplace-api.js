@@ -1,6 +1,6 @@
 const HOSTS={wb:'https://content-api.wildberries.ru',ozon:'https://api-seller.ozon.ru'};
 const OPERATIONS={
- wb:{pricesAll:['GET','/api/v2/list/goods/filter'],setStocks:['PUT','/api/v3/stocks/'],warehouseReport:['POST','/api/analytics/v1/stocks-report/wb-warehouses'],merge:['POST','/content/v2/cards/moveNm'],prices:['GET','/api/v2/list/goods/filter'],setPrice:['POST','/api/v2/upload/task'],barcodes:['POST','/content/v2/barcodes'],warehouses:['GET','/api/v3/warehouses'],stocks:['POST','/api/v3/stocks/'],list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
+ wb:{commission:['GET','/api/v1/tariffs/commission?locale=ru'],pricesAll:['GET','/api/v2/list/goods/filter'],setStocks:['PUT','/api/v3/stocks/'],warehouseReport:['POST','/api/analytics/v1/stocks-report/wb-warehouses'],merge:['POST','/content/v2/cards/moveNm'],prices:['GET','/api/v2/list/goods/filter'],setPrice:['POST','/api/v2/upload/task'],barcodes:['POST','/content/v2/barcodes'],warehouses:['GET','/api/v3/warehouses'],stocks:['POST','/api/v3/stocks/'],list:['POST','/content/v2/get/cards/list'],create:['POST','/content/v2/cards/upload'],update:['POST','/content/v2/cards/update'],errors:['POST','/content/v2/cards/error/list'],categories:['GET','/content/v2/object/all'],attributes:['GET','/content/v2/object/charcs/'],pictures:['POST','/content/v3/media/save']},
  ozon:{warehouses:['POST','/v2/warehouse/list'],richText:['POST','/v1/product/attributes/update'],setStocks:['POST','/v2/products/stocks'],warehouseFbs:['POST','/v2/product/info/stocks-by-warehouse/fbs'],warehouseFbo:['POST','/v1/analytics/stocks'],pictures:['POST','/v2/product/pictures/info'],prices:['POST','/v5/product/info/prices'],setPrice:['POST','/v1/product/import/prices'],barcodes:['POST','/v1/barcode/generate'],stocks:['POST','/v4/product/info/stocks'],quality:['POST','/v1/product/rating-by-sku'],roles:['POST','/v1/roles'],list:['POST','/v3/product/list'],info:['POST','/v3/product/info/list'],details:['POST','/v4/product/info/attributes'],create:['POST','/v3/product/import'],update:['POST','/v3/product/import'],status:['POST','/v1/product/import/info'],categories:['POST','/v1/description-category/tree'],attributes:['POST','/v1/description-category/attribute'],values:['POST','/v1/description-category/attribute/values'],searchValues:['POST','/v1/description-category/attribute/values/search']}
 };
 export function redact(text,credentials){let output=String(text);for(const value of [credentials?.wbToken,credentials?.ozonKey])if(value)output=output.split(value).join('[скрыто]');return output;}
@@ -27,13 +27,36 @@ export async function marketRequest(market,operation,credentials,body={},fetcher
  if(market==='wb'&&operation==='stocks'){if(!Number.isSafeInteger(body.warehouseId)||body.warehouseId<=0)throw Error('Нет ID склада WB');path+=body.warehouseId;body={chrtIds:body.chrtIds};}
  if(market==='wb'&&operation==='pricesAll'){if(!Number.isSafeInteger(body.offset)||body.offset<0)throw Error('Некорректная страница цен WB');path+='?limit=1000&offset='+body.offset;}
  if(market==='wb'&&operation==='prices'){if(!Number.isSafeInteger(Number(body.nmID))||Number(body.nmID)<=0)throw Error('Укажите nmID карточки WB');path+='?limit=1000&offset=0&filterNmID='+Number(body.nmID);}
- const host=market==='wb'&&operation==='warehouseReport'?'https://seller-analytics-api.wildberries.ru':market==='wb'&&['prices','pricesAll','setPrice'].includes(operation)?'https://discounts-prices-api.wildberries.ru':market==='wb'&&['warehouses','stocks','setStocks'].includes(operation)?'https://marketplace-api.wildberries.ru':HOSTS[market];
+ const host=market==='wb'&&operation==='commission'?'https://common-api.wildberries.ru':market==='wb'&&operation==='warehouseReport'?'https://seller-analytics-api.wildberries.ru':market==='wb'&&['prices','pricesAll','setPrice'].includes(operation)?'https://discounts-prices-api.wildberries.ru':market==='wb'&&['warehouses','stocks','setStocks'].includes(operation)?'https://marketplace-api.wildberries.ru':HOSTS[market];
  const headers={'Content-Type':'application/json',...(market==='wb'?{Authorization:credentials.wbToken}:{'Client-Id':credentials.ozonClient,'Api-Key':credentials.ozonKey})};
  let response;
  try{response=await fetcher(host+path,{method,headers,...(['POST','PUT'].includes(method)?{body:JSON.stringify(body)}:{}),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(45000)});}catch{throw Error('Нет ответа API. Проверьте сеть и разрешения браузера. Если отправляли карточку — сначала проверьте её состояние на площадке, не повторяйте отправку автоматически.');}
  const raw=redact(await response.text(),credentials);const hint=response.status===403&&market==='ozon'?ozonPermissionHint(operation,/missing a required role/i.test(raw)):(market==='wb'&&response.status===403&&['prices','pricesAll','setPrice'].includes(operation)?'Для цены WB нужен токен с доступом «Цены и скидки», для изменения — с правом записи.':market==='wb'&&response.status===403&&['warehouses','stocks','setStocks'].includes(operation)?'Для остатков WB нужен токен с доступом «Маркетплейс»; для добавления — с правом записи.':market==='wb'&&response.status===403&&operation==='warehouseReport'?'Для остатков на складах WB нужен токен категории «Аналитика» с правом чтения. Новый отчёт доступен персональному, сервисному или базовому токену с секретом.':statusHint(response.status));let data;try{data=raw?JSON.parse(raw):{};}catch{throw Error('API вернул ответ, который не удалось прочитать (HTTP '+response.status+'). '+hint);}
  if(!response.ok||data.error===true){const error=Error('API '+market.toUpperCase()+': '+response.status+' · '+String(data.errorText||data.message||data.error||'Запрос отклонён').slice(0,800)+(hint?' · '+hint:''));error.status=response.status;const retry=response.headers?.get('Retry-After'),seconds=Number(retry);if(retry){const delay=Number.isFinite(seconds)?seconds*1000:Date.parse(retry)-Date.now();if(Number.isFinite(delay)&&delay>0)error.retryAfterMs=delay;}throw error;}
  return data;
+}
+let wbCommissionCache;
+export async function readWbFbsCommission(subjectId,credentials){
+ if(!Number.isSafeInteger(subjectId)||subjectId<=0)throw Error('Выберите категорию WB в параметрах товара.');
+ let cache=wbCommissionCache;
+ if(!cache||cache.token!==credentials.wbToken||cache.expires<=Date.now()){
+  // WB returns the whole table and limits how often a seller can read it.
+  cache={token:credentials.wbToken,expires:Date.now()+15*60*1000,
+   promise:marketRequest('wb','commission',credentials).then(data=>{
+    if(!Array.isArray(data.report))throw Error('WB не вернул таблицу комиссий.');
+    return data.report;
+   })};
+  wbCommissionCache=cache;
+ }
+ let rows;
+ try{rows=await cache.promise;}catch(error){
+  if(wbCommissionCache===cache)wbCommissionCache=undefined;
+  throw error;
+ }
+ const row=rows.find(item=>Number(item?.subjectID)===subjectId);
+ const rate=row?.kgvpMarketplace;
+ if(!Number.isFinite(rate)||rate<0||rate>100)throw Error('WB не вернул ставку FBS для этой категории.');
+ return rate;
 }
 export function listBody(market,search='',cursor=null){return market==='wb'?{settings:{sort:{ascending:true},filter:{withPhoto:-1,...(search?{textSearch:search}:{})},cursor:{limit:100,...(cursor||{})}}}:{filter:{...(search?{offer_id:[search]}:{}),visibility:'ALL'},last_id:cursor||'',limit:100};}
 export function blankListing(market,product){return market==='wb'?[{subjectID:null,variants:[{vendorCode:product.sku||'',title:product.name,description:'',brand:'',dimensions:{length:null,width:null,height:null,weightBrutto:null},characteristics:[],sizes:[{techSize:'0',skus:[]}]}]}]:{items:[{offer_id:product.sku||'',name:product.name,description_category_id:null,type_id:null,price:String(product.marketplaces?.ozon?.price||''),currency_code:'RUB',vat:'0',barcode:'',height:null,width:null,depth:null,dimension_unit:'mm',weight:null,weight_unit:'g',attributes:[],images:[]}]};}

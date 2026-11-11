@@ -1,6 +1,6 @@
-import {filamentTypes} from './filament-stock.js?v=0.2.353';
-import {validateExpensesDatabase} from './expenses.js?v=0.2.353';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.353';
+import {filamentTypes} from './filament-stock.js?v=0.2.354';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.354';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.354';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -111,7 +111,7 @@ export function validateDB(x){
   for(const [market,settings] of Object.entries(logistics)){
    if(!['wb','ozon'].includes(market)||!settings||typeof settings!=='object'||Array.isArray(settings))throw Error('Некорректные параметры логистики');
    for(const [key,value] of Object.entries(settings)){
-    if(!(market==='ozon'?['handling','delivery','buyout','fbs','fbo','commission','acquiring']:['handling','delivery','buyout','commission','acquiring']).includes(key)||(value!==null&&(!Number.isFinite(value)||value<0||(['buyout','commission','acquiring'].includes(key)&&value>100))))throw Error('Некорректное значение логистики');
+    if(!(market==='ozon'?['handling','delivery','buyout','fbs','fbo','commission','commissionFbo','commissionFbs','acquiring']:['handling','delivery','buyout','commission','acquiring']).includes(key)||(value!==null&&(!Number.isFinite(value)||value<0||(['buyout','commission','commissionFbo','commissionFbs','acquiring'].includes(key)&&value>100))))throw Error('Некорректное значение логистики');
    }
   }
  }
