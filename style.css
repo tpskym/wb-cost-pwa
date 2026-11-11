@@ -743,6 +743,45 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
  .fbs-suggested-price{grid-column:1/-1}
 }
 @container (width >= 414px){.fbs-price-targets dl{grid-template-columns:repeat(3,minmax(0,1fr))}}
+#show-fbs-price-report{min-height:44px;padding:10px 14px;font-size:14px;background:#eaf2df;border-color:#b6cba0;color:#405f32}
+.fbs-price-report[open]{display:grid;grid-template-rows:auto minmax(0,1fr);width:min(1380px,calc(100vw - 24px));height:min(900px,calc(100dvh - 24px));max-width:none;max-height:none;padding:0;overflow:hidden;background:#f7f8f4}
+.fbs-report-header{padding:18px 22px;border-bottom:1px solid #dce4d5;background:#fff}
+.fbs-report-header .modal-head{gap:12px}
+.fbs-report-header h2{margin:0;font-size:22px}
+.fbs-report-header .modal-head>button{flex:none;min-height:44px;border:1px solid #dce1d7;font-size:14px}
+.fbs-report-filters{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:end;margin-top:14px}
+.fbs-report-filters label{flex:0 1 360px;min-width:0}
+.fbs-report-filters select{margin-bottom:0}
+.fbs-report-filters p{margin:0 0 11px;color:#53645a}
+.fbs-report-scroll{overflow:auto;overscroll-behavior:contain;padding:18px 22px 22px;container-type:inline-size}
+.fbs-report-group+.fbs-report-group{margin-top:24px}
+.fbs-report-group h3{margin:0 0 10px;color:#405f43;font-size:17px;overflow-wrap:anywhere}
+.fbs-report-product{display:grid;gap:12px;min-width:0;padding:14px;border:1px solid #dce4d5;border-radius:12px;background:#fff}
+.fbs-report-product+.fbs-report-product{margin-top:10px}
+.fbs-report-product-info{display:flex;gap:10px;align-items:center;min-width:0;overflow-wrap:anywhere}
+.fbs-report-product-info h4{margin:0;font-size:14px}
+.fbs-report-product-info p{margin:4px 0 0;color:#53645a;font-size:12px}
+.fbs-report-photo{position:relative;display:grid;place-items:center;width:58px;aspect-ratio:3/4;flex:none;border-radius:8px;background:#edf1e9;color:#53645a;font-size:11px}
+.fbs-report-photo img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;object-fit:contain;background:#edf1e9}
+.fbs-report-product [data-report-market="wb"]{--profit-accent:#704289;--profit-border:#e4d4ec}
+.fbs-report-product [data-report-market="ozon"]{--profit-accent:#345a98;--profit-border:#d3e0f4}
+.fbs-report-scroll>[data-report-more]{min-height:44px;margin-top:16px}
+@container (width >= 760px){
+ .fbs-report-product{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fbs-report-product-info{grid-column:1/-1}
+}
+@container (width >= 1160px){
+ .fbs-report-product{grid-template-columns:195px repeat(2,minmax(0,1fr));align-items:stretch}
+ .fbs-report-product-info{grid-column:auto;align-items:flex-start}
+}
+@media(max-width:850px){
+ #show-fbs-price-report{grid-column:1/-1}
+ .fbs-report-header,.fbs-report-scroll{padding:12px}
+ .fbs-report-header h2{font-size:18px}
+ .fbs-report-filters{margin-top:10px}
+ .fbs-report-filters p{margin:0}
+ .fbs-report-product{padding:10px}
+}
 .marketplace-logistics{margin:14px 0;min-width:0;padding:12px;border:1px solid #dce4d5;border-radius:10px}
 .marketplace-logistics legend{padding:0 5px;font-weight:650}
 .marketplace-logistics-fields{display:grid;align-items:stretch;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:12px}

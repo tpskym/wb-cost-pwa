@@ -1,7 +1,7 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.372';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.372';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.372';
-import {validateDB} from './calc.js?v=0.2.372';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.373';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.373';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.373';
+import {validateDB} from './calc.js?v=0.2.373';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 const accessFilename='workshop-access.json';
 export function validateBackupAccess(value){

@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.372');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.373');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -494,4 +494,41 @@ test('printer spread assigns the model and its cost only to selected products',a
  assert.equal($('[data-cost-printer]').value,'Bambu Lab A1');
  assert.equal($('[data-field="printerPrice"]').value,'45000');
  assert.ok($('[data-cost-printer]').closest('.cost-spread-field').querySelector('button'));
+});
+
+test('price report covers the catalogue, filters by group and uses the product calculator prices',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const search=$('#product-search');
+ search.value='SKU-0';
+ search.dispatchEvent(new window.Event('input'));
+ $('#product-list [data-product]').click();
+ const before=await readDatabase();
+ const current=before.products.find(row=>row.id===$('#mobile-product').value);
+ const group=before.products.filter(row=>row.productGroup===current.productGroup);
+ const button=$('#show-fbs-price-report');
+ assert.equal(button.previousElementSibling.id,'workspace-forward');
+ button.click();
+ const report=$('.fbs-price-report');
+ const count=report.querySelector('[data-report-count]');
+ assert.match(count.textContent,new RegExp('из '+before.products.length+'$'));
+ const initialRows=report.querySelectorAll('.fbs-report-product').length;
+ report.querySelector('[data-report-more]').click();
+ assert.ok(report.querySelectorAll('.fbs-report-product').length>initialRows);
+ const filter=report.querySelector('[data-report-group]');
+ filter.value=[...filter.options].find(option=>option.textContent===current.productGroup).value;
+ filter.dispatchEvent(new window.Event('change'));
+ assert.deepEqual([...report.querySelectorAll('h3')].map(el=>el.textContent),[current.productGroup]);
+ assert.equal(report.querySelectorAll('.fbs-report-product').length,group.length);
+ const details=[current.sku,current.variantNote,current.colorCode].filter(Boolean).join(' · ');
+ const row=[...report.querySelectorAll('.fbs-report-product')].find(el=>el.querySelector('.fbs-report-product-info p').textContent===details);
+ assert.ok(row);
+ assert.equal(row.querySelector('img').alt,current.name);
+ for(const market of ['wb','ozon']){
+  assert.equal(row.querySelector(`[data-report-market="${market}"]`).innerHTML,$(`#results [data-fbs-prices="${market}"]`).innerHTML);
+ }
+ report.querySelector('[data-report-close]').click();
+ assert.equal($('.fbs-price-report'),null);
+ assert.equal(document.activeElement,button);
+ assert.equal($('#mobile-product').value,current.id);
+ assert.deepEqual(await readDatabase(),before);
 });
