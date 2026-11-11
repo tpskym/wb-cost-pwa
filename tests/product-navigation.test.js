@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.374');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.375');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -275,7 +275,7 @@ test('calculator pulls Ozon fees and adjusts the WB rate for the planned dispatc
   if(url==='https://api-seller.ozon.ru/v5/product/info/prices'){
    return Response.json({items:[
     {offer_id:'another-product',commissions:{sales_percent_fbo:4,sales_percent_fbs:5}},
-    {offer_id:'SKU-0',price:{marketing_seller_price:String(ozonCardPrice),price:'450',currency_code:'RUB'},acquiring:ozonAcquiring,
+    {offer_id:'SKU-0',price:{marketing_seller_price:String(ozonCardPrice),price:'450',min_price:'199',declared_price:'129',currency_code:'RUB'},acquiring:ozonAcquiring,
      commissions:{sales_percent_fbo:12.5,sales_percent_fbs:22.5}},
    ]});
   }
@@ -394,17 +394,32 @@ test('calculator pulls Ozon fees and adjusts the WB rate for the planned dispatc
   assert.equal(wbCard.querySelector('[data-profit-sale-price]').value,'400');
   assert.equal(wbCard.querySelector('[data-price-range]').value,'400');
   assert.match($('[data-calculated-payout="wbFbs"]').textContent,/161,10/);
+  const cardPrices=market=>[...document.querySelectorAll(`#results [data-fbs-prices="${market}"] .fbs-card-prices li`)]
+   .map(row=>[row.querySelector('span').textContent,row.querySelector('b').textContent]);
+  const money=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
+  assert.deepEqual(cardPrices('wb'),[
+   ['Цена продавца до скидки',money.format(500)],
+   ['Цена продавца со скидкой',money.format(400)],
+   ['Минимальная цена в автоакциях','API WB не передаёт']
+  ]);
   await ozonCard.querySelector('[data-pull-sale-price]').onclick();
   assert.equal(ozonCard.querySelector('[data-profit-sale-price]').value,'279');
   assert.equal(ozonCard.querySelector('[data-price-range]').value,'279');
   assert.match($('[data-calculated-payout="ozonFbs"]').textContent,/193,44/);
+  assert.deepEqual(cardPrices('ozon'),[
+   ['Предельная цена',money.format(279)],
+   ['Ограничение для акций и стратегий',money.format(199)]
+  ]);
   ozonCardPrice=350;
   await ozonCard.querySelector('[data-pull-sale-price]').onclick();
   assert.match(ozonCard.querySelector('[data-sale-price-status]').textContent,/350,00.*300/);
   assert.equal(ozonCard.querySelector('[data-profit-sale-price]').value,'279');
-  const prices=(await readDatabase()).products.find(product=>product.sku==='SKU-0').marketplaces;
-  assert.equal(prices.wb.price,400);
-  assert.equal(prices.ozon.price,279);
+  assert.equal(cardPrices('ozon')[0][1],money.format(350));
+  const storedPrices=validateDB(await readDatabase()).products.find(product=>product.sku==='SKU-0');
+  assert.equal(storedPrices.marketplaces.wb.price,400);
+  assert.equal(storedPrices.marketplaces.ozon.price,279);
+  assert.equal(storedPrices.marketplaceCardPrices.ozon.sale,350);
+  assert.equal(storedPrices.marketplaceCardPrices.ozon.minimum,199);
  }finally{
   globalThis.fetch=originalFetch;
  }

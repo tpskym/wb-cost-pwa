@@ -1,6 +1,6 @@
-import {filamentTypes} from './filament-stock.js?v=0.2.374';
-import {validateExpensesDatabase} from './expenses.js?v=0.2.374';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.374';
+import {filamentTypes} from './filament-stock.js?v=0.2.375';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.375';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.375';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -67,6 +67,7 @@ export function calculate(p){
 export function createTemplate(p,name){
  const title=name.trim();if(!title)throw Error('Введите имя шаблона');
  const inputs=structuredClone(p);delete inputs.id;delete inputs.name;delete inputs.description;delete inputs.sku;delete inputs.labelPdf;delete inputs.listingDrafts;delete inputs.sharedListingChanges;delete inputs.productGroup;delete inputs.variantNote;delete inputs.variantNumber;delete inputs.barcode;delete inputs.history;delete inputs.stockTargets;delete inputs.measurements;delete inputs.marketplaceCategories;delete inputs.marketplaceCodes;delete inputs.printModel;delete inputs.plateCapacity;
+ delete inputs.marketplaceCardPrices;
  return {id:crypto.randomUUID(),name:title,inputs};
 }
 export function applyTemplate(p,t){return {...p,...structuredClone(t.inputs),id:p.id,name:p.name,description:p.description,sku:p.sku,labelPdf:p.labelPdf,listingDrafts:p.listingDrafts,productGroup:p.productGroup,variantNote:p.variantNote,variantNumber:p.variantNumber,barcode:p.barcode,stockTargets:p.stockTargets,measurements:p.measurements,marketplaceCategories:p.marketplaceCategories,marketplaceCodes:p.marketplaceCodes,printModel:p.printModel,plateCapacity:p.plateCapacity,history:p.history};}
@@ -118,6 +119,16 @@ export function validateDB(x){
  if(p.marketplaceProfit!==undefined){
   const profit=p.marketplaceProfit;
   if(!profit||typeof profit!=='object'||Array.isArray(profit)||Object.entries(profit).some(([key,value])=>!['wbFbs','wbFbw','ozonFbs','ozonFbo'].includes(key)||!Number.isFinite(value)))throw Error('Некорректная прибыль маркетплейса');
+ }
+ if(p.marketplaceCardPrices!==undefined){
+  if(!p.marketplaceCardPrices||typeof p.marketplaceCardPrices!=='object'||Array.isArray(p.marketplaceCardPrices))throw Error('Некорректные цены карточки');
+  const validPrice=value=>value===null||Number.isFinite(value)&&value>=0;
+  for(const [market,row] of Object.entries(p.marketplaceCardPrices)){
+   if(!row||typeof row.sku!=='string'||!row.sku.trim()||!validPrice(row.sale))throw Error('Некорректные цены карточки');
+   if(market==='wb'&&validPrice(row.base)&&typeof row.differentSizePrices==='boolean')continue;
+   if(market==='ozon'&&validPrice(row.minimum))continue;
+   throw Error('Некорректные цены карточки');
+  }
  }
  p.marketplaceCodes??={};if(!p.marketplaceCodes||typeof p.marketplaceCodes!=='object'||Array.isArray(p.marketplaceCodes))throw Error('Некорректные коды товара');for(const market of ['wb','ozon']){const codes=p.marketplaceCodes[market];if(codes!==undefined&&(!codes||typeof codes!=='object'||Array.isArray(codes)))throw Error('Некорректные коды товара');for(const key of ['tnved','okpd2'])if(codes?.[key]!==undefined&&typeof codes[key]!=='string')throw Error('Коды товара должны быть текстом');}
  p.marketplaceCategories??={};if(typeof p.marketplaceCategories!=='object'||Array.isArray(p.marketplaceCategories))throw Error('Некорректные категории товара');for(const market of ['wb','ozon']){const category=p.marketplaceCategories[market];if(category!=null&&(!category||typeof category!=='object'||!Number.isSafeInteger(category.id)||category.id<=0||typeof category.label!=='string'||(category.typeId!=null&&(!Number.isSafeInteger(category.typeId)||category.typeId<=0))))throw Error('Некорректная категория товара');}
