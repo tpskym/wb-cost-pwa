@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.371');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.372');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -192,10 +192,12 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  };
  assertPrice('wb','break-even',Math.ceil((20+cost)/0.725-1e-9));
  assertPrice('wb','working',Math.ceil((20+1.4*cost)/0.725-1e-9));
- assertPrice('wb','suggested',Math.ceil((20+1.8*cost)/0.725-1e-9));
+ const wbSuggested=Math.ceil((20+1.8*cost)/0.725-1e-9);
+ assertPrice('wb','suggested',wbSuggested);
+ assertPrice('wb','reference-price',wbSuggested/0.8);
  assertPrice('wb','working-profit',cost*0.4);
  assertPrice('wb','suggested-profit',cost*0.8);
- for(const host of document.querySelectorAll('[data-fbs-prices="wb"]'))assert.doesNotMatch(host.textContent,/цена до скидки/i);
+ for(const host of document.querySelectorAll('[data-fbs-prices="wb"]'))assert.match(host.querySelector('.fbs-reference-price').textContent,/Зачёркнутая цена/);
  enter(wbAcquiring,0);
  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/780,80/);
  assertPrice('wb','break-even',Math.ceil((20+cost)/0.74-1e-9));
@@ -204,7 +206,9 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  enter($('[data-market="ozon"][data-profit-logistics="buyout"]'),80);
  assertPrice('ozon','break-even',Math.ceil((20+4+ozonCost)/0.69-1e-9));
  assertPrice('ozon','working',Math.ceil((20+4+1.4*ozonCost)/0.69-1e-9));
- assertPrice('ozon','suggested',Math.ceil((20+4+1.8*ozonCost)/0.69-1e-9));
+ const ozonSuggested=Math.ceil((20+4+1.8*ozonCost)/0.69-1e-9);
+ assertPrice('ozon','suggested',ozonSuggested);
+ assertPrice('ozon','reference-price',ozonSuggested*2);
  assertPrice('ozon','working-profit',ozonCost*0.4);
  assert.equal(ozonPrice.value,'0');
  assert.ok($('[data-fbs-suggested]').closest('.fbs-suggested-price'));
@@ -215,6 +219,7 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assertPrice('ozon','working-profit',ozonCost*0.4);
  assert.deepEqual(prices('ozon','working-percent'),[]);
  assertPrice('ozon','suggested',300);
+ assertPrice('ozon','reference-price',600);
  assertPrice('ozon','suggested-profit',ozonCost*0.6);
  for(const label of prices('ozon','suggested-percent'))assert.match(label,/60,00%$/);
  enter(ozonDelivery,301);
