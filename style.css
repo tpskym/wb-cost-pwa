@@ -725,10 +725,11 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
 .marketplace-logistics{margin:14px 0;min-width:0;padding:12px;border:1px solid #dce4d5;border-radius:10px}
 .marketplace-logistics legend{padding:0 5px;font-weight:650}
-.wb-fbs-applied{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;margin-bottom:10px;padding:10px 12px;border:1px solid var(--profit-border);border-radius:8px;background:#f0e7f6;color:var(--profit-accent);font-size:13px;font-weight:700}
+.wb-fbs-applied{min-width:0;display:grid;grid-template-rows:1fr auto;gap:7px;font-size:12px;font-weight:550;color:#65716b}
 .wb-fbs-applied[hidden]{display:none}
-.wb-fbs-applied strong{font-size:22px;font-weight:800;line-height:1.2;overflow-wrap:anywhere}
+.wb-fbs-applied strong{display:flex;align-items:center;min-height:44px;padding:10px 11px;border:1px solid #dce1d7;border-radius:8px;background:#f5f6f2;color:#263b32;font:inherit;overflow-wrap:anywhere}
 .marketplace-logistics-fields{display:grid;align-items:stretch;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:12px}
+.marketplace-logistics-fields.wb-fbs-inputs{grid-template-columns:minmax(0,1fr);margin-bottom:12px}
 .marketplace-logistics small{display:block;margin-top:10px;color:#425a39}
 .marketplace-logistics small[hidden]{display:none}
 .marketplace-logistics [data-logistics-result]:empty{display:none}
