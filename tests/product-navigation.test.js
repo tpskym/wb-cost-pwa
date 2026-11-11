@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.362');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.363');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -120,6 +120,10 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  ])for(const [field,value] of Object.entries(fields))enter($(`[data-profit-logistics="${field}"][data-market="${market}"]`),value);
  const ozon=$('[data-profit-market="ozon"].marketplace-profit-card');
  const wb=$('[data-profit-market="wb"].marketplace-profit-card');
+ const acceptance=[...wb.querySelectorAll('label')].find(label=>label.textContent.trim()==='Приёмка, ₽/шт.')?.querySelector('input');
+ assert.equal(acceptance?.value,'10');
+ assert.equal(acceptance.readOnly,true);
+ assert.doesNotMatch(ozon.querySelector('.marketplace-logistics-fields').textContent,/Приёмка/);
  const ozonPrice=ozon.querySelector('[data-profit-sale-price]');
  const ozonSlider=ozon.querySelector('[data-price-range]');
  assert.equal(ozonSlider.max,'300');
@@ -156,7 +160,7 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assert.ok(Number(wbSlider.max)>oldEnd);
  wb.querySelector('[data-price-adjust="10"]').click();
  assert.equal(wbSlider.valueAsNumber,oldEnd+10);
- assert.match($('[data-calculated-payout="wbFbs"]').textContent,/782,85/);
+ assert.match($('[data-calculated-payout="wbFbs"]').textContent,/772,85/);
  assert.equal($('#product-list [data-product-profit-summary]'),null);
  assert.ok($('.image-profit-summary [data-product-profit-summary] strong'));
  await settle();
@@ -170,18 +174,19 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  const {cost}=calculateManual({...current,values:{...current.values,...configuredCostPrices(database,current)}});
  const prices=(market,kind)=>[...document.querySelectorAll(`[data-fbs-prices="${market}"] [data-fbs-${kind}]`)].map(el=>el.textContent);
  const money=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
+ assert.equal($('[data-profit-result="wbFbs"] strong').textContent,money.format(772.85-(oldEnd+10)*0.06-cost));
  const assertPrice=(market,kind,expected)=>{
   const values=prices(market,kind);
   assert.equal(values.length,2);
   assert.equal(values[0],values[1]);
   assert.ok(values[0].endsWith(money.format(expected)),values[0]);
  };
- assertPrice('wb','break-even',Math.ceil((10+cost)/0.725-1e-9));
- assertPrice('wb','suggested',Math.ceil((10+1.8*cost)/0.725-1e-9));
+ assertPrice('wb','break-even',Math.ceil((20+cost)/0.725-1e-9));
+ assertPrice('wb','suggested',Math.ceil((20+1.8*cost)/0.725-1e-9));
  for(const host of document.querySelectorAll('[data-fbs-prices="wb"]'))assert.doesNotMatch(host.textContent,/цена до скидки/i);
  enter(wbAcquiring,0);
- assert.match($('[data-calculated-payout="wbFbs"]').textContent,/798,00/);
- assertPrice('wb','break-even',Math.ceil((10+cost)/0.74-1e-9));
+ assert.match($('[data-calculated-payout="wbFbs"]').textContent,/788,00/);
+ assertPrice('wb','break-even',Math.ceil((20+cost)/0.74-1e-9));
  const saved=validateDB(await readDatabase()).products.find(p=>p.id===current.id);
  assert.equal(saved.marketplaceLogistics.wb.acquiring,0);
  enter($('[data-market="ozon"][data-profit-logistics="buyout"]'),80);
@@ -284,10 +289,10 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   enter(wbField('buyout'),93);
   const deliveryValue=$(wbField('deliveryOverride'));
   assert.equal(deliveryValue.value,'88.9');
-  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/167,85/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/157,85/);
   enter(wbField('buyout'),90);
   assert.equal(deliveryValue.value,'91.86');
-  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/164,89/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/154,89/);
   enter(wbField('buyout'),0);
   assert.equal(deliveryValue.value,'');
   assert.equal($('[data-calculated-payout="wbFbs"]').textContent,'—');
@@ -313,7 +318,7 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   assert.equal($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   enter(wbField('commissionOverride'),20);
   enter(wbField('deliveryOverride'),60);
-  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/250,08/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/240,08/);
   assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   enter(wbField('buyout'),90);
   assert.equal(deliveryValue.value,'60');
@@ -333,7 +338,7 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   enter(wbField('deliveryOverride'),'');
   assert.equal(appliedRate.value,'33.5');
   assert.equal(deliveryValue.value,'88.9');
-  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/167,85/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/157,85/);
   assert.equal(stored.marketplaceLogistics.ozon.commissionFbo,12.5);
   assert.equal(stored.marketplaceLogistics.ozon.commissionFbs,22.5);
   await $('[data-pull-commission="wb"]').onclick();
@@ -345,7 +350,7 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   await wbCard.querySelector('[data-pull-sale-price]').onclick();
   assert.equal(wbCard.querySelector('[data-profit-sale-price]').value,'400');
   assert.equal(wbCard.querySelector('[data-price-range]').value,'400');
-  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/171,10/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/161,10/);
   await ozonCard.querySelector('[data-pull-sale-price]').onclick();
   assert.equal(ozonCard.querySelector('[data-profit-sale-price]').value,'279');
   assert.equal(ozonCard.querySelector('[data-price-range]').value,'279');
