@@ -721,7 +721,7 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit-result strong{display:block;font-size:22px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .marketplace-profit-result small{display:block;margin-top:6px;font-size:12px;font-weight:500;color:inherit}
 .fbs-price-summary{display:grid;gap:10px;margin:14px 0}
-.fbs-price-targets{padding:12px;border:1px solid var(--profit-border,#dce4d5);border-radius:10px;background:#fff}
+.fbs-price-targets{padding:12px;border:1px solid var(--profit-border,#dce4d5);border-radius:10px;background:#fff;container-type:inline-size}
 .marketplace-profit-card>.fbs-price-targets{margin-top:14px}
 .fbs-price-targets h4{margin:0 0 8px;color:var(--profit-accent,#34563b);font-size:14px}
 .fbs-price-targets dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px 12px}
@@ -730,7 +730,8 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-suggested-price{padding:8px 10px;border:1px solid #c4d5b9;border-radius:8px;background:#edf5e7;color:#284835}
 .fbs-suggested-price dt{color:inherit;font-size:13px;font-weight:700}
 .fbs-suggested-price strong{font-size:16px;font-weight:800;overflow-wrap:anywhere}
-.fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
+.fbs-working-price small,.fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
+@container (width < 414px){.fbs-suggested-price{grid-column:1/-1}}
 .marketplace-logistics{margin:14px 0;min-width:0;padding:12px;border:1px solid #dce4d5;border-radius:10px}
 .marketplace-logistics legend{padding:0 5px;font-weight:650}
 .marketplace-logistics-fields{display:grid;align-items:stretch;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:12px}
