@@ -677,6 +677,10 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-price-controls{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:10px}
 .marketplace-price-controls button{min-height:44px;padding:10px 12px;font-size:14px;white-space:nowrap}
 .marketplace-price-controls input[type="range"]{min-width:0;margin:0;padding:0;border:0;background:transparent;accent-color:var(--profit-accent);cursor:pointer}
+.marketplace-price-lookup{min-height:44px;padding:8px 0;border:0;background:transparent;color:#425a39;font-size:14px;text-align:left;text-decoration:underline;text-underline-offset:3px;white-space:normal}
+.marketplace-price-lookup:hover:not(:disabled){background:transparent;color:#243732}
+[data-sale-price-status]{display:block;color:#425a39}
+[data-sale-price-status]:empty{display:none}
 .marketplace-price-controls :focus-visible{outline:2px solid var(--profit-accent);outline-offset:2px}
 .marketplace-profit>button{margin-top:20px}
 .marketplace-profit-picker{width:min(560px,calc(100vw - 24px))}

@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.360');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.361');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -224,6 +224,7 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
  const enter=(selector,value)=>{const input=$(selector);input.value=value;input.dispatchEvent(new window.Event('input',{bubbles:true}));};
  const originalFetch=globalThis.fetch;
  const calls=[];
+ let ozonCardPrice=279;
  globalThis.fetch=async(url,options)=>{
   calls.push({url,method:options.method,body:options.body});
   if(url==='https://common-api.wildberries.ru/api/v1/tariffs/commission?locale=ru'){
@@ -235,9 +236,16 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   if(url==='https://api-seller.ozon.ru/v5/product/info/prices'){
    return Response.json({items:[
     {offer_id:'another-product',commissions:{sales_percent_fbo:4,sales_percent_fbs:5}},
-    {offer_id:'SKU-0',price:{marketing_seller_price:'200'},
+    {offer_id:'SKU-0',price:{marketing_seller_price:String(ozonCardPrice),price:'450',currency_code:'RUB'},
      commissions:{sales_percent_fbo:12.5,sales_percent_fbs:22.5}},
    ]});
+  }
+  if(url==='https://content-api.wildberries.ru/content/v2/get/cards/list'){
+   assert.equal(JSON.parse(options.body).settings.filter.textSearch,'SKU-0');
+   return Response.json({cards:[{vendorCode:'SKU-01',nmID:999},{vendorCode:'SKU-0',nmID:123}],cursor:{total:2}});
+  }
+  if(url==='https://discounts-prices-api.wildberries.ru/api/v2/list/goods/filter?limit=1000&offset=0&filterNmID=123'){
+   return Response.json({data:{listGoods:[{vendorCode:'SKU-0',nmID:123,currencyIsoCode4217:'RUB',discount:20,sizes:[{price:500,discountedPrice:400}]}]}});
   }
   throw Error('Unexpected request '+url);
  };
@@ -332,6 +340,23 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   assert.equal(calls.filter(call=>call.url.includes('/tariffs/commission')).length,1);
   const ozonCall=calls.find(call=>call.url.includes('/product/info/prices'));
   assert.deepEqual(JSON.parse(ozonCall.body).filter.offer_id,['SKU-0']);
+  const wbCard=$('.marketplace-profit-card[data-profit-market="wb"]');
+  const ozonCard=$('.marketplace-profit-card[data-profit-market="ozon"]');
+  await wbCard.querySelector('[data-pull-sale-price]').onclick();
+  assert.equal(wbCard.querySelector('[data-profit-sale-price]').value,'400');
+  assert.equal(wbCard.querySelector('[data-price-range]').value,'400');
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/171,10/);
+  await ozonCard.querySelector('[data-pull-sale-price]').onclick();
+  assert.equal(ozonCard.querySelector('[data-profit-sale-price]').value,'279');
+  assert.equal(ozonCard.querySelector('[data-price-range]').value,'279');
+  assert.match($('[data-calculated-payout="ozonFbs"]').textContent,/190,65/);
+  ozonCardPrice=350;
+  await ozonCard.querySelector('[data-pull-sale-price]').onclick();
+  assert.match(ozonCard.querySelector('[data-sale-price-status]').textContent,/350,00.*300/);
+  assert.equal(ozonCard.querySelector('[data-profit-sale-price]').value,'279');
+  const prices=(await readDatabase()).products.find(product=>product.sku==='SKU-0').marketplaces;
+  assert.equal(prices.wb.price,400);
+  assert.equal(prices.ozon.price,279);
  }finally{
   globalThis.fetch=originalFetch;
  }

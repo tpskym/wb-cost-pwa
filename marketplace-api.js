@@ -181,7 +181,7 @@ export function wbMergeBody(cards,targetId,selectedIds){
  if(group.size>30)throw Error('В группе WB может быть не более 30 карточек');if(!moving.length)throw Error('Выбранные карточки уже находятся в одной группе');
  return {targetIMT:target.imtID,nmIDs:moving.map(card=>Number(card.nmID))};
 }
-export async function readAllWBCards(request){const cards=[],seen=new Set();let cursor=null;for(;;){const result=await request('list',listBody('wb','',cursor));if(!Array.isArray(result.cards))throw Error('Не удалось проверить все карточки WB');cards.push(...result.cards);if(!(result.cursor?.total>=100))return cards;const next={updatedAt:result.cursor.updatedAt,nmID:result.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу карточек');seen.add(key);cursor=next;}}
+export async function readAllWBCards(request,search=''){const cards=[],seen=new Set();let cursor=null;for(;;){const result=await request('list',listBody('wb',search,cursor));if(!Array.isArray(result.cards))throw Error('Не удалось проверить все карточки WB');cards.push(...result.cards);if(!(result.cursor?.total>=100))return cards;const next={updatedAt:result.cursor.updatedAt,nmID:result.cursor.nmID},key=JSON.stringify(next);if(!next.updatedAt||!next.nmID||seen.has(key))throw Error('WB повторил страницу карточек');seen.add(key);cursor=next;}}
 
 function sharedCategory(market,draft){const body=JSON.parse(draft.body),item=market==='wb'?(draft.mode==='create'?body[0].variants[0]:body[0]):body.items[0];return {body,item,key:market==='wb'?String(draft.subjectID||body[0].subjectID||''):item.description_category_id+':'+item.type_id};}
 export function applySharedListingChanges(market,draft,patch){

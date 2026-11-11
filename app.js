@@ -1,46 +1,46 @@
-import {mountFinance} from './finance.js?v=0.2.360';
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.360';
-import {attachCardDesignZip} from './attachments.js?v=0.2.360';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.360';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.360';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.360';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot} from './backup-modes.js?v=0.2.360';
-import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.360';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.360';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.360';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.360';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.360';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.360';
-import {ensureProductImage} from './product-images.js?v=0.2.360';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.360';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.360';
-import {installImagePreview} from './image-preview.js?v=0.2.360';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.360';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.360';
-import {openCostReport} from './cost-report.js?v=0.2.360';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.360';
-import {mountReleaseHistory} from './release-history.js?v=0.2.360';
-import {mountMarketplacePrices} from './marketplace-prices.js?v=0.2.360';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.360';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.360';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.360';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.360';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.360';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.360';
-import {mountSales} from './sales.js?v=0.2.360';
-import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission} from './marketplace-api.js?v=0.2.360';
-import {actionIcon,confirmAction} from './listing-fields.js?v=0.2.360';
-import {wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.360';
-import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.360';
-import {readOzonCommissions} from './price-editor.js?v=0.2.360';
-import {installNumberControls} from './number-controls.js?v=0.2.360';
-const APP_VERSION='0.2.360';
+import {mountFinance} from './finance.js?v=0.2.361';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.361';
+import {attachCardDesignZip} from './attachments.js?v=0.2.361';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.361';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.361';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.361';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot} from './backup-modes.js?v=0.2.361';
+import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.361';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.361';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.361';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.361';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.361';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.361';
+import {ensureProductImage} from './product-images.js?v=0.2.361';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.361';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.361';
+import {installImagePreview} from './image-preview.js?v=0.2.361';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.361';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.361';
+import {openCostReport} from './cost-report.js?v=0.2.361';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.361';
+import {mountReleaseHistory} from './release-history.js?v=0.2.361';
+import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.361';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.361';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.361';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.361';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.361';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.361';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.361';
+import {mountSales} from './sales.js?v=0.2.361';
+import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.361';
+import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.361';
+import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.361';
+import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.361';
+import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.361';
+import {installNumberControls} from './number-controls.js?v=0.2.361';
+const APP_VERSION='0.2.361';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.360';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.360';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.360';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.360';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.360';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.361';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.361';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.361';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.361';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.361';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#finance'?'finance':globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -559,22 +559,50 @@ function marketplacePayout(product,key,price=product.marketplaces?.[key.startsWi
  return Math.round((price-price*commission/100-delivery)*100)/100;
 }
 const profitMarkets=[['Wildberries','wbFbs','wbFbw','FBW','https://seller.wildberries.ru/profit-calculator','Открыть калькулятор'],['Ozon','ozonFbs','ozonFbo','FBO','https://calculator.ozon.ru/','Открыть калькулятор']];
+async function readCardSalePrice(market,sku){
+ const credentials=getMarketplaceCredentials();
+ const request=(operation,body)=>marketRequest(market,operation,credentials,body);
+ if(market==='ozon'){
+  const price=await readOzonPrice(request,sku);
+  if(price.currency_code&&price.currency_code!=='RUB')throw Error('Калькулятор принимает цены в рублях.');
+  return ozonSellerPrice(price);
+ }
+ const listing=loadedListingForSku(db.products,sku,'wb');
+ const draft=db.products.find(row=>row.id===listing?.ownerId)?.listingDrafts?.wb;
+ let nmID=Number(draft&&listingItem('wb',draft).item.nmID);
+ if(!Number.isSafeInteger(nmID)||nmID<=0){
+  const matches=(await readAllWBCards(request,sku)).filter(item=>item.vendorCode===sku);
+  if(matches.length!==1)throw Error(matches.length?'У WB несколько карточек с этим артикулом.':'WB не нашёл карточку с этим артикулом.');
+  nmID=matches[0].nmID;
+ }
+ const item=await readWBPrice(request,nmID);
+ if(item.vendorCode&&item.vendorCode!==sku)throw Error('Артикул WB изменился. Обновите карточку.');
+ const row=normalizePrice('wb',item);
+ if(row.currency!=='RUB')throw Error('Калькулятор принимает цены в рублях.');
+ if(new Set((item.sizes||[]).map(size=>size.discountedPrice??size.price)).size>1)throw Error('У размеров WB разные цены. Укажите нужную цену вручную.');
+ return row.price;
+}
 function marketplaceSalePrice(source,market){
  const name=market==='ozon'?'Ozon':'WB';
  const price=source.marketplaces?.[market]?.price??'';
  return `<label>Цена продажи, ₽<input type="number" min="0" ${market==='ozon'?`max="${ozonSalePriceLimit}"`:''} step="any" data-no-stepper data-profit-sale-price="${market}" value="${esc(price)}" placeholder="Укажите цену продажи"></label>
+ <button class="marketplace-price-lookup" type="button" data-pull-sale-price aria-label="Подтянуть цену из карточки ${name}">Подтянуть цену из карточки</button>
+ <small data-sale-price-status role="status"></small>
  <div class="marketplace-price-controls">
   <button type="button" data-price-adjust="-1" aria-label="Уменьшить цену ${name} на 1 ₽">−1 ₽</button>
   <input type="range" min="0" max="${market==='ozon'?ozonSalePriceLimit:1000}" step="1" data-price-range aria-label="Цена продажи ${name}, ₽">
   <button type="button" data-price-adjust="10" aria-label="Увеличить цену ${name} на 10 ₽">+10 ₽</button>
  </div>`;
 }
-function bindMarketplaceSalePrice(input,product,update){
+function bindMarketplaceSalePrice(input,source,update){
  const card=input.closest('[data-profit-market]');
  const slider=card.querySelector('[data-price-range]');
  const decrease=card.querySelector('[data-price-adjust="-1"]');
  const increase=card.querySelector('[data-price-adjust="10"]');
- const price=product.marketplaces[input.dataset.profitSalePrice];
+ const market=input.dataset.profitSalePrice;
+ const price=source.marketplaces[market];
+ const lookup=card.querySelector('[data-pull-sale-price]');
+ const status=card.querySelector('[data-sale-price-status]');
  const limit=input.max===''?Infinity:Number(input.max);
  const sync=(expand=true)=>{
   const current=price.price??0;
@@ -585,11 +613,12 @@ function bindMarketplaceSalePrice(input,product,update){
   increase.disabled=current>=limit;
  };
  const set=(value,{fromSlider=false}={})=>{
+  if(!lookup.disabled)status.textContent='';
   price.price=value;
   if(fromSlider)input.value=value;
   sync(!fromSlider);
   update();
-  if(!fromSlider)save();
+  if(!fromSlider)return save();
  };
  input.oninput=()=>{if(input.validity.valid)set(input.value===''?null:input.valueAsNumber);};
  input.onchange=()=>{
@@ -604,6 +633,32 @@ function bindMarketplaceSalePrice(input,product,update){
   const next=Math.min(limit,Math.max(0,Number(((price.price??0)+Number(button.dataset.priceAdjust)).toFixed(2))));
   input.value=next;
   set(next);
+ };
+ lookup.onclick=async()=>{
+  if(lookup.disabled||fullBackupBusy)return;
+  const sku=String(source.sku||'').trim();
+  if(!sku){status.textContent='Укажите артикул товара.';return;}
+  const original=input.value;
+  lookup.disabled=true;
+  status.textContent='Запрашиваю цену…';
+  try{
+   const amount=await readCardSalePrice(market,sku);
+   if(!input.isConnected||product()!==source||fullBackupBusy)return;
+   if(String(source.sku||'').trim()!==sku||input.value!==original)throw Error('Цена или артикул изменились. Повторите запрос.');
+   if(!Number.isFinite(amount)||amount<=0)throw Error('Площадка не вернула цену продажи.');
+   if(amount>limit)throw Error(`Цена в карточке ${rub(amount)}. Лимит калькулятора Ozon — ${limit} ₽.`);
+   const previous=price.price;
+   input.value=amount;
+   if(await set(amount)===false){
+    if(price.price===amount){
+     price.price=previous;
+     if(input.isConnected){input.value=original;sync();update();}
+    }
+    throw Error('Не удалось сохранить цену.');
+   }
+   if(input.isConnected&&price.price===amount)status.textContent='Подставлена цена продавца '+rub(amount);
+  }catch(error){status.textContent=error.message;}
+  finally{if(!fullBackupBusy)lookup.disabled=false;}
  };
  sync();
 }

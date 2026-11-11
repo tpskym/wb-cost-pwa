@@ -1,5 +1,5 @@
-import {listingItem,confirmAction} from './listing-fields.js?v=0.2.360';
-import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.360';
+import {listingItem,confirmAction} from './listing-fields.js?v=0.2.361';
+import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.361';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const roundPrice=value=>Math.round((value+Number.EPSILON)*100)/100;
 export function discountPercent(base,net){return base>0&&Number.isFinite(net)?roundPrice((1-net/base)*100):null;}
@@ -15,6 +15,9 @@ export async function readOzonPrice(request,offer){
  if(!item?.price)throw Error('Ozon не вернул подробные цены для этого артикула');
  return item.price;
 }
+export function ozonSellerPrice(price){
+ return [price?.marketing_seller_price,price?.price].map(Number).find(value=>Number.isFinite(value)&&value>0);
+}
 export async function readOzonCommissions(request,offer){
  if(!offer)throw Error('Укажите артикул заведённого товара Ozon.');
  const item=await readOzonPriceItem(request,offer);
@@ -26,7 +29,7 @@ export async function readOzonCommissions(request,offer){
   if(Number.isFinite(rate)&&rate>0&&rate<=100)rates[field]=rate;
  }
  if(!Object.keys(rates).length)throw Error('Ozon не вернул ставки FBO и FBS для этого товара.');
- const price=[item.price?.marketing_seller_price,item.price?.price].map(Number).find(value=>Number.isFinite(value)&&value>0);
+ const price=ozonSellerPrice(item.price);
  return {rates,price};
 }
 export function ozonPriceBody(item,base,price,min){if(!(Number.isFinite(price)&&price>0))throw Error('Укажите цену Ozon больше нуля');if(!Number.isFinite(base)||base<0||base>0&&base<=price)throw Error('Цена до скидки должна быть выше текущей цены; 0 — без зачёркнутой цены');if(!Number.isFinite(min)||min<0||min>price)throw Error('Минимальная цена должна быть от 0 до текущей цены');return {prices:[{offer_id:item.offer_id,price:price.toFixed(2),old_price:base.toFixed(2),min_price:min.toFixed(2),currency_code:item.currency_code||'RUB'}]};}
