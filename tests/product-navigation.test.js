@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.354');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.355');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -218,7 +218,8 @@ test('label files prompt button opens the current product label prompt without n
 test('model upload replaces the previous file rather than growing the product model library',async()=>{const owner=(await readDatabase()).id+':'+document.querySelector('#product-list .chosen[data-product]').dataset.product;const upload=async name=>{let input;for(let attempt=0;attempt<100;attempt++){input=document.querySelector('[data-file-upload=model]');if(input)break;await new Promise(resolve=>setTimeout(resolve,20));}assert.ok(input,'model upload form is ready');const file=new Blob(['model bytes']);Object.defineProperty(file,'name',{value:name});Object.defineProperty(input,'files',{value:[file]});await input.onchange();await settle();};await upload('first.3mf');await upload('replacement.3mf');const {listFiles}=await import('../attachments.js');const models=(await listFiles(owner)).filter(f=>f.category==='model');assert.equal(models.length,1);assert.equal(models[0].name,'replacement.3mf');assert.equal(document.querySelector('#print-model-select').selectedOptions[0].textContent,'replacement.3mf');});
 
 
-test('calculator pulls WB commission by subject and Ozon rates by the exact seller article',async()=>{
+test('calculator pulls commissions and adjusts the WB rate for the planned dispatch time',async t=>{
+ t.mock.method(Date,'now',()=>Date.parse('2026-11-11T12:00:00+03:00'));
  const $=selector=>document.querySelector(selector);
  const enter=(selector,value)=>{const input=$(selector);input.value=value;input.dispatchEvent(new window.Event('input',{bubbles:true}));};
  const originalFetch=globalThis.fetch;
@@ -228,7 +229,7 @@ test('calculator pulls WB commission by subject and Ozon rates by the exact sell
   if(url==='https://common-api.wildberries.ru/api/v1/tariffs/commission?locale=ru'){
    return Response.json({report:[
     {subjectID:31,parentID:12,kgvpMarketplace:3},
-    {subjectID:12,kgvpMarketplace:17.5,paidStorageKgvp:10},
+    {subjectID:12,kgvpMarketplace:37,paidStorageKgvp:10},
    ]});
   }
   if(url==='https://api-seller.ozon.ru/v5/product/info/prices'){
@@ -259,14 +260,24 @@ test('calculator pulls WB commission by subject and Ozon rates by the exact sell
   enter('[data-market="ozon"][data-profit-logistics="fbs"]',20);
   await $('[data-pull-commission="wb"]').onclick();
   await $('[data-pull-commission="ozon"]').onclick();
-  assert.equal($('[data-market="wb"][data-profit-logistics="commission"]').value,'17.5');
+  const wbField=key=>'[data-market="wb"][data-profit-logistics="'+key+'"]';
+  assert.equal($(wbField('commission')).value,'37');
+  enter('[data-profit-sale-price="wb"]',395);
+  enter(wbField('delivery'),88.9);
+  enter(wbField('buyout'),90);
+  const withoutDiscount=$('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent;
+  enter(wbField('dispatchHours'),30);
+  assert.match($('[data-wb-fbs-rate]').textContent,/37,00%.*30 ч.*33,50%/);
+  assert.match($('[data-logistics-result="wb"]').textContent,/132,33/);
+  assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,withoutDiscount);
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbo"]').value,'12.5');
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbs"]').value,'22.5');
   assert.match($('[data-calculated-payout="ozonFbo"]').textContent,/161,00/);
   assert.match($('[data-calculated-payout="ozonFbs"]').textContent,/131,00/);
   const {validateDB}=await import('../calc.js');
   const stored=validateDB(await readDatabase()).products.find(product=>product.sku==='SKU-0');
-  assert.equal(stored.marketplaceLogistics.wb.commission,17.5);
+  assert.equal(stored.marketplaceLogistics.wb.commission,37);
+  assert.equal(stored.marketplaceLogistics.wb.dispatchHours,30);
   assert.equal(stored.marketplaceLogistics.ozon.commissionFbo,12.5);
   assert.equal(stored.marketplaceLogistics.ozon.commissionFbs,22.5);
   await $('[data-pull-commission="wb"]').onclick();
