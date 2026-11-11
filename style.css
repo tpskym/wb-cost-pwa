@@ -720,7 +720,6 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .marketplace-profit-result .profit-result-label{display:block;overflow-wrap:anywhere}
 .marketplace-profit-result strong{display:block;font-size:22px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .marketplace-profit-result small{display:block;margin-top:6px;font-size:12px;font-weight:500;color:inherit}
-.ozon-fbs-cost{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;margin:14px 0;color:#405c91}
 .fbs-price-summary{display:grid;gap:10px;margin:14px 0}
 .fbs-price-targets{padding:12px;border:1px solid var(--profit-border,#dce4d5);border-radius:10px;background:#fff}
 .marketplace-profit-card>.fbs-price-targets{margin-top:14px}
