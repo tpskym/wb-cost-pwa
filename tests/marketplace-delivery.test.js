@@ -1,13 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {ozonMoscowDelivery,wbFbsDelivery} from '../marketplace-delivery.js';
+import {ozonMoscowDelivery,wbFbsDelivery,wbFbsDeliveryPerSale} from '../marketplace-delivery.js';
 
 const box=(width,height,depth,packagingWeight)=>({packaged:{width,height,depth},packagingWeight});
 
 test('WB FBS uses the Russian warehouse tariff and its one-liter boundary',()=>{
- assert.deepEqual(wbFbsDelivery(box(110,120,90,150)),{liters:1.188,delivery:82.67});
+ const tariff=wbFbsDelivery(box(110,120,90,150));
+ assert.deepEqual(tariff,{liters:1.188,delivery:82.6744});
+ assert.equal(wbFbsDeliveryPerSale(tariff.delivery,93),88.90);
+ assert.equal(wbFbsDeliveryPerSale(tariff.delivery,90),91.86);
+ assert.equal(wbFbsDeliveryPerSale(tariff.delivery,0),null);
  assert.equal(wbFbsDelivery(box(100,100,100)).delivery,54.4);
- assert.equal(wbFbsDelivery(box(100,100,100.1)).delivery,78.22);
+ assert.equal(wbFbsDelivery(box(100,100,100.1)).delivery,78.2238);
  assert.throws(()=>wbFbsDelivery(box(100,100,100,25001)),/крупногабаритного/);
  assert.throws(()=>wbFbsDelivery(box(1201,100,100)),/крупногабаритного/);
 });

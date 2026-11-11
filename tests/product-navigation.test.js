@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.357');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.358');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -263,23 +263,43 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   const wbField=key=>'[data-market="wb"][data-profit-logistics="'+key+'"]';
   assert.equal($(wbField('commission')).value,'37');
   enter('[data-profit-sale-price="wb"]',395);
-  enter(wbField('delivery'),88.9);
+  $('[data-tab="important"]').click();
+  for(const [side,mm] of Object.entries({width:110,height:120,depth:90})){
+   const dimension=$(`[data-measurement="packaged.${side}"]`);
+   dimension.value=mm;
+   dimension.dispatchEvent(new window.Event('change',{bubbles:true}));
+  }
+  await $('[data-calculate-delivery="wb"]').onclick();
+  assert.equal($(wbField('delivery')).value,'82.6744');
+  enter(wbField('buyout'),93);
+  const deliveryValue=$('[data-wb-fbs-delivery]');
+  assert.match(deliveryValue.textContent,/88,90/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/167,85/);
   enter(wbField('buyout'),90);
+  assert.match(deliveryValue.textContent,/91,86/);
+  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/164,89/);
+  enter(wbField('buyout'),0);
+  assert.equal(deliveryValue.parentElement.hidden,true);
+  assert.equal($('[data-calculated-payout="wbFbs"]').textContent,'—');
+  enter(wbField('buyout'),93);
   const hours=$(wbField('dispatchHours'));
   assert.equal(hours.value,'24');
-  assert.match($('[data-wb-fbs-rate]').textContent,/37,00%.*24 ч.*33,50%/);
+  const appliedRate=$('[data-wb-fbs-rate]');
+  assert.equal(appliedRate.parentElement.hidden,false);
+  assert.equal(appliedRate.textContent,'33,5%');
   for(const value of ['0','']){
    enter(wbField('dispatchHours'),value);
    hours.dispatchEvent(new window.Event('change',{bubbles:true}));
    assert.equal(hours.value,'24');
-   assert.match($('[data-wb-fbs-rate]').textContent,/24 ч.*33,50%/);
+   assert.equal(appliedRate.textContent,'33,5%');
    assert.equal((await readDatabase()).products.find(product=>product.sku==='SKU-0').marketplaceLogistics.wb.dispatchHours,24);
   }
   const defaultPrice=$('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent;
   enter(wbField('dispatchHours'),43);
+  assert.equal(appliedRate.textContent,'37%');
   assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   enter(wbField('dispatchHours'),30);
-  assert.match($('[data-wb-fbs-rate]').textContent,/37,00%.*30 ч.*33,50%/);
+  assert.equal(appliedRate.textContent,'33,5%');
   assert.match($('[data-logistics-result="wb"]').textContent,/132,33/);
   assert.equal($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbo"]').value,'12.5');

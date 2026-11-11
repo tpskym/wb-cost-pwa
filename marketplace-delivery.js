@@ -30,11 +30,18 @@ function packageSize(measurements){
 export function wbFbsDelivery(measurements){
  const {sides,liters}=packageSize(measurements);
  if(Math.max(...sides)>1200||sides.reduce((sum,side)=>sum+side,0)>2000||measurements.packagingWeight>25_000){
-  throw Error('Для крупногабаритного товара укажите доставку из калькулятора WB.');
+  throw Error('Для крупногабаритного товара укажите тариф за одну отправку вручную.');
  }
  const base=wbSmallTiers.find(([max])=>liters<=max)?.[1]??46+14*(liters-1);
- const delivery=Math.round(base*wbRussianWarehouseCoefficient*100)/100;
+ // Keep sub-kopeck precision until the tariff is divided by the buyout rate.
+ const delivery=Number((base*wbRussianWarehouseCoefficient).toFixed(8));
  return {liters,delivery};
+}
+
+export function wbFbsDeliveryPerSale(delivery,buyout){
+ if(!Number.isFinite(delivery)||!Number.isFinite(buyout)||buyout<=0)return null;
+ const perSale=delivery/(buyout/100);
+ return Number.isFinite(perSale)?Number(perSale.toFixed(2)):null;
 }
 
 export function ozonMoscowDelivery(measurements,price){
