@@ -1,6 +1,6 @@
-import {filamentTypes} from './filament-stock.js?v=0.2.350';
-import {validateExpensesDatabase} from './expenses.js?v=0.2.350';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.350';
+import {filamentTypes} from './filament-stock.js?v=0.2.351';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.351';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.351';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
