@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.370');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.371');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -451,4 +451,42 @@ test('calculator settings apply immediately to every other product in the curren
  assert.deepEqual(after.filter(row=>row.productGroup!==source.productGroup),before.filter(row=>row.productGroup!==source.productGroup));
  assert.deepEqual(current,before.find(row=>row.id===source.id));
  assert.ok($('#toast').textContent.includes(`${source.productGroup} · товаров: ${targets.length}`));
+});
+
+test('printer spread assigns the model and its cost only to selected products',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const selectProduct=async sku=>{
+  const search=$('#product-search');
+  search.value=sku;
+  search.dispatchEvent(new window.Event('input'));
+  $('#product-list [data-product]').click();
+  await settle();
+ };
+ await selectProduct('SKU-180');
+ $('[data-tab="important"]').click();
+ const printer=$('[data-cost-printer]');
+ printer.value='Bambu Lab A1';
+ printer.dispatchEvent(new window.Event('change'));
+ const before=(await readDatabase()).products;
+ const target=before.find(row=>row.sku==='SKU-181');
+ $('[data-cost-printer]').closest('.cost-spread-field').querySelector('button').click();
+ const dialog=$('.marketplace-profit-picker');
+ assert.match(dialog.textContent,/Модель принтера.*Bambu Lab A1/);
+ dialog.querySelector(`[name="target"][value="${target.id}"]`).click();
+ assert.equal(dialog.querySelector('[value="apply"]').disabled,false);
+ const nativeFormData=globalThis.FormData;
+ try{
+  globalThis.FormData=window.FormData;
+  dialog.returnValue='apply';
+  dialog.close();
+ }finally{globalThis.FormData=nativeFormData;}
+ const after=(await readDatabase()).products;
+ assert.deepEqual(after,before.map(row=>row.id===target.id
+  ? {...row,printer:'Bambu Lab A1',values:{...row.values,printerPrice:45000}}
+  : row));
+ await selectProduct('SKU-181');
+ $('[data-tab="production"]').click();
+ assert.equal($('[data-cost-printer]').value,'Bambu Lab A1');
+ assert.equal($('[data-field="printerPrice"]').value,'45000');
+ assert.ok($('[data-cost-printer]').closest('.cost-spread-field').querySelector('button'));
 });

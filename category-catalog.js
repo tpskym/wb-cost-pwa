@@ -1,6 +1,6 @@
-import {cardClassificationCodes} from './catalogue-status.js?v=0.2.370';
-import {marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.370';
-import {normalizeCategories,categoryOf} from './listing-fields.js?v=0.2.370';
+import {cardClassificationCodes} from './catalogue-status.js?v=0.2.371';
+import {marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.371';
+import {normalizeCategories,categoryOf} from './listing-fields.js?v=0.2.371';
 function openCatalogDB(){return new Promise((resolve,reject)=>{const request=indexedDB.open('workshop-category-catalogs-v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('catalogs',{keyPath:'market'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}
 async function catalogTransaction(mode,action){const db=await openCatalogDB();try{return await new Promise((resolve,reject)=>{const tx=db.transaction('catalogs',mode),request=action(tx.objectStore('catalogs'));let result;request.onsuccess=()=>{result=request.result;};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Сохранение справочника отменено'));});}finally{db.close();}}
 export const readCatalog=market=>catalogTransaction('readonly',store=>store.get(market));

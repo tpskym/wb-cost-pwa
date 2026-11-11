@@ -775,6 +775,9 @@ button:is(.spread-marketplace-field,#spread-marketplace-profit):hover:not(:disab
 .cost-spread-field>label>small{grid-row:3}
 .cost-spread-field>label>.quantity-control{width:max-content;max-width:100%}
 .cost-spread-field>label+.spread-marketplace-field{grid-column:2;grid-row:2;align-self:end;height:44px}
+@container (width < 560px){
+ .form-grid:has(> .cost-spread-field [data-cost-printer]){grid-template-columns:minmax(0,1fr)}
+}
 .cost-product-image:has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:120px minmax(0,1fr) minmax(0,1fr)}
 .cost-product-image:has(>img[hidden]):has(.image-profit-summary [data-product-profit-summary]:not(:empty)){grid-template-columns:repeat(2,minmax(0,1fr))}
 .image-profit-summary{align-self:start;padding:14px;border:1px solid #d7e0d0;border-radius:10px}
