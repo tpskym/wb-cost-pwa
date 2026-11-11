@@ -724,14 +724,19 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-price-targets{padding:12px;border:1px solid var(--profit-border,#dce4d5);border-radius:10px;background:#fff;container-type:inline-size}
 .marketplace-profit-card>.fbs-price-targets{margin-top:14px}
 .fbs-price-targets h4{margin:0 0 8px;color:var(--profit-accent,#34563b);font-size:14px}
-.fbs-price-targets dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px 12px}
-.fbs-price-targets dt,.fbs-price-targets small{color:#53645a;font-size:12px;line-height:1.4}
-.fbs-price-targets dd{margin:3px 0 0;font-size:14px;font-weight:750;overflow-wrap:anywhere}
-.fbs-suggested-price{padding:8px 10px;border:1px solid #c4d5b9;border-radius:8px;background:#edf5e7;color:#284835}
-.fbs-suggested-price dt{color:inherit;font-size:13px;font-weight:700}
-.fbs-suggested-price strong{font-size:16px;font-weight:800;overflow-wrap:anywhere}
+.fbs-price-targets dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px 12px}
+.fbs-price-targets dl>div{min-width:0;display:grid;grid-row:span 2;grid-template-rows:subgrid;row-gap:3px;padding:8px 10px;border:1px solid transparent;border-radius:8px}
+.fbs-price-targets dt,.fbs-price-targets small{color:#53645a;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.fbs-price-targets dd{margin:0;font-size:14px;font-weight:750;overflow-wrap:anywhere}
+.fbs-price-targets dl>.fbs-suggested-price{border-color:#c4d5b9;background:#edf5e7;color:#284835}
+.fbs-suggested-price dt{color:inherit;font-weight:700}
+.fbs-suggested-price strong{font-weight:800}
 .fbs-working-price small,.fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
-@container (width < 414px){.fbs-suggested-price{grid-column:1/-1}}
+@container (228px <= width < 414px){
+ .fbs-price-targets dl{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fbs-suggested-price{grid-column:1/-1}
+}
+@container (width >= 414px){.fbs-price-targets dl{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .marketplace-logistics{margin:14px 0;min-width:0;padding:12px;border:1px solid #dce4d5;border-radius:10px}
 .marketplace-logistics legend{padding:0 5px;font-weight:650}
 .marketplace-logistics-fields{display:grid;align-items:stretch;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:12px}

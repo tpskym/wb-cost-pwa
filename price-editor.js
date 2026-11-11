@@ -1,5 +1,5 @@
-import {listingItem,confirmAction} from './listing-fields.js?v=0.2.367';
-import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.367';
+import {listingItem,confirmAction} from './listing-fields.js?v=0.2.368';
+import {readWBPrice,wbPriceValue,wbPriceBody} from './wb-prices.js?v=0.2.368';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const roundPrice=value=>Math.round((value+Number.EPSILON)*100)/100;
 export function discountPercent(base,net){return base>0&&Number.isFinite(net)?roundPrice((1-net/base)*100):null;}
@@ -28,8 +28,13 @@ export async function readOzonCommissions(request,offer){
   const rate=commissions?.[source];
   if(Number.isFinite(rate)&&rate>0&&rate<=100)rates[field]=rate;
  }
- if(!Object.keys(rates).length)throw Error('Ozon не вернул ставки FBO и FBS для этого товара.');
  const price=ozonSellerPrice(item.price);
+ // Ozon sends an estimated charge in money; the calculator uses a rate.
+ const acquiring=item.acquiring;
+ if(price!==undefined&&Number.isFinite(acquiring)&&acquiring>=0&&acquiring<=price){
+  rates.acquiring=Number((acquiring/price*100).toFixed(4));
+ }
+ if(!Object.keys(rates).length)throw Error('Ozon не вернул комиссии и эквайринг для этого товара.');
  return {rates,price};
 }
 export function ozonPriceBody(item,base,price,min){if(!(Number.isFinite(price)&&price>0))throw Error('Укажите цену Ozon больше нуля');if(!Number.isFinite(base)||base<0||base>0&&base<=price)throw Error('Цена до скидки должна быть выше текущей цены; 0 — без зачёркнутой цены');if(!Number.isFinite(min)||min<0||min>price)throw Error('Минимальная цена должна быть от 0 до текущей цены');return {prices:[{offer_id:item.offer_id,price:price.toFixed(2),old_price:base.toFixed(2),min_price:min.toFixed(2),currency_code:item.currency_code||'RUB'}]};}
