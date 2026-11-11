@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.363');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.364');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -161,6 +161,9 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  wb.querySelector('[data-price-adjust="10"]').click();
  assert.equal(wbSlider.valueAsNumber,oldEnd+10);
  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/772,85/);
+ $('[data-tab="packaging"]').click();
+ enter($('#fields [data-field="capacity"]'),4);
+ enter($('#fields [data-field="outer"]'),20);
  assert.equal($('#product-list [data-product-profit-summary]'),null);
  assert.ok($('.image-profit-summary [data-product-profit-summary] strong'));
  await settle();
@@ -174,6 +177,11 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  const {cost}=calculateManual({...current,values:{...current.values,...configuredCostPrices(database,current)}});
  const prices=(market,kind)=>[...document.querySelectorAll(`[data-fbs-prices="${market}"] [data-fbs-${kind}]`)].map(el=>el.textContent);
  const money=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
+ const ozonCost=cost-5;
+ assert.equal($('#results .big-number strong').textContent,money.format(cost));
+ assert.equal($('#results .ozon-fbs-cost strong').textContent,money.format(ozonCost));
+ const costRow=[...document.querySelectorAll('[data-marketplace-profit-table] tbody tr')].find(row=>row.querySelector('th').textContent==='Себестоимость');
+ assert.deepEqual([...costRow.querySelectorAll('td')].map(cell=>cell.textContent),[cost,ozonCost,ozonCost].map(value=>money.format(value)));
  assert.equal($('[data-profit-result="wbFbs"] strong').textContent,money.format(772.85-(oldEnd+10)*0.06-cost));
  const assertPrice=(market,kind,expected)=>{
   const values=prices(market,kind);
@@ -190,10 +198,12 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  const saved=validateDB(await readDatabase()).products.find(p=>p.id===current.id);
  assert.equal(saved.marketplaceLogistics.wb.acquiring,0);
  enter($('[data-market="ozon"][data-profit-logistics="buyout"]'),80);
- assertPrice('ozon','break-even',Math.ceil((20+4+cost)/0.69-1e-9));
- assertPrice('ozon','suggested',Math.ceil((20+4+1.8*cost)/0.69-1e-9));
+ assertPrice('ozon','break-even',Math.ceil((20+4+ozonCost)/0.69-1e-9));
+ assertPrice('ozon','suggested',Math.ceil((20+4+1.8*ozonCost)/0.69-1e-9));
  assert.equal(ozonPrice.value,'0');
  assert.ok($('[data-fbs-suggested]').closest('.fbs-suggested-price'));
+ enter(ozonSlider,180);
+ assert.equal($('[data-profit-result="ozonFbs"] strong').textContent,money.format(115-10.8-4-ozonCost));
  enter($('[data-market="ozon"][data-profit-logistics="fbs"]'),301);
  for(const kind of ['break-even','suggested'])assert.deepEqual(prices('ozon',kind),Array(2).fill('Недостижимо до 300 ₽'));
 });

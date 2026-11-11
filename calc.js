@@ -1,6 +1,6 @@
-import {filamentTypes} from './filament-stock.js?v=0.2.363';
-import {validateExpensesDatabase} from './expenses.js?v=0.2.363';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.363';
+import {filamentTypes} from './filament-stock.js?v=0.2.364';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.364';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.364';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -152,7 +152,7 @@ export function calculateManual(p){
  const active=markets[p.platform?.startsWith('Ozon')?'ozon':'wb'];
  const detailRows=base.detailRows.filter(row=>fields.find(f=>f[0]===row[2])?.[3]!=='sales'&&!['tax'].includes(row[2]));
  detailRows.push(...p.custom.filter(c=>c.mode==='unit').map(c=>[c.name,c.amount||0,'custom:'+c.id]));
- return {...base,cost,ozonFboCost:cost-base.outerBoxCost,detailRows,missing:[...new Set(missing)],invalid:[...new Set(invalid)],markets,profit:active.profit,price:active.price,tax:active.tax,margin:active.margin,rows:base.rows.filter(([name])=>name!=='Доставка, невыкуп и прочее').concat([['Дополнительные затраты',extra]])};
+ return {...base,cost,costWithoutOuterBox:cost-base.outerBoxCost,detailRows,missing:[...new Set(missing)],invalid:[...new Set(invalid)],markets,profit:active.profit,price:active.price,tax:active.tax,margin:active.margin,rows:base.rows.filter(([name])=>name!=='Доставка, невыкуп и прочее').concat([['Дополнительные затраты',extra]])};
 }
 
 export function productCostsBySku(products,sku){const key=String(sku||'').trim();if(!key)return [];return products.filter(product=>String(product.sku||'').trim()===key).map(product=>{const result=calculateManual(structuredClone(product));return {id:product.id,productURLs:Object.fromEntries(Object.entries(product.listingDrafts||{}).map(([market,draft])=>[market,draft.productURL||''])),name:product.name,sku:product.sku,cost:result.invalid.length?null:result.cost,missing:result.missing.length,invalid:result.invalid.length,rows:result.rows};});}
