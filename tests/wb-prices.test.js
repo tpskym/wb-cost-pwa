@@ -6,7 +6,8 @@ test('WB prices use the dedicated host and guarded GET filter without a request 
 test('WB FBS applies the temporary dispatch window until February in Moscow',()=>{
  const lastMinute=Date.parse('2027-01-31T23:59:00+03:00');
  const nextMonth=Date.parse('2027-02-01T00:00:00+03:00');
- assert.equal(wbFbsCommission(37,null,lastMinute),37);
+ assert.equal(wbFbsCommission(37,null,lastMinute),33.5);
+ assert.equal(wbFbsCommission(37,0,lastMinute),33.5);
  assert.equal(wbFbsCommission(37,13,lastMinute),32);
  assert.equal(wbFbsCommission(37,30,lastMinute),33.5);
  assert.equal(wbFbsCommission(37,43,lastMinute),37);

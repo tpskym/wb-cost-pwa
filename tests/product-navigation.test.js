@@ -16,7 +16,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.356');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.357');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -115,7 +115,7 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  await settle();
  enter($('[data-profit-tax-rate]'),6);
  for(const [market,fields] of [
-  ['wb',{commission:20,delivery:10,buyout:100}],
+  ['wb',{commission:20,dispatchHours:48,delivery:10,buyout:100}],
   ['ozon',{commissionFbo:20,commissionFbs:20,acquiring:5,fbo:10,fbs:20,buyout:100}]
  ])for(const [field,value] of Object.entries(fields))enter($(`[data-profit-logistics="${field}"][data-market="${market}"]`),value);
  const ozon=$('[data-profit-market="ozon"].marketplace-profit-card');
@@ -265,11 +265,23 @@ test('calculator pulls commissions and adjusts the WB rate for the planned dispa
   enter('[data-profit-sale-price="wb"]',395);
   enter(wbField('delivery'),88.9);
   enter(wbField('buyout'),90);
-  const withoutDiscount=$('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent;
+  const hours=$(wbField('dispatchHours'));
+  assert.equal(hours.value,'24');
+  assert.match($('[data-wb-fbs-rate]').textContent,/37,00%.*24 ч.*33,50%/);
+  for(const value of ['0','']){
+   enter(wbField('dispatchHours'),value);
+   hours.dispatchEvent(new window.Event('change',{bubbles:true}));
+   assert.equal(hours.value,'24');
+   assert.match($('[data-wb-fbs-rate]').textContent,/24 ч.*33,50%/);
+   assert.equal((await readDatabase()).products.find(product=>product.sku==='SKU-0').marketplaceLogistics.wb.dispatchHours,24);
+  }
+  const defaultPrice=$('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent;
+  enter(wbField('dispatchHours'),43);
+  assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   enter(wbField('dispatchHours'),30);
   assert.match($('[data-wb-fbs-rate]').textContent,/37,00%.*30 ч.*33,50%/);
   assert.match($('[data-logistics-result="wb"]').textContent,/132,33/);
-  assert.notEqual($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,withoutDiscount);
+  assert.equal($('[data-fbs-prices="wb"] [data-fbs-suggested]').textContent,defaultPrice);
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbo"]').value,'12.5');
   assert.equal($('[data-market="ozon"][data-profit-logistics="commissionFbs"]').value,'22.5');
   assert.match($('[data-calculated-payout="ozonFbo"]').textContent,/161,00/);

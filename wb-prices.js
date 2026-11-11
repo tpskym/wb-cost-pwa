@@ -4,9 +4,13 @@ export function wbPriceBody(item,price,discount=item.discount){if(!Number.isSafe
 
 // WB applies the wider FBS dispatch window through January 2027, Moscow time.
 const wbFbsTemporaryWindowEnd=Date.parse('2027-02-01T00:00:00+03:00');
+export function wbFbsDispatchHours(hours){
+ return Number.isFinite(hours)&&hours>0?hours:24;
+}
 export function wbFbsCommission(base,dispatchHours,now=Date.now()){
- if(!Number.isFinite(base)||!Number.isFinite(dispatchHours))return base;
+ if(!Number.isFinite(base))return base;
+ const hours=wbFbsDispatchHours(dispatchHours);
  const discountWindow=now<wbFbsTemporaryWindowEnd?42:18;
- const discount=dispatchHours<=13?5:dispatchHours<=discountWindow?3.5:0;
+ const discount=hours<=13?5:hours<=discountWindow?3.5:0;
  return discount?Math.max(1,base-discount):base;
 }
