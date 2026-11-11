@@ -15,7 +15,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const search=$('#product-search');search.value='SKU-204';search.dispatchEvent(new dom.window.Event('input'));
  assert.equal(document.querySelectorAll('[data-product]').length,1);assert.equal($('[data-product]').dataset.product,products[204].id);
  $('[data-product]').click();await settle();assert.equal($('#sku').value,'SKU-204');assert.equal($('#product-search').value,'SKU-204');
- const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.351');disposeListingEditor();
+ const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.352');disposeListingEditor();
 });
 test('variants preserve the name and build article suffixes from selected colours',async()=>{
  const $=s=>document.querySelector(s),name=$('#name').value;
@@ -176,10 +176,8 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
   assert.ok(values[0].endsWith(money.format(expected)),values[0]);
  };
  assertPrice('wb','break-even',Math.ceil((10+cost)/0.725-1e-9));
- const suggestedWb=Math.ceil((10+1.8*cost)/0.725-1e-9);
- assertPrice('wb','suggested',suggestedWb);
- assertPrice('wb','before-discount',suggestedWb/0.8);
- assert.deepEqual(prices('ozon','before-discount'),[]);
+ assertPrice('wb','suggested',Math.ceil((10+1.8*cost)/0.725-1e-9));
+ for(const host of document.querySelectorAll('[data-fbs-prices="wb"]'))assert.doesNotMatch(host.textContent,/цена до скидки/i);
  enter(wbAcquiring,0);
  assert.match($('[data-calculated-payout="wbFbs"]').textContent,/798,00/);
  assertPrice('wb','break-even',Math.ceil((10+cost)/0.74-1e-9));
