@@ -726,10 +726,13 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-price-targets h4{margin:0 0 8px;color:var(--profit-accent,#34563b);font-size:14px}
 .fbs-price-targets dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px 12px}
 .fbs-price-targets dl>div{min-width:0;display:grid;grid-row:span 2;grid-template-rows:subgrid;row-gap:3px;padding:8px 10px;border:1px solid transparent;border-radius:8px}
-.fbs-price-targets dt,.fbs-price-targets small{color:#53645a;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.fbs-price-targets dt,.fbs-price-targets small{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.fbs-price-targets dt{font-weight:700}
+.fbs-price-targets small{color:#53645a}
 .fbs-price-targets dd{margin:0;font-size:14px;font-weight:750;overflow-wrap:anywhere}
+.fbs-price-targets dl>.fbs-break-even-price{border-color:#e5aa79;background:#ffead7;color:#743a13}
+.fbs-price-targets dl>.fbs-working-price{border-color:#d7bf59;background:#fff4c2;color:#594507}
 .fbs-price-targets dl>.fbs-suggested-price{border-color:#c4d5b9;background:#edf5e7;color:#284835}
-.fbs-suggested-price dt{color:inherit;font-weight:700}
 .fbs-suggested-price strong{font-weight:800}
 .fbs-working-price small,.fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
 @container (228px <= width < 414px){
