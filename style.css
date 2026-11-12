@@ -821,6 +821,22 @@ button:is(.spread-marketplace-field,#spread-marketplace-profit):hover:not(:disab
 .cost-spread-field>label>small{grid-row:3}
 .cost-spread-field>label>.quantity-control{width:max-content;max-width:100%}
 .cost-spread-field>label+.spread-marketplace-field{grid-column:2;grid-row:2;align-self:end;height:44px}
+#fields .individual-packaging-controls{row-gap:8px}
+.individual-packaging-controls>.form-grid{display:contents}
+.individual-packaging-controls .cost-spread-field:has(>label){grid-row:span 3;grid-template-rows:subgrid;row-gap:normal}
+.individual-packaging-controls .cost-spread-field>label{row-gap:normal}
+.individual-packaging-controls .cost-spread-field>label>:is(select,.input-unit,.number-control){margin-top:0}
+.filament-edit-button{display:grid;place-items:center;flex:0 0 44px;width:44px;min-height:44px;padding:0;color:#405f32;background:#edf3e3;border-color:#b8cba2}
+.filament-edit-button svg{width:18px;height:18px}
+.filament-edit-dialog{width:min(570px,calc(100vw - 24px))}
+.filament-edit-dialog h2{margin:0}
+.filament-edit-dialog .form-grid{margin:20px 0 0}
+.filament-edit-dialog :is(input,select,button){min-height:44px;font-size:14px}
+.filament-edit-dialog :is(input,select){margin-bottom:0}
+.filament-edit-dialog [data-filament-edit-status]{margin:12px 0 0;color:#833f21}
+.filament-edit-dialog [data-filament-edit-status]:empty{display:none}
+.filament-edit-dialog .sync-actions{margin-top:22px}
+@media(max-width:520px){.filament-edit-dialog{padding:16px}.filament-edit-dialog .form-grid{grid-template-columns:minmax(0,1fr)}}
 @container (width < 560px){
  .form-grid:has(> .cost-spread-field [data-cost-printer]){grid-template-columns:minmax(0,1fr)}
 }

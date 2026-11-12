@@ -9,6 +9,42 @@ test('filament stock preserves leading zeroes and adds repeated colour codes',()
 test('older databases migrate stock and backups validate zero quantities',()=>{
  const db={schema:1,id:'db',products:[blankProduct()]};validateDB(db);assert.deepEqual(db.filamentStock,[]);db.filamentStock=[{id:'stock',colorCode:'10100',quantity:0}];assert.equal(validateDB(structuredClone(db)).filamentStock[0].quantity,0);assert.throws(()=>validateDB({...db,filamentStock:[{id:'stock',colorCode:'black',quantity:-1}]}),/филамента/);
 });
+test('stock row editor updates linked colours and rolls back failed saves without changing quantities',async()=>{
+ const dom=new JSDOM('<main></main>');
+ const root=dom.window.document.querySelector('main');
+ dom.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
+ dom.window.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new dom.window.Event('close'));};
+ const row={id:'stock',material:'PLA Basic',colorCode:'10100',colorName:'Белый',originalColorName:'White',quantity:2,purchasedQuantity:1};
+ const product={colorCode:'10100 White',filamentSlots:[{filamentId:'stock',code:'10100',material:'PLA Basic',colorName:'Белый',originalColorName:'White'}]};
+ const database={products:[product],filamentStock:[row,{...row,id:'other',colorCode:'10101'}]};
+ let saved=false,attempts=0;
+ mountFilamentStock({root,database,save:async()=>{attempts++;return saved;},toast:()=>{}});
+ root.querySelector('[data-filament-edit="stock"]').click();
+ const form=root.querySelector('.filament-edit-dialog form');
+ const code=form.elements.namedItem('colorCode');
+ const submit=()=>form.onsubmit(new dom.window.Event('submit',{cancelable:true}));
+ assert.equal(code.value,'10100');
+ code.value='10101';
+ await submit();
+ assert.match(form.querySelector('[role="status"]').textContent,/уже есть/);
+ assert.equal(attempts,0);
+ code.value='10102';
+ form.elements.namedItem('originalColorName').value='Jade White';
+ await submit();
+ assert.match(form.querySelector('[role="status"]').textContent,/Не удалось сохранить/);
+ assert.equal(row.colorCode,'10100');
+ assert.equal(product.colorCode,'10100 White');
+ saved=true;
+ await submit();
+ assert.equal(root.querySelector('.filament-edit-dialog'),null);
+ assert.equal(product.filamentSlots[0].code,'10102');
+ assert.equal(product.colorCode,'10102 Jade White');
+ assert.equal(row.quantity,2);
+ assert.equal(row.purchasedQuantity,1);
+ assert.equal(database.filamentStock.length,2);
+ assert.match(root.querySelector('[data-filament-edit="stock"]').closest('tr').textContent,/10102.*Jade White/s);
+ dom.window.close();
+});
 test('filament UI saves arrivals and corrected counts and searches colour codes',()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root'),database={};let saves=0;mountFilamentStock({root,database,save:()=>saves++,toast:()=>{}});const $=selector=>root.querySelector(selector),change=input=>input.dispatchEvent(new dom.window.Event('change'));
  $('#filament-color-code').value='10100 white';$('#filament-add-quantity').value='4';$('#filament-add-form').dispatchEvent(new dom.window.Event('submit',{cancelable:true}));assert.equal(database.filamentStock[0].quantity,4);for(let i=0;i<4;i++)$('[data-filament-step][data-delta="-1"]').click();assert.equal(database.filamentStock[0].quantity,0);assert.equal($('[data-filament-step][data-delta="-1"]').disabled,true);$('#filament-stock-search').value='black';$('#filament-stock-search').dispatchEvent(new dom.window.Event('input'));assert.equal(root.querySelector('[data-filament-quantity]'),null);assert.equal(saves,5);
