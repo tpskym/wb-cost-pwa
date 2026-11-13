@@ -1,48 +1,48 @@
-import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.385';
-import {mountFinance} from './finance.js?v=0.2.385';
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.385';
-import {attachCardDesignZip} from './attachments.js?v=0.2.385';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.385';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.385';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.385';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot,newSkuBackupMode,planNewSkuImport} from './backup-modes.js?v=0.2.385';
-import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.385';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.385';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.385';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.385';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.385';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.385';
-import {ensureProductImage,productImageSources} from './product-images.js?v=0.2.385';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.385';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.385';
-import {installImagePreview} from './image-preview.js?v=0.2.385';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.385';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.385';
-import {openCostReport} from './cost-report.js?v=0.2.385';
-import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.385';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.385';
-import {mountReleaseHistory} from './release-history.js?v=0.2.385';
-import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.385';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.385';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.385';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.385';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.385';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.385';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.385';
-import {mountSales} from './sales.js?v=0.2.385';
-import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.385';
-import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.385';
-import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.385';
-import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.385';
-import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.385';
-import {installNumberControls} from './number-controls.js?v=0.2.385';
-const APP_VERSION='0.2.385';
+import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.386';
+import {mountFinance} from './finance.js?v=0.2.386';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.386';
+import {attachCardDesignZip} from './attachments.js?v=0.2.386';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.386';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.386';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.386';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot,newSkuBackupMode,planNewSkuImport} from './backup-modes.js?v=0.2.386';
+import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.386';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.386';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.386';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.386';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.386';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.386';
+import {ensureProductImage,productImageSources} from './product-images.js?v=0.2.386';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.386';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.386';
+import {installImagePreview} from './image-preview.js?v=0.2.386';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.386';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.386';
+import {openCostReport} from './cost-report.js?v=0.2.386';
+import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.386';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.386';
+import {mountReleaseHistory} from './release-history.js?v=0.2.386';
+import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.386';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.386';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.386';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.386';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.386';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.386';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.386';
+import {mountSales} from './sales.js?v=0.2.386';
+import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.386';
+import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.386';
+import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.386';
+import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.386';
+import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.386';
+import {installNumberControls} from './number-controls.js?v=0.2.386';
+const APP_VERSION='0.2.386';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.385';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.385';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.385';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.385';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.385';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.386';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.386';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.386';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.386';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.386';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#finance'?'finance':globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -111,13 +111,13 @@ function selectedBackupMode(){
 const backupFormatHint='ZIP сохраняет фото и модели. JSON удобен для копии расчётов и PDF-этикеток.';
 const backupModeDescriptions={
  full:'Товары, расчёты, фотографии, этикетки, модели, затраты и нормы WB/Ozon.',
- costs:'Выбранные товары, их расчёты, этикетки и модели. Состав можно уточнить перед выгрузкой.',
- [newSkuBackupMode]:'Расчёты и модели всех товаров.'
+ costs:'Выбранные товары, их расчёты, фото для списка, этикетки и модели. Состав можно уточнить перед выгрузкой.',
+ [newSkuBackupMode]:'Расчёты, фото для списка и модели всех товаров.'
 };
 const backupModeRestoreDescriptions={
  full:'Заменяет данные из копии. Очередь печати и остатки филамента сохраняются на устройстве.',
  costs:'Добавляет или обновляет выбранные данные товаров по артикулу.',
- [newSkuBackupMode]:'Обновляет расчёты. Модели добавляет только для новых артикулов.'
+ [newSkuBackupMode]:'Обновляет расчёты и фото для списка. Модели добавляет только для новых артикулов.'
 };
 function renderBackupContent(){
  const mode=selectedBackupMode();
@@ -351,10 +351,10 @@ async function prepareBackupArchive(mode,{replaceAll=false,onProgress=()=>{},sig
  const chosen=selection.database, included=selection.records;
  const photos=new Set(included.filter(file=>file.category==='product-image').map(file=>file.owner));
  let unavailablePhotos=0;
- for(const product of mode===newSkuBackupMode?[]:chosen.products){
+ for(const product of chosen.products){
   await backupCheckpoint(signal);
   const owner=chosen.id+':'+product.id;
-  if(photos.has(owner)||product.transferParts?.parameters===false)continue;
+  if(photos.has(owner))continue;
   try{
    if(!await ensureProductImage(chosen,product,{download:false}))unavailablePhotos++;
    included.push(...(await listFiles(owner)).filter(file=>file.category==='product-image'));
@@ -397,6 +397,7 @@ function selectCostsTransfer(parsed,{exporting=false}={}) {
  dialog.className = 'costs-transfer-picker';
  dialog.setAttribute('aria-label', 'Выбор товаров и моделей');
  dialog.innerHTML = `<h2>${exporting?'Что выгрузить в архив':'Что перенести из архива'}</h2>
+ <p>Фото для отображения в списке переносится вместе с каждым выбранным товаром.</p>
  <label>Поиск по артикулу или названию<input type="search" data-transfer-search placeholder="Введите часть артикула"></label>
  <div class="file-actions"><button type="button" data-transfer-mark="all">Отметить найденные</button><button type="button" data-transfer-mark="none">Снять все отметки</button></div>
 
@@ -494,7 +495,7 @@ function selectCostsTransfer(parsed,{exporting=false}={}) {
      }),
      templates:chosen.length===products.length&&chosen.every(p=>partsByProduct.get(p.id).parameters)?parsed.database.templates:[]
     },
-    files:parsed.files.filter(file=>ids.has(file.productId)&&(file.category==='model'?selectedModels.has(file):partsByProduct.get(file.productId).parameters))
+    files:parsed.files.filter(file=>ids.has(file.productId)&&(file.category==='product-image'||(file.category==='model'?selectedModels.has(file):partsByProduct.get(file.productId).parameters)))
    }:null;
    dialog.remove();
    resolve(result);
@@ -521,10 +522,10 @@ async function restoreFullArchive(file,{cloud=false,progress:existingProgress}={
   const updated=costImport.filter(item=>item.current).length;
   const added=costImport.length-updated;
   const skipped=parsed.database.products.length-costImport.length;
-  const message=`Обновятся расчёты у товаров: ${updated}. Добавится товаров: ${added}. Модели будут перенесены только для новых артикулов.`
+  const message=`Обновятся расчёты у товаров: ${updated}. Добавится товаров: ${added}. Фото для списка обновятся у всех выбранных товаров. Модели будут перенесены только для новых артикулов.`
    +(skipped?` Пропущено неоднозначных совпадений: ${skipped}.`:'');
   if(!await confirmAction(message,{title:'Загрузить себестоимость и модели?',accept:'Загрузить'}))return;
- }else if(!await confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? '+backupModes[mode]+'. '+(parsed.replaceAll?'Локальная база будет полностью заменена, включая очередь печати и остатки филамента.':mode==='costs'?'Будут перенесены отмеченные параметры, этикетки и файлы моделей.':'Нормы WB/Ozon, затраты и остальные переносимые данные будут заменены содержимым архива. Очередь печати и остатки филамента сохранятся.')+' Предыдущая база и её файлы останутся доступны через «Восстановить резервную базу».'))return;
+ }else if(!await confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? '+backupModes[mode]+'. '+(parsed.replaceAll?'Локальная база будет полностью заменена, включая очередь печати и остатки филамента.':mode==='costs'?'Будут перенесены отмеченные параметры, этикетки, файлы моделей и фото товаров для списка.':'Нормы WB/Ozon, затраты и остальные переносимые данные будут заменены содержимым архива. Очередь печати и остатки филамента сохранятся.')+' Предыдущая база и её файлы останутся доступны через «Восстановить резервную базу».'))return;
  progress.resume();
  await progress.beginCommit();
  const restored=await commitFullRestore(parsed,{onProgress:progress.update,localDatabase:db,savePrevious:backup,writeFiles:putFiles,commitDatabase:async database=>{database.revision++;database.updatedAt=new Date().toISOString();await databaseStorage.saveRaw(JSON.stringify(database));}});
@@ -545,7 +546,7 @@ async function hydrateProductImages(scope=document){
 }
 function mountProductImage(){
  const p=product(),heading=document.querySelector('main>.heading');if(space!=='cost'||!heading)return;
- const panel=document.createElement('div');panel.className='cost-product-image';panel.innerHTML=`<img data-product-image="${esc(p.id)}" alt="Изображение товара" hidden><div><label class="file-button">${actionIcon('upload')}<span>Прикрепить изображение</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-remove-image>${actionIcon('remove')}<span>Удалить изображение</span></button><button type="button" data-reveal-catalogue-product>${actionIcon('search')}<span>Активировать в списке</span></button><small>Фото хранится файлом в базе приложения и полном ZIP. JPG, PNG или WebP · до 10 МБ.</small></div><aside class="image-profit-summary"><strong>Прибыль на изделие</strong><div data-product-profit-summary>${profitSummary(p)}</div></aside>`;heading.prepend(panel);
+ const panel=document.createElement('div');panel.className='cost-product-image';panel.innerHTML=`<img data-product-image="${esc(p.id)}" alt="Изображение товара" hidden><div><label class="file-button">${actionIcon('upload')}<span>Прикрепить изображение</span><input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-remove-image>${actionIcon('remove')}<span>Удалить изображение</span></button><button type="button" data-reveal-catalogue-product>${actionIcon('search')}<span>Активировать в списке</span></button><small>Фото хранится в базе и переносится с товаром во всех режимах ZIP. JPG, PNG или WebP · до 10 МБ.</small></div><aside class="image-profit-summary"><strong>Прибыль на изделие</strong><div data-product-profit-summary>${profitSummary(p)}</div></aside>`;heading.prepend(panel);
  panel.querySelector('[data-reveal-catalogue-product]').onclick=()=>revealCatalogueProduct(p.id);
  panel.querySelector('input').onchange=safe(async event=>{if(recoveryRaw)throw Error('Сначала восстановите базу расчётов');const file=event.target.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Выберите JPG, PNG или WebP');if(file.size>10*1024*1024)throw Error('Изображение должно быть не больше 10 МБ');const url=URL.createObjectURL(file);try{await new Promise((resolve,reject)=>{const image=new Image();image.onload=resolve;image.onerror=()=>reject(Error('Не удалось прочитать изображение'));image.src=url;});}finally{URL.revokeObjectURL(url);}const owner=db.id+':'+p.id,old=(await listFiles(owner)).filter(f=>f.category==='product-image');await putFile({id:crypto.randomUUID(),owner,category:'product-image',name:file.name,createdAt:new Date().toISOString(),blob:file});for(const f of old)await deleteFile(f.id);await hydrateProductImages();toast('Изображение товара сохранено');});
  panel.querySelector('[data-remove-image]').onclick=safe(async()=>{for(const file of (await listFiles(db.id+':'+p.id)).filter(f=>f.category==='product-image'))await deleteFile(file.id);await hydrateProductImages();toast('Изображение удалено');});hydrateProductImages(panel);

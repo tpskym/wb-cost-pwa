@@ -154,3 +154,45 @@ test('ZIP preparation and verification honor Stop between entries',async()=>{
  const zip=await createFullBackup(database,records),reading=new AbortController();
  await assert.rejects(parseFullBackup(zip,{signal:reading.signal,onProgress:({done})=>{if(done>0)reading.abort();}}),{name:'AbortError'});
 });
+
+test('costs ZIP modes carry list thumbnails to existing and new articles independently of models',async()=>{
+ const {ensureProductImage}=await import('../product-images.js');
+ for(const mode of ['costs','new-skus']){
+  const {database,records}=fixture();
+  database.products[0].sku='existing';database.products[1].sku='new';
+  const photos=database.products.map((product,index)=>({id:'image-'+index,owner:database.id+':'+product.id,name:'thumbnail.png',category:'product-image',createdAt:'2020-01-01T00:00:00Z',blob:new Blob(['photo-'+index],{type:'image/png'})}));
+  const parsed=await parseFullBackup(await createFullBackup(database,[...records,...photos],{mode}));
+  assert.equal(parsed.files.filter(file=>file.category==='product-image').length,2);
+  assert.ok(!parsed.files.some(file=>['source-wb','source-ozon'].includes(file.category)));
+  const current={...blankProduct(),sku:'existing',printModel:{ownerId:'local-product',fileId:'keep-model'},id:'local-product'};
+  const collision={...blankProduct(),id:database.products[1].id,sku:'unrelated'};
+  const local={schema:1,id:'destination',products:mode==='new-skus'?[current,collision]:[current]};
+  const staged=stageFullRestore(parsed,{localDatabase:local});
+  for(const [index,sku] of ['existing','new'].entries()){
+   const product=staged.database.products.find(row=>row.sku===sku);
+   const stale={id:'old-photo',owner:local.id+':'+product.id,category:'product-image',createdAt:'2021-01-01T00:00:00Z',blob:new Blob(['old'])};
+   const image=await ensureProductImage(staged.database,product,{download:false,read:async owner=>[stale,...staged.records].filter(file=>file.owner===owner)});
+   assert.ok(image);assert.equal(await image.blob.text(),'photo-'+index);
+   assert.equal(image.owner,local.id+':'+product.id);
+  }
+  if(mode==='new-skus'){
+   assert.deepEqual(staged.database.products[0].printModel,current.printModel);
+   assert.equal(staged.records.filter(file=>file.owner===local.id+':'+current.id&&file.category==='model').length,0);
+   assert.equal(staged.records.filter(file=>file.owner===local.id+':'+collision.id).length,0);
+  }
+ }
+});
+
+test('old new-article archives without thumbnails preserve local photos and ambiguous articles import no images',async()=>{
+ const {database}=fixture();database.products.forEach(product=>product.sku='duplicate');
+ const photo={id:'image',owner:database.id+':'+database.products[0].id,name:'thumbnail.png',category:'product-image',createdAt:new Date().toISOString(),blob:new Blob(['image'],{type:'image/png'})};
+ database.products.push({...blankProduct(),sku:'valid'});
+ const local={schema:1,id:'local',products:[{...blankProduct(),sku:'valid'}]};
+ const parsed=await parseFullBackup(await createFullBackup(database,[photo],{mode:'new-skus'}));
+ const staged=stageFullRestore(parsed,{localDatabase:local});
+ assert.equal(staged.records.length,0);
+ assert.equal(staged.database.id,local.id);
+ assert.equal(staged.database.products[0].id,local.products[0].id);
+ const old=await parseFullBackup(await createFullBackup(database,[],{mode:'new-skus'}));
+ assert.equal(stageFullRestore(old,{localDatabase:local}).records.length,0);
+});

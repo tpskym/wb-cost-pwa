@@ -1,4 +1,4 @@
-import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.385';
+import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.386';
 // Binary files stay in IndexedDB; neither files nor file contents are published.
 export function openFilesDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open('workshop-files-v1',1);req.onupgradeneeded=()=>{const store=req.result.createObjectStore('files',{keyPath:'id'});store.createIndex('owner','owner');};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
 async function transaction(mode,action){const db=await openFilesDB();try{return await new Promise((resolve,reject)=>{const tx=db.transaction('files',mode);const request=action(tx.objectStore('files'));let result;request.onsuccess=()=>{result=request.result;};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Операция отменена'));});}finally{db.close();}}

@@ -1,7 +1,7 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.385';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.385';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.385';
-import {validateDB} from './calc.js?v=0.2.385';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.386';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.386';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.386';
+import {validateDB} from './calc.js?v=0.2.386';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 const accessFilename='workshop-access.json';
 const modelKey=(ownerId,fileId)=>JSON.stringify([ownerId,fileId]);
@@ -13,7 +13,7 @@ export function validateBackupAccess(value){
 }
 export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,accessEnvelope,onProgress=()=>{},signal}={}){
  if(replaceAll)mode='full';
- if(mode===newSkuBackupMode)records=records.filter(file=>file.category==='model');
+ if(mode===newSkuBackupMode)records=records.filter(file=>['model','product-image'].includes(file.category));
  const db=validateDB(replaceAll?{...stripBackupSecrets(database),backupMode:"full"}:createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
  const files=[],entries=[];
  for(const record of records){if(mode==='costs'&&!['product-image','model','card-design'].includes(record.category))continue;const cache=record.category==='marketplace-image'&&record.owner===db.id+':marketplace-photos'&&typeof record.sku==='string'&&record.sku.trim();if(record.category==='marketplace-image'?!cache:!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:cache?null:owners.get(record.owner),...(cache?{sku:record.sku}:{}),...(record.plateQuantity?{plateQuantity:record.plateQuantity}:{}),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
@@ -105,7 +105,7 @@ function stageNewSkuRestore(parsed,local){
  const database=structuredClone(local);
  const indexes=new Map(database.products.map((product,index)=>[product.id,index]));
  const reserved=new Set([...local.products,...parsed.database.products].map(product=>product.id));
- const added=new Map();
+ const added=new Map(),imageTargets=new Map();
  for(const {source,current,importModels} of plan){
   const product=newSkuProductData(source);
   delete product.printModel;
@@ -113,6 +113,7 @@ function stageNewSkuRestore(parsed,local){
    delete product.plateCapacity;
    const index=indexes.get(current.id);
    database.products[index]={...database.products[index],...product,id:current.id,sku:current.sku};
+   imageTargets.set(source.id,current.id);
    continue;
   }
   if(indexes.has(product.id)){
@@ -121,6 +122,7 @@ function stageNewSkuRestore(parsed,local){
   }
   product.stockTargets={};
   database.products.push(product);
+  imageTargets.set(source.id,product.id);
   if(importModels)added.set(source.id,product);
  }
  database.templates=mergeCostTemplates(database.templates??[],parsed.database.templates??[]);
@@ -156,6 +158,16 @@ function stageNewSkuRestore(parsed,local){
   const mapped=ref&&references.get(modelKey(ref.ownerId,ref.fileId));
   if(mapped)added.get(source.id).printModel={...mapped};
  }
+ // List thumbnails accompany costs for both existing and newly added articles.
+ // Model eligibility remains independent: existing models are never replaced here.
+ const importedAt=Date.now();
+ const images=parsed.files.filter(file=>file.category==='product-image'&&imageTargets.has(file.productId))
+  .sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+ for(const [index,file] of images.entries())records.push({
+  id:crypto.randomUUID(),owner:database.id+':'+imageTargets.get(file.productId),
+  category:'product-image',name:file.name,blob:file.blob,
+  sourceCreatedAt:file.createdAt,createdAt:new Date(importedAt+index).toISOString()
+ });
  validateDB(structuredClone(database));
  return {database,records};
 }
