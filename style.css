@@ -212,7 +212,7 @@ main:not([data-workspace="stocks"]) .stocks-only,main[data-workspace="stocks"] .
 @media(max-width:850px){.table-browser{grid-template-columns:1fr}.table-browser .stock-table-scroll{max-height:650px}}
 @media(max-width:850px){.app-header{height:auto;min-height:64px;gap:12px;flex-wrap:wrap;padding:12px 0}.mobile-workspace{display:block;flex:1;min-width:180px}.mobile-workspace select{margin-top:4px}.app-header .header-actions{gap:10px;flex-wrap:wrap}.app-header #saved{display:none}}
 
-.workspace-nav{margin-top:26px;flex-shrink:0}.workspace-nav-group+.workspace-nav-group{margin-top:18px}.workspace-nav .nav-label{margin:0 0 8px;font-size:10px;letter-spacing:1.4px}.workspace-nav .nav{margin-top:5px;padding:10px 12px}.workspace-nav .workspace-backup{border-top:1px solid #3c5348;padding-top:12px}.sidebar .side-products{margin-top:24px}.backup-workspace{padding:24px;margin-bottom:24px}.backup-workspace .modal-head h2{font-size:18px}.backup-workspace hr{margin:24px 0;border:0;border-top:1px solid #e1e6da}main[data-workspace="backup"] .cost-only,main[data-workspace="backup"] .cards-only,main[data-workspace="backup"] .product-files,main[data-workspace="backup"] .mobile-products{display:none!important}.sidebar:has(.nav[data-space="backup"].active) .side-products{display:none}.app-header .header-actions{margin-left:auto}.side-bottom p{display:none}@media(max-width:850px){.workspace-nav{display:none}}
+.workspace-nav{margin-top:26px;flex-shrink:0}.workspace-nav-group+.workspace-nav-group{margin-top:18px}.workspace-nav .nav-label{margin:0 0 8px;font-size:10px;letter-spacing:1.4px}.workspace-nav .nav{margin-top:5px;padding:10px 12px}.workspace-nav .workspace-backup{border-top:1px solid #3c5348;padding-top:12px}.sidebar .side-products{margin-top:24px}main[data-workspace="backup"] .cost-only,main[data-workspace="backup"] .cards-only,main[data-workspace="backup"] .product-files,main[data-workspace="backup"] .mobile-products{display:none!important}.sidebar:has(.nav[data-space="backup"].active) .side-products{display:none}.app-header .header-actions{margin-left:auto}.side-bottom p{display:none}@media(max-width:850px){.workspace-nav{display:none}}
 
 /* Marketplace descriptions belong to the filter rail, leaving the table at the top. */
 main[data-workspace="stocks"] .warehouse-stocks,main[data-workspace="sales"] .marketplace-orders{padding:0;border:0;background:transparent;box-shadow:none}.table-filter-rail>.heading{display:block;margin:0 0 18px}.table-filter-rail>.heading h1{font-size:23px;line-height:1.15;letter-spacing:-.6px}.table-filter-rail>.heading .eyebrow{font-size:8px;line-height:1.5;margin-bottom:8px}.table-filter-rail>.heading p,.table-rail-intro p{font-size:11px;line-height:1.5}.table-filter-rail>.heading .heading-actions{display:none}.table-rail-intro{padding-top:14px;border-top:1px solid #dfe6d7;margin-bottom:16px}.table-rail-intro h2{font-size:14px;line-height:1.35}.table-rail-intro p{margin-bottom:0}.table-filter-rail .table-result-count{margin:16px 0 0;padding-top:12px;border-top:1px solid #dfe6d7;font-size:11px}.table-results .stock-combined-table,.table-results .stock-market,.table-results .orders-market{margin-top:0}.table-results .stock-table-scroll{max-height:calc(100vh - 86px)}
@@ -521,8 +521,6 @@ main:not([data-workspace="prices"]) .prices-only,main[data-workspace="prices"] .
 .order-label-action{align-self:flex-start;margin-top:10px;padding:8px 12px;font-size:13px;line-height:1.4;width:fit-content}
 .group-label-picker .group-label-option[hidden]{display:none}.group-label-filter{display:flex;align-items:center;gap:10px;font-weight:700;margin:16px 0}.group-label-filter input{width:20px;height:20px}.group-label-folder{display:grid;gap:8px;margin:16px 0}.group-label-folder small{font-weight:400;font-size:12px;line-height:1.5;color:#718064}
 main:not([data-workspace="expenses"]) .expenses-only,main[data-workspace="expenses"] .cost-only,main[data-workspace="expenses"] .cards-only,main[data-workspace="expenses"] .product-files,main[data-workspace="expenses"] .mobile-products,main[data-workspace="expenses"]>.heading{display:none!important}.sidebar:has(.nav[data-space="expenses"].active) .side-products{display:none}.expenses-heading{display:flex;justify-content:space-between;gap:20px;align-items:start}.expenses-heading h2{font-size:28px;margin:8px 0}.expenses-heading p{color:#788273;line-height:1.6}.expenses-heading>button{flex:none}.expenses-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:24px 0}.expenses-stats>div{padding:20px;border:1px solid #dee6d7;border-radius:16px;background:#f7f9f4}.expenses-stats strong{display:block;font-size:24px;margin-top:10px}.expenses-workspace form[data-expense-form]{border:1px solid #dfe6d9;border-radius:16px;padding:24px;margin-bottom:28px;background:#fcfdfb}.expenses-workspace .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}.expenses-workspace .expense-amounts{grid-template-columns:repeat(3,minmax(0,1fr))}.expenses-workspace textarea{display:block;width:100%;margin-top:8px;box-sizing:border-box;padding:12px;border:1px solid #dce1d7;border-radius:10px;font:inherit}.expenses-workspace .primary{background:#4b6740;color:white}.expenses-workspace [hidden]{display:none!important}.expenses-filters{display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr;gap:14px;margin:24px 0}.expenses-table-scroll{overflow:auto}.expenses-table-scroll table{width:100%;border-collapse:collapse}.expenses-table-scroll th{background:#f2f5ec;text-align:left;padding:14px}.expenses-table-scroll td{border-bottom:1px solid #e4e9df;padding:16px 14px;vertical-align:top}.expenses-table-scroll small{display:block;color:#788273;margin-top:7px;line-height:1.5}.expense-money{font-weight:700;color:#9b6248;white-space:nowrap}.expense-money.income{color:#4d7040}.expenses-table-scroll button{padding:7px 10px;margin:0 5px 5px 0}.expense-category-dialog{width:min(440px,calc(100vw - 32px));padding:24px;border:1px solid #dce1d7;border-radius:18px}.expense-category-dialog label{margin:16px 0}@media(max-width:760px){.expenses-heading{flex-direction:column}.expenses-stats{grid-template-columns:1fr}.expenses-workspace .form-grid,.expenses-workspace .expense-amounts,.expenses-filters{grid-template-columns:1fr}.expenses-workspace form[data-expense-form]{padding:16px}}
-:is(.backup-workspace,#sync) :is(.working-files-settings,.backup-rules,.costs-data-transfer){padding:26px;margin:24px 0;border-radius:18px}.backup-workspace .working-files-settings>h3,.backup-workspace .backup-rules>h3{margin-bottom:20px}.backup-workspace .working-files-settings>p,.backup-rules li{line-height:1.75}.backup-rules ul{padding-left:24px;margin-top:20px}.backup-rules li+li{margin-top:14px}.backup-workspace>h3{margin-top:32px;margin-bottom:18px}.backup-workspace [data-working-recent]{margin:24px 0}.backup-rules label{max-width:560px}@media(max-width:600px){.backup-workspace :is(.working-files-settings,.backup-rules,.costs-data-transfer){padding:18px}}
-.costs-data-transfer .sync-actions{margin-top:20px}
 .expenses-workspace{padding:28px;margin:24px 0}.expenses-workspace form[data-expense-form]>.file-actions{margin-top:18px}@media(max-width:600px){.expenses-workspace{padding:18px}}
 
 .expense-type-choice{padding:20px;background:#f0f5e9;border:1px solid #d6e2c9;border-radius:12px;margin:18px 0}.expense-type-choice label{font-weight:700}.expense-type-choice select{margin-top:10px;min-height:48px}.expense-type-choice p{line-height:1.6;margin-bottom:0}.expenses-workspace [data-expense-fields]{border:0;padding:0;min-width:0;margin:24px 0 0}.expenses-workspace [data-expense-fields] legend{font-size:18px;font-weight:700;margin-bottom:6px}.expenses-workspace [data-expense-fields]>.file-actions{margin-top:20px}.expense-filament-help{grid-column:1/-1;color:#697462;line-height:1.6}.expense-category-dialog textarea{display:block;width:100%;box-sizing:border-box;font:inherit;padding:12px;border:1px solid #dce1d7;border-radius:10px;margin-top:8px}.expense-category-dialog .file-actions{margin-top:20px}
@@ -925,8 +923,46 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .finance-reserve small{display:block;margin-top:6px}
 [data-cost-price-list] li{margin-block:8px}[data-edit-cost-price]{margin-inline-start:10px;min-height:44px}
 
-#backup-workspace :is(.sync-actions button,.sync-actions .file-button,#google-connect,#client-id,[data-drive-full-backup],[data-copy-app-address],[data-storage-refresh]){
-  min-height:44px;
-  padding:10px 14px;
-  font-size:14px;
+.backup-workspace{display:grid;gap:24px;margin-bottom:24px}
+.backup-workspace[hidden],.backup-workspace [hidden]{display:none!important}
+.backup-local{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
+.backup-workspace :is(.backup-card,.drive-setup-panel){min-width:0;padding:22px;margin:0}
+.backup-workspace h2{margin:0 0 12px;font-size:20px}
+.backup-workspace :is(p,dd,small){line-height:1.55}
+.backup-card p,.backup-disclosure>p,.backup-workspace .drive-setup-panel>p{color:#526456}
+.backup-card label{margin-top:14px}
+.backup-card select{min-height:44px;margin-bottom:0}
+#backup-mode-description{margin-top:8px}
+.backup-workspace .sync-actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}
+.backup-workspace :is(.sync-actions button,#google-connect,#client-id,#restore,[data-working-folder],[data-copy-app-address],[data-storage-refresh]){
+ min-height:44px;padding:10px 14px;font-size:14px;max-width:100%;white-space:normal;overflow-wrap:anywhere;
+}
+.backup-workspace .backup-primary{background:#34583e;border-color:#34583e;color:#fff}
+.backup-workspace .backup-primary:hover{background:#254a33;border-color:#254a33}
+.backup-card [data-backup-format-hint]{display:block;margin-top:8px;color:#526456}
+.backup-mode-guide,.backup-recovery{margin-top:18px;padding-top:14px;border-top:1px solid #e0e6d9}
+.backup-mode-guide summary,.backup-disclosure>summary,.backup-workspace .drive-setup-instructions>summary{
+ min-height:44px;padding:11px 0;cursor:pointer;font-size:14px;font-weight:650;color:#34583e;
+}
+.backup-mode-guide dl{display:grid;gap:12px;margin:8px 0 0}
+.backup-mode-guide dt{font-weight:700}
+.backup-mode-guide dd{margin:3px 0 0;color:#526456}
+.backup-recovery h3{margin:0 0 8px;font-size:14px}
+.backup-workspace .drive-connection-step{border:0;margin-top:16px;padding:0}
+.backup-workspace .drive-setup-instructions{margin-top:16px;padding:0 14px}
+.backup-workspace .drive-setup-instructions[open]{padding-bottom:14px}
+.backup-extra{min-width:0}
+.backup-disclosure{padding:0 16px;margin:0 0 8px;min-width:0;overflow-wrap:anywhere}
+.backup-disclosure[open]{padding-bottom:16px}
+.backup-disclosure>:is(.storage-usage-panel,.app-access-guide){margin:8px 0 0}
+.backup-disclosure .app-address{flex-wrap:wrap}
+.backup-disclosure [data-working-recent]{margin:16px 0}
+@media(max-width:950px){.backup-local{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+ .backup-workspace{gap:18px}
+ .backup-local{gap:12px}
+ .backup-workspace :is(.backup-card,.drive-setup-panel){padding:14px}
+ .backup-workspace h2{font-size:18px}
+ .backup-workspace .sync-actions{margin-top:16px}
+ .backup-workspace .sync-actions>button{flex:1 1 auto}
 }

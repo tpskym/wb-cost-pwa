@@ -1,6 +1,6 @@
-import {loadedListingForSku,normalizeDescriptionBreaks} from './calc.js?v=0.2.379';
-import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.379';
-import {normalizeCategories,normalizeAttributes,dimensionTriple,splitDimensions,categoryOf} from './listing-fields.js?v=0.2.379';
+import {loadedListingForSku,normalizeDescriptionBreaks} from './calc.js?v=0.2.380';
+import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.380';
+import {normalizeCategories,normalizeAttributes,dimensionTriple,splitDimensions,categoryOf} from './listing-fields.js?v=0.2.380';
 // Presence snapshots do not replace editable card drafts or send changes to marketplaces.
 export function rememberCatalogueCards(database,market,cards,complete=false){
  const skus=cards.map(card=>String((market==='wb'?card.vendorCode:card.offer_id)||'').trim()).filter(Boolean),previous=database.catalogueCards?.[market];
