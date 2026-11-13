@@ -18,3 +18,24 @@ test('backup preserves nonzero target fields independently, fills only zero and 
 test('filament inventory and all its norms remain entirely local during restore',async()=>{const {preserveLocalPrintQueue}=await import('../google-drive-backup.js');const incoming={filamentStock:[{id:'cloud',material:'PLA Basic',colorCode:' White ',quantity:8,minimumSpools:2,normalSpools:6}]},local={filamentStock:[{id:'local',material:'PLA Basic',colorCode:'white',quantity:1,minimumSpools:0,normalSpools:4}]};const restored=preserveLocalPrintQueue(incoming,local);assert.deepEqual(restored.filamentStock,local.filamentStock);restored.filamentStock[0].quantity=99;assert.equal(local.filamentStock[0].quantity,1);});
 
 test('disabled marketplace stock rules remain disabled during restore',async()=>{const {preserveLocalPrintQueue}=await import('../google-drive-backup.js');const incoming={products:[{id:'p',stockTargets:{wb:{minimum:2,normal:4}}}]};assert.deepEqual(preserveLocalPrintQueue(incoming,{products:[{id:'p',stockTargets:{}}]}).products[0].stockTargets,{});});
+
+test('Stop aborts a pending Drive upload request and prevents further chunks',async()=>{
+ const controller=new AbortController();let puts=0;
+ const fetcher=async(url,options)=>{
+  if(options.method==='PUT'){
+   puts++;assert.equal(options.signal,controller.signal);
+   return new Promise((resolve,reject)=>{options.signal.addEventListener('abort',()=>reject(options.signal.reason),{once:true});queueMicrotask(()=>controller.abort());});
+  }
+  if(options.method==='POST')return new Response(null,{headers:{Location:'https://www.googleapis.com/upload/session'}});
+  return Response.json({files:[]});
+ };
+ await assert.rejects(uploadDriveBackup(new Blob([new Uint8Array(9*1024*1024)]),'token',{signal:controller.signal,fetcher}),{name:'AbortError'});
+ assert.equal(puts,1);
+});
+
+test('Stop cancels a stalled Drive download instead of reporting a timeout',async()=>{
+ const controller=new AbortController();let cancelled=false;
+ const fetcher=async()=>new Response(new ReadableStream({start(){queueMicrotask(()=>controller.abort());},cancel(){cancelled=true;}}));
+ await assert.rejects(downloadDriveBackup({id:'test',size:100},'token',{signal:controller.signal,fetcher}),{name:'AbortError'});
+ assert.equal(cancelled,true);
+});

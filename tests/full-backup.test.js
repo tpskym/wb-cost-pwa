@@ -146,3 +146,11 @@ test('full ZIP keeps the encrypted access file separate from database and cost-o
  entries.delete('workshop-access.json');
  await assert.rejects(()=>parseFullBackupEntries(entries),/файл доступов/);
 });
+
+test('ZIP preparation and verification honor Stop between entries',async()=>{
+ const {database,records}=fixture();
+ const creating=new AbortController();
+ await assert.rejects(createFullBackup(database,records,{signal:creating.signal,onProgress:({done})=>{if(done>0)creating.abort();}}),{name:'AbortError'});
+ const zip=await createFullBackup(database,records),reading=new AbortController();
+ await assert.rejects(parseFullBackup(zip,{signal:reading.signal,onProgress:({done})=>{if(done>0)reading.abort();}}),{name:'AbortError'});
+});

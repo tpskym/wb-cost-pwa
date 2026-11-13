@@ -1,3 +1,4 @@
+import {waitForBackupTask} from './backup-cancel.js?v=0.2.385';
 const API='https://www.googleapis.com/drive/v3/files';
 const UPLOAD='https://www.googleapis.com/upload/drive/v3/files';
 const NAME='Мастерская — резервная копия.zip';
@@ -19,21 +20,26 @@ async function check(response,stage='Запрос к Google Drive'){
  throw error;
 }
 function auth(token){if(!token)throw Error('Сначала подключите Google Drive');return {Authorization:'Bearer '+token};}
-export async function findDriveBackup(token,{fetcher=fetch,fileId=''}={}){if(fileId){const response=await fetcher(API+'/'+encodeURIComponent(fileId)+'?fields=id,name,size,modifiedTime,trashed,appProperties',{headers:auth(token)});if(response.status===404)throw Error('Привязанный файл Google Drive не найден. Восстановите его из корзины или проверьте Google-аккаунт. Новый файл автоматически не создаётся.');const file=await (await check(response,'Проверка облачного файла')).json();if(file.trashed||file.appProperties?.workshopBackup!=='full-v1')throw Error('Привязанный файл не является резервной копией «Мастерской»');return file;}const params=new URLSearchParams({q:"trashed = false and appProperties has { key='workshopBackup' and value='full-v1' }",fields:'files(id,name,size,modifiedTime)',orderBy:'modifiedTime desc',pageSize:'1'});const result=await (await check(await fetcher(API+'?'+params,{headers:auth(token)}),'Поиск облачного файла')).json();return result.files?.[0]||null;}
-export async function uploadDriveBackup(blob,token,{fetcher=fetch,onProgress=()=>{},fileId=''}={}){
- const headers=auth(token),existing=await findDriveBackup(token,{fetcher,fileId});
- const started=await check(await fetcher(UPLOAD+(existing?'/'+encodeURIComponent(existing.id):'')+'?uploadType=resumable&fields=id,name,size,modifiedTime',{method:existing?'PATCH':'POST',headers:{...headers,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':'application/zip','X-Upload-Content-Length':String(blob.size)},body:JSON.stringify({name:NAME,mimeType:'application/zip',appProperties:{workshopBackup:'full-v1'}})}),'Начало выгрузки');
+export async function findDriveBackup(token,{fetcher=fetch,fileId='',signal}={}){if(fileId){const response=await fetcher(API+'/'+encodeURIComponent(fileId)+'?fields=id,name,size,modifiedTime,trashed,appProperties',{headers:auth(token),signal});if(response.status===404)throw Error('Привязанный файл Google Drive не найден. Восстановите его из корзины или проверьте Google-аккаунт. Новый файл автоматически не создаётся.');const file=await (await check(response,'Проверка облачного файла')).json();if(file.trashed||file.appProperties?.workshopBackup!=='full-v1')throw Error('Привязанный файл не является резервной копией «Мастерской»');return file;}const params=new URLSearchParams({q:"trashed = false and appProperties has { key='workshopBackup' and value='full-v1' }",fields:'files(id,name,size,modifiedTime)',orderBy:'modifiedTime desc',pageSize:'1'});const result=await (await check(await fetcher(API+'?'+params,{headers:auth(token),signal}),'Поиск облачного файла')).json();return result.files?.[0]||null;}
+export async function uploadDriveBackup(blob,token,{fetcher=fetch,onProgress=()=>{},fileId='',signal}={}){
+ signal?.throwIfAborted();
+ const headers=auth(token),existing=await findDriveBackup(token,{fetcher,fileId,signal});
+ signal?.throwIfAborted();
+ const started=await check(await fetcher(UPLOAD+(existing?'/'+encodeURIComponent(existing.id):'')+'?uploadType=resumable&fields=id,name,size,modifiedTime',{signal,method:existing?'PATCH':'POST',headers:{...headers,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':'application/zip','X-Upload-Content-Length':String(blob.size)},body:JSON.stringify({name:NAME,mimeType:'application/zip',appProperties:{workshopBackup:'full-v1'}})}),'Начало выгрузки');
  const session=started.headers.get('Location');if(!session)throw Error('Google Drive не вернул адрес загрузки');
  const url=new URL(session);if(url.origin!=='https://www.googleapis.com')throw Error('Некорректный адрес загрузки Google Drive');
  const chunkSize=8*1024*1024;let offset=0;onProgress(0,blob.size);
- while(offset<blob.size){const end=Math.min(offset+chunkSize,blob.size);const response=await fetcher(session,{method:'PUT',headers:{...headers,'Content-Type':'application/zip','Content-Range':`bytes ${offset}-${end-1}/${blob.size}`},body:blob.slice(offset,end)});
+ while(offset<blob.size){signal?.throwIfAborted();const end=Math.min(offset+chunkSize,blob.size);const response=await fetcher(session,{signal,method:'PUT',headers:{...headers,'Content-Type':'application/zip','Content-Range':`bytes ${offset}-${end-1}/${blob.size}`},body:blob.slice(offset,end)});
  if(response.status===308){const range=response.headers.get('Range'),next=range?Number(range.match(/-(\d+)$/)?.[1])+1:0;if(!Number.isSafeInteger(next)||next<=offset||next>end)throw Error('Google Drive не подтвердил передачу части файла');offset=next;onProgress(offset,blob.size);continue;}
  await check(response,'Передача архива');if(end!==blob.size)throw Error('Google Drive завершил загрузку раньше времени');const file=await response.json();if(!file.id||existing&&file.id!==existing.id)throw Error('Google Drive не подтвердил сохранение файла');onProgress(blob.size,blob.size);return file;
  }
  throw Error('Пустой архив нельзя загрузить');
 }
-export async function downloadDriveBackup(file,token,{fetcher=fetch,onProgress=()=>{}}={}){
+export async function downloadDriveBackup(file,token,{fetcher=fetch,onProgress=()=>{},signal}={}){
+ signal?.throwIfAborted();
  const controller=new AbortController();
+ const cancel=()=>controller.abort(signal.reason);
+ signal?.addEventListener('abort',cancel,{once:true});
  let timeout;
  const resetTimeout=()=>{
   clearTimeout(timeout);
@@ -51,23 +57,24 @@ export async function downloadDriveBackup(file,token,{fetcher=fetch,onProgress=(
    let received=0;
    try{
     while(true){
-     const {done,value}=await reader.read();
+     const {done,value}=await waitForBackupTask(reader.read(),controller.signal);
      if(done)break;
      resetTimeout();
      chunks.push(value);
      received+=value.byteLength;
      onProgress(received,total);
     }
-   }finally{reader.releaseLock();}
+   }finally{if(controller.signal.aborted)await reader.cancel().catch(()=>{});reader.releaseLock();}
    blob=new Blob(chunks,{type:'application/zip'});
-  }else blob=await response.blob();
+  }else blob=await waitForBackupTask(response.blob(),controller.signal);
   if(file.size!==undefined&&blob.size!==Number(file.size))throw Error('Файл из Google Drive загружен не полностью. Повторите загрузку.');
   onProgress(blob.size,total);
   return blob;
  }catch(error){
+  signal?.throwIfAborted();
   if(controller.signal.aborted)throw Error('Google Drive не передавал данные 60 секунд. Повторите загрузку.');
   throw error;
- }finally{clearTimeout(timeout);}
+ }finally{clearTimeout(timeout);signal?.removeEventListener('abort',cancel);}
 }
 
 // Cloud exchange excludes the device's print queue, including its archive.

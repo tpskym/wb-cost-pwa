@@ -1,7 +1,7 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.384';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.384';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.384';
-import {validateDB} from './calc.js?v=0.2.384';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.385';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.385';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.385';
+import {validateDB} from './calc.js?v=0.2.385';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 const accessFilename='workshop-access.json';
 const modelKey=(ownerId,fileId)=>JSON.stringify([ownerId,fileId]);
@@ -11,7 +11,7 @@ export function validateBackupAccess(value){
     typeof ciphertext!=='string'||ciphertext.length<32||ciphertext.length>1000000||!(/^(?:[a-f0-9]{2})+$/.test(ciphertext)))throw Error('Некорректный зашифрованный файл доступов');
  return {version,salt,iv,ciphertext};
 }
-export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,accessEnvelope,onProgress=()=>{}}={}){
+export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,accessEnvelope,onProgress=()=>{},signal}={}){
  if(replaceAll)mode='full';
  if(mode===newSkuBackupMode)records=records.filter(file=>file.category==='model');
  const db=validateDB(replaceAll?{...stripBackupSecrets(database),backupMode:"full"}:createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
@@ -21,10 +21,10 @@ export async function createFullBackup(database,records,{mode=database.backupMod
  if(access)entries.push({name:access,blob:new Blob([JSON.stringify(validateBackupAccess(accessEnvelope))])});
  const manifest={access,format:'workshop-full-backup',version:1,...(replaceAll?{replaceAll:true}:{}),createdAt:new Date().toISOString(),database:'database.json',files};
  entries.unshift({name:'manifest.json',blob:new Blob([JSON.stringify(manifest,null,2)])},{name:'database.json',blob:new Blob([JSON.stringify(db,null,2)])});
- return makeZip(entries,{onProgress:(done,total)=>onProgress({stage:'Создание ZIP',done,total,unit:'bytes'})});
+ return makeZip(entries,{signal,onProgress:(done,total)=>onProgress({stage:'Создание ZIP',done,total,unit:'bytes'})});
 }
-export async function parseFullBackup(blob,{onProgress=()=>{}}={}){
- const entries=await readZip(blob,{onProgress:(done,total)=>onProgress({stage:'Проверка ZIP',done,total,unit:'bytes'})});if(!entries.has('manifest.json')||!entries.has('database.json'))throw Error('Это не полный архив приложения');
+export async function parseFullBackup(blob,{onProgress=()=>{},signal}={}){
+ const entries=await readZip(blob,{signal,onProgress:(done,total)=>onProgress({stage:'Проверка ZIP',done,total,unit:'bytes'})});if(!entries.has('manifest.json')||!entries.has('database.json'))throw Error('Это не полный архив приложения');
  if(entries.get('manifest.json').size>20*1024*1024||entries.get('database.json').size>20*1024*1024)throw Error('Слишком большой файл базы или манифеста');
  const manifest=JSON.parse(await entries.get('manifest.json').text());
  if(manifest.format!=='workshop-full-backup'||manifest.version!==1||manifest.database!=='database.json'||!Array.isArray(manifest.files))throw Error('Неподдерживаемая версия полного архива');
@@ -33,6 +33,7 @@ export async function parseFullBackup(blob,{onProgress=()=>{}}={}){
  const database=validateDB(replaceAll?stripBackupSecrets(raw):databaseForCloud(raw)),products=new Set(database.products.map(p=>p.id)),used=new Set(),files=[];
  onProgress({stage:'Проверка файлов',done:0,total:manifest.files.length,unit:'files'});
  for(const f of manifest.files){
+  signal?.throwIfAborted();
   if(!f||typeof f.path!=='string'||!f.path.startsWith('files/')||used.has(f.path)||!entries.has(f.path)||!(f.category==='marketplace-image'?f.productId===null&&typeof f.sku==='string'&&f.sku.trim():products.has(f.productId))||typeof f.name!=='string'||!f.name||!categories.includes(f.category)||typeof f.createdAt!=='string'||typeof f.type!=='string'||!Number.isSafeInteger(f.size)||f.size<0||entries.get(f.path).size!==f.size)throw Error('Некорректные данные файла в архиве');
   if(f.plateQuantity!==undefined&&(f.category!=='model'||!Number.isInteger(f.plateQuantity)||f.plateQuantity<2||f.plateQuantity>100))throw Error('Некорректное количество деталей в модели');
   used.add(f.path);files.push({...f,blob:new Blob([entries.get(f.path)],{type:f.type})});onProgress({stage:'Проверка файлов',done:files.length,total:manifest.files.length,unit:'files'});await new Promise(resolve=>setTimeout(resolve,0));
@@ -45,6 +46,7 @@ export async function parseFullBackup(blob,{onProgress=()=>{}}={}){
  }
  if(entries.size!==files.length+2+Number(!!accessEnvelope))throw Error('Состав архива не совпадает с описанием');
  if(replaceAll&&backupMode(database)!=='full')throw Error('Для полной замены нужен полный архив');
+ signal?.throwIfAborted();
  return {database,files,replaceAll,...(accessEnvelope&&{accessEnvelope})};
 }
 export function stageFullRestore(parsed,{localDatabase}={}){

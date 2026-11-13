@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {indexedDB} from 'fake-indexeddb';
-test('real app renders the normal editor in cards workspace and saves field changes without JSON input',async()=>{const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/#cards'});globalThis.document=dom.window.document;globalThis.window=dom.window;globalThis.localStorage=dom.window.localStorage;globalThis.location=dom.window.location;globalThis.history=dom.window.history;globalThis.indexedDB=indexedDB;globalThis.confirm=()=>true;dom.window.scrollTo=()=>{};const {blankProduct}=await import('../calc.js');const initial=blankProduct();initial.sku='print_test_white';localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products:[initial],stockSnapshots:[{source:'wb-fbs',updatedAt:new Date().toISOString(),rows:[{source:'wb-fbs',sku:initial.sku,name:initial.name,barcode:'',warehouse:'Основной',available:0,reserved:null,toCustomer:null,fromCustomer:null}]}]}));await import('../app.js');const $=s=>document.querySelector(s);assert.equal($('main').dataset.workspace,'cards');$('#api-new').click();await settle();assert.ok($('#card-title'));assert.equal($('#listing-json'),null);assert.equal($('#api-reference'),null);$('#card-title').value='Название обычным полем';$('#card-title').dispatchEvent(new dom.window.Event('input'));const stored=(await readDatabase());assert.equal(JSON.parse(stored.products[0].listingDrafts.wb.body)[0].variants[0].title,'Название обычным полем');const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.384');disposeListingEditor();});
+test('real app renders the normal editor in cards workspace and saves field changes without JSON input',async()=>{const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/#cards'});globalThis.document=dom.window.document;globalThis.window=dom.window;globalThis.localStorage=dom.window.localStorage;globalThis.location=dom.window.location;globalThis.history=dom.window.history;globalThis.indexedDB=indexedDB;globalThis.confirm=()=>true;dom.window.scrollTo=()=>{};const {blankProduct}=await import('../calc.js');const initial=blankProduct();initial.sku='print_test_white';localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products:[initial],stockSnapshots:[{source:'wb-fbs',updatedAt:new Date().toISOString(),rows:[{source:'wb-fbs',sku:initial.sku,name:initial.name,barcode:'',warehouse:'Основной',available:0,reserved:null,toCustomer:null,fromCustomer:null}]}]}));await import('../app.js');const $=s=>document.querySelector(s);assert.equal($('main').dataset.workspace,'cards');$('#api-new').click();await settle();assert.ok($('#card-title'));assert.equal($('#listing-json'),null);assert.equal($('#api-reference'),null);$('#card-title').value='Название обычным полем';$('#card-title').dispatchEvent(new dom.window.Event('input'));const stored=(await readDatabase());assert.equal(JSON.parse(stored.products[0].listingDrafts.wb.body)[0].variants[0].title,'Название обычным полем');const {disposeListingEditor}=await import('../listing-editor.js?v=0.2.385');disposeListingEditor();});
 test('sales workspace is read-only and opens API settings from the order list',async()=>{
  document.querySelector('[data-space="sales"]').click();await settle();assert.equal(document.querySelector('main').dataset.workspace,'sales');assert.equal(document.querySelector('#sale-form'),null);assert.ok(document.querySelector('#orders-refresh'));document.querySelector('#orders-open-keys').click();await settle();assert.equal(document.querySelector('main').dataset.workspace,'api');assert.equal(document.querySelector('#api-tab-settings').getAttribute('aria-selected'),'true');document.querySelector('[data-space="cost"]').click();await settle();assert.equal(document.querySelector('main').dataset.workspace,'cost');
 });
@@ -26,10 +26,10 @@ test('per-product stock targets save separately for WB and Ozon and can be opene
 });
 test('app zoom can be changed and reset without losing the current workspace',async()=>{const before=document.querySelector('main').dataset.workspace;document.querySelector('#app-zoom-in').click();await settle();assert.equal(document.documentElement.style.zoom,'1.1');assert.equal(localStorage.getItem('workshop-ui-zoom'),'110');assert.equal(document.querySelector('#app-zoom-reset').textContent,'110%');document.querySelector('#app-zoom-out').click();await settle();assert.equal(document.documentElement.style.zoom,'1');document.querySelector('#app-zoom-out').click();await settle();assert.equal(document.documentElement.style.zoom,'0.9');document.querySelector('#app-zoom-reset').click();await settle();assert.equal(document.documentElement.style.zoom,'1');assert.equal(document.querySelector('main').dataset.workspace,before);});
 test('stock model button passes the article through the async handler and downloads the actual group model',async()=>{
- document.querySelector('[data-space="cost"]').click();await settle();const skuInput=document.querySelector('#sku');skuInput.value='print_test_white';skuInput.dispatchEvent(new window.Event('change'));const {putFile}=await import('../attachments.js?v=0.2.384');const stored=(await readDatabase()),product=stored.products[0];await putFile({id:crypto.randomUUID(),owner:stored.id+':'+product.id,category:'model',name:'group-model.3mf',createdAt:new Date().toISOString(),blob:new Blob(['group'])});const previousURL=URL.createObjectURL,previousRevoke=URL.revokeObjectURL,previousClick=window.HTMLAnchorElement.prototype.click,previousTimeout=globalThis.setTimeout;let downloaded='';URL.createObjectURL=()=> 'blob:group-model';URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){downloaded=this.download;};globalThis.setTimeout=(fn,ms,...args)=>{const timer=previousTimeout(fn,ms,...args);if(ms===60000)timer.unref?.();return timer;};try{document.querySelector('[data-space="stocks"]').click();await settle();const button=[...document.querySelectorAll('[data-print-model-sku]')].find(b=>b.dataset.printModelSku===product.sku);assert.ok(button);button.click();await settle();for(let i=0;i<100&&!downloaded;i++)await new Promise(resolve=>previousTimeout(resolve,5));assert.equal(downloaded,'model.3mf');}finally{URL.createObjectURL=previousURL;URL.revokeObjectURL=previousRevoke;window.HTMLAnchorElement.prototype.click=previousClick;globalThis.setTimeout=previousTimeout;}
+ document.querySelector('[data-space="cost"]').click();await settle();const skuInput=document.querySelector('#sku');skuInput.value='print_test_white';skuInput.dispatchEvent(new window.Event('change'));const {putFile}=await import('../attachments.js?v=0.2.385');const stored=(await readDatabase()),product=stored.products[0];await putFile({id:crypto.randomUUID(),owner:stored.id+':'+product.id,category:'model',name:'group-model.3mf',createdAt:new Date().toISOString(),blob:new Blob(['group'])});const previousURL=URL.createObjectURL,previousRevoke=URL.revokeObjectURL,previousClick=window.HTMLAnchorElement.prototype.click,previousTimeout=globalThis.setTimeout;let downloaded='';URL.createObjectURL=()=> 'blob:group-model';URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){downloaded=this.download;};globalThis.setTimeout=(fn,ms,...args)=>{const timer=previousTimeout(fn,ms,...args);if(ms===60000)timer.unref?.();return timer;};try{document.querySelector('[data-space="stocks"]').click();await settle();const button=[...document.querySelectorAll('[data-print-model-sku]')].find(b=>b.dataset.printModelSku===product.sku);assert.ok(button);button.click();await settle();for(let i=0;i<100&&!downloaded;i++)await new Promise(resolve=>previousTimeout(resolve,5));assert.equal(downloaded,'model.3mf');}finally{URL.createObjectURL=previousURL;URL.revokeObjectURL=previousRevoke;window.HTMLAnchorElement.prototype.click=previousClick;globalThis.setTimeout=previousTimeout;}
 });
 test('all sidebar items use aligned SVG icons instead of varying text glyphs',async()=>{const buttons=[...document.querySelectorAll('.workspace-nav .nav')];assert.equal(buttons.length,11);for(const button of buttons){assert.ok(button.querySelector('.nav-icon svg'));assert.equal(button.firstElementChild.className,'nav-icon');assert.ok(button.children[1].textContent.trim());}});
-test('choosing a saved group model receives the change event and persists the selected file',async()=>{const {putFile}=await import('../attachments.js?v=0.2.384'),stored=(await readDatabase()),product=stored.products[0],fileId=crypto.randomUUID();await putFile({id:fileId,owner:stored.id+':'+product.id,category:'model',name:'chosen-model.stl',createdAt:new Date().toISOString(),blob:new Blob(['chosen'])});document.querySelector('[data-space="cost"]').click();await settle();for(let i=0;i<100&&!document.querySelector('#print-model-select option[value="'+fileId+'"]');i++)await new Promise(resolve=>setTimeout(resolve,5));const selector=document.querySelector('#print-model-select');assert.ok(selector);selector.value=fileId;selector.dispatchEvent(new window.Event('change'));for(let i=0;i<100&&(await readDatabase()).products[0].printModel?.fileId!==fileId;i++)await new Promise(resolve=>setTimeout(resolve,5));assert.equal((await readDatabase()).products[0].printModel.fileId,fileId);});
+test('choosing a saved group model receives the change event and persists the selected file',async()=>{const {putFile}=await import('../attachments.js?v=0.2.385'),stored=(await readDatabase()),product=stored.products[0],fileId=crypto.randomUUID();await putFile({id:fileId,owner:stored.id+':'+product.id,category:'model',name:'chosen-model.stl',createdAt:new Date().toISOString(),blob:new Blob(['chosen'])});document.querySelector('[data-space="cost"]').click();await settle();for(let i=0;i<100&&!document.querySelector('#print-model-select option[value="'+fileId+'"]');i++)await new Promise(resolve=>setTimeout(resolve,5));const selector=document.querySelector('#print-model-select');assert.ok(selector);selector.value=fileId;selector.dispatchEvent(new window.Event('change'));for(let i=0;i<100&&(await readDatabase()).products[0].printModel?.fileId!==fileId;i++)await new Promise(resolve=>setTimeout(resolve,5));assert.equal((await readDatabase()).products[0].printModel.fileId,fileId);});
 
 test('product catalogue has a separate column beside navigation',async()=>{document.querySelector('[data-space="cost"]').click();await settle();const catalogue=document.querySelector('.product-catalogue');assert.ok(catalogue);assert.equal(document.querySelector('.sidebar .side-products'),null);assert.equal(document.querySelector('.sidebar').nextElementSibling,catalogue);assert.ok(catalogue.querySelector('#product-list'));});
 
@@ -165,3 +165,63 @@ function chooseBackupMode(mode){
  assert.equal(input.checked,true);
  assert.equal(document.querySelectorAll('[data-backup-mode]:checked').length,1);
 }
+
+test('Stop cancels ZIP creation and reading without downloads or database writes, then allows retry',async()=>{
+ document.querySelector('[data-space="backup"]').click();await settle();
+ const before=await readDatabase(),previousClick=window.HTMLAnchorElement.prototype.click,previousTimeout=globalThis.setTimeout;
+ globalThis.setTimeout=(fn,ms,...args)=>{const timer=previousTimeout(fn,ms,...args);if(ms===60000)timer.unref?.();return timer;};
+ let downloads=0;
+ window.HTMLAnchorElement.prototype.click=()=>downloads++;
+ try{
+  chooseBackupMode('full');
+  const exporting=document.querySelector('#full-export').onclick();
+  document.querySelector('[data-backup-stop]').click();
+  await exporting;
+  assert.equal(downloads,0);
+  assert.match(document.querySelector('#toast').textContent,/остановлена/);
+  const input=document.querySelector('#full-import');
+  const loading=input.onchange({target:{files:[{size:123,arrayBuffer:()=>new Promise(()=>{})}],value:'file'}});
+  await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(document.querySelector('[data-backup-stop]').disabled,false);
+  document.querySelector('[data-backup-stop]').click();
+  await loading;
+  assert.deepEqual(await readDatabase(),before);
+  assert.equal(document.querySelector('.archive-progress-dialog'),null);
+  assert.equal(document.querySelector('#full-export').disabled,false);
+  await document.querySelector('#full-export').onclick();
+  assert.equal(downloads,1);
+ }finally{window.HTMLAnchorElement.prototype.click=previousClick;globalThis.setTimeout=previousTimeout;}
+});
+
+test('Stop cancels JSON reading and is disabled before the first ZIP restore write',async()=>{
+ const before=await readDatabase();
+ const jsonLoading=document.querySelector('#import').onchange({target:{files:[{size:10,text:()=>new Promise(()=>{})}],value:'file'}});
+ document.querySelector('[data-backup-stop]').click();await jsonLoading;
+ assert.deepEqual(await readDatabase(),before);
+ const {createFullBackup}=await import('../full-backup.js');
+ const incoming=structuredClone(before);incoming.products[0].name='Restored after stop boundary';
+ const zip=await createFullBackup(incoming,[]);
+ const {IDBDatabase}=await import('fake-indexeddb');
+ const original=IDBDatabase.prototype.transaction;
+ let writes=0;
+ IDBDatabase.prototype.transaction=function(stores,mode,...args){
+  if(mode==='readwrite'){
+   writes++;
+   const stop=document.querySelector('[data-backup-stop]');
+   assert.ok(stop);assert.equal(stop.disabled,true);
+   assert.match(document.querySelector('[data-stop-hint]').textContent,/запись в базу/);
+   stop.click();
+  }
+  return original.call(this,stores,mode,...args);
+ };
+ try{
+  const loading=document.querySelector('#full-import').onchange({target:{files:[zip],value:'file'}});
+  for(let i=0;i<100&&!document.querySelector('.app-confirm');i++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.ok(document.querySelector('.app-confirm'));
+  document.querySelector('.app-confirm .confirm-accept').click();
+  await loading;
+  assert.ok(writes>0);
+ }finally{IDBDatabase.prototype.transaction=original;}
+ assert.equal((await readDatabase()).products[0].name,incoming.products[0].name);
+ assert.equal(document.querySelector('.archive-progress-dialog'),null);
+});

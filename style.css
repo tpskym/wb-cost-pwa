@@ -1019,3 +1019,6 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .backup-common-mode #backup-mode-destinations{margin-top:14px;font-size:12px}
 .backup-common-mode .backup-mode-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:1050px){.backup-mode-options{grid-template-columns:minmax(0,1fr)}.backup-mode-content{padding:18px}.backup-mode-restore{margin-top:0}}
+
+.archive-progress-dialog [data-stop-hint]{color:#617159;font-size:14px;line-height:1.5}
+.archive-progress-dialog [data-backup-stop]{min-height:44px;min-width:100px}

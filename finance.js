@@ -1,4 +1,4 @@
-import {chartPeriodKey, orderPeriodStatistics} from './marketplace-orders.js?v=0.2.384';
+import {chartPeriodKey, orderPeriodStatistics} from './marketplace-orders.js?v=0.2.385';
 
 const markets = {all:'Все площадки', wb:'Wildberries', ozon:'Ozon'};
 const periods = {days:'По дням', weeks:'По неделям', months:'По месяцам', years:'По годам', all:'Всего'};
