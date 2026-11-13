@@ -6,6 +6,47 @@ import {makeZip,readZip} from '../attachments.js';
 function fixture(){const a=blankProduct(),b=blankProduct();a.name='Белая подставка';a.productGroup='Watch';a.colorCode='001';a.marketplaces={wb:{price:370,payout:137.75,tax:14.8},ozon:{price:400,payout:200,tax:16}};a.labelPdf={name:'Этикетка.pdf',data:'data:application/pdf;base64,JVBERi0='};a.history=[{date:'saved',markets:a.marketplaces}];b.name='Чёрная подставка';const database={schema:1,id:'original',revision:8,products:[a,b],templates:[createTemplate(a,'Шаблон')]};const records=[{id:'one',owner:'original:'+a.id,name:'Модель.3mf',category:'model',createdAt:'2026-10-18T10:00:00Z',blob:new Blob([new Uint8Array([0,255,13,10])],{type:'application/octet-stream'})},{id:'two',owner:'original:'+b.id,name:'Фото.png',category:'source-ozon',createdAt:'2026-10-18T11:00:00Z',blob:new Blob(['original-photo-bytes'],{type:'image/png'})},{id:'three',owner:'original:'+a.id,name:'Фото.png',category:'source-wb',createdAt:'2026-10-18T11:00:00Z',blob:new Blob(['WB-photo'],{type:'image/png'})}];return {database,records};}
 test('full archive restores all products, templates, history, PDFs and exact binary files with correct owners',async()=>{const {database,records}=fixture();const zip=await createFullBackup(database,records),parsed=await parseFullBackup(zip);assert.equal(parsed.database.products.length,2);assert.equal(parsed.database.templates[0].name,'Шаблон');assert.deepEqual(parsed.database.products[0].marketplaces,database.products[0].marketplaces);assert.deepEqual(parsed.database.products[0].history,database.products[0].history);assert.deepEqual(parsed.database.products[0].labelPdf,database.products[0].labelPdf);assert.equal(parsed.files.length,3);for(let i=0;i<records.length;i++){assert.equal(parsed.files[i].name,records[i].name);assert.equal(parsed.files[i].category,records[i].category);assert.equal(parsed.files[i].blob.type,records[i].blob.type);assert.deepEqual(new Uint8Array(await parsed.files[i].blob.arrayBuffer()),new Uint8Array(await records[i].blob.arrayBuffer()));}const staged=stageFullRestore(parsed);assert.notEqual(staged.database.id,database.id);for(let i=0;i<records.length;i++){assert.equal(staged.records[i].owner,staged.database.id+':'+parsed.files[i].productId);assert.notEqual(staged.records[i].id,records[i].id);}assert.equal(parsed.database.id,'original');});
 test('full archive supports a database with no attachments',async()=>{const {database}=fixture();const parsed=await parseFullBackup(await createFullBackup(database,[]));assert.equal(parsed.files.length,0);assert.equal(parsed.database.products.length,2);});
+test('new articles ZIP adds only unique missing articles and keeps models shared with skipped products',async()=>{
+ const {database,records}=fixture();
+ const [existing,added]=database.products;
+ existing.sku='Known';
+ added.sku='New';
+ added.printer='Test printer';
+ added.values.printerPrice=10;
+ added.printModel={ownerId:existing.id,fileId:records[0].id};
+ added.stockTargets={wb:{minimum:1,normal:5}};
+ added.labelPdf=existing.labelPdf;
+ database.costPrices={printers:[{model:added.printer,price:5000}],filaments:[]};
+ database.products.push({...blankProduct(),sku:'Dupe'},{...blankProduct(),sku:' dupe '},blankProduct());
+ const blank=database.products.at(-1);
+ const sharedBlankFile={...records[0],id:'blank-model',owner:database.id+':'+blank.id};
+ const extra={...blankProduct(),sku:'Another',printModel:{ownerId:blank.id,fileId:sharedBlankFile.id}};
+ database.products.push(extra);
+ const layout={...records[0],id:'plate-two',owner:database.id+':'+added.id,plateQuantity:2};
+ const parsed=await parseFullBackup(await createFullBackup(database,[...records,sharedBlankFile,layout],{mode:'new-skus'}));
+ assert.equal(parsed.database.backupMode,'new-skus');
+ assert.ok(parsed.database.products.every(product=>product.sku.trim()));
+ assert.ok(parsed.files.every(file=>file.category==='model'));
+ assert.deepEqual(parsed.database.templates,[]);
+ const local={id:'target',schema:1,products:[{...blankProduct(),sku:' known '},{...blankProduct(),id:added.id,sku:'Other'}]};
+ const staged=stageFullRestore(parsed,{localDatabase:local});
+ assert.deepEqual(staged.database.products.slice(0,2),local.products);
+ const [newProduct,otherNew]=staged.database.products.slice(2);
+ assert.equal(newProduct.sku,'New');
+ assert.notEqual(newProduct.id,added.id);
+ assert.equal(newProduct.values.printerPrice,5000);
+ assert.equal(newProduct.labelPdf,undefined);
+ assert.deepEqual(newProduct.stockTargets,{});
+ assert.equal(newProduct.plateCapacity,2);
+ assert.equal(otherNew.sku,'Another');
+ for(const product of [newProduct,otherNew]){
+  const model=staged.records.find(file=>file.id===product.printModel.fileId);
+  assert.equal(model?.owner,'target:'+product.id);
+  assert.equal(product.printModel.ownerId,product.id);
+ }
+ assert.equal(staged.records.length,3);
+ assert.throws(()=>stageFullRestore(parsed,{localDatabase:staged.database}),/нет новых уникальных артикулов/);
+});
 test('corruption or missing binaries are rejected before restoration',async()=>{const {database,records}=fixture();const zip=await createFullBackup(database,records);const bytes=new Uint8Array(await zip.arrayBuffer());bytes[60]^=1;await assert.rejects(()=>parseFullBackup(new Blob([bytes])));const entries=await readZip(zip);entries.delete([...entries.keys()].find(k=>k.startsWith('files/')));await assert.rejects(()=>parseFullBackupEntries(entries));});
 async function parseFullBackupEntries(entries){return parseFullBackup(await makeZip([...entries].map(([name,blob])=>({name,blob}))));}
 test('wrong product links, duplicate references and unlisted files are rejected',async()=>{const {database,records}=fixture();for(const mode of ['owner','duplicate','extra']){const entries=await readZip(await createFullBackup(database,records));const manifest=JSON.parse(await entries.get('manifest.json').text());if(mode==='owner')manifest.files[0].productId='missing';if(mode==='duplicate')manifest.files[1].path=manifest.files[0].path;if(mode==='extra')entries.set('unlisted.txt',new Blob(['bad']));entries.set('manifest.json',new Blob([JSON.stringify(manifest)]));await assert.rejects(()=>parseFullBackupEntries(entries));}});

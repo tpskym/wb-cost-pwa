@@ -1,9 +1,10 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot} from './backup-modes.js?v=0.2.377';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.377';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.377';
-import {validateDB} from './calc.js?v=0.2.377';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport} from './backup-modes.js?v=0.2.378';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.378';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.378';
+import {validateDB} from './calc.js?v=0.2.378';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 const accessFilename='workshop-access.json';
+const modelKey=(ownerId,fileId)=>JSON.stringify([ownerId,fileId]);
 export function validateBackupAccess(value){
  const {version,salt,iv,ciphertext}=value||{};
  if(version!==1||typeof salt!=='string'||!/^[a-f0-9]{32}$/.test(salt)||typeof iv!=='string'||!/^[a-f0-9]{24}$/.test(iv)||
@@ -11,6 +12,31 @@ export function validateBackupAccess(value){
  return {version,salt,iv,ciphertext};
 }
 export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,accessEnvelope,onProgress=()=>{}}={}){
+ if(replaceAll)mode='full';
+ if(mode===newSkuBackupMode){
+  const articles=database.products.filter(product=>product.sku?.trim());
+  const byOwner=new Map(articles.map(product=>[database.id+':'+product.id,product]));
+  const byModel=new Map();
+  for(const product of articles){
+   const ref=product.printModel;
+   if(ref)byModel.set(modelKey(database.id+':'+ref.ownerId,ref.fileId),product);
+  }
+  // A model may belong to a product without a SKU. Carry it under a referencing article.
+  const rehomed=new Map();
+  records=records.filter(file=>file.category==='model').flatMap(file=>{
+   if(byOwner.has(file.owner))return [file];
+   const key=modelKey(file.owner,file.id);
+   const target=byModel.get(key);
+   if(!target||file.plateQuantity)return [];
+   rehomed.set(key,target.id);
+   return [{...file,owner:database.id+':'+target.id}];
+  });
+  database={...database,products:articles.map(product=>{
+   const ref=product.printModel;
+   const ownerId=ref&&rehomed.get(modelKey(database.id+':'+ref.ownerId,ref.fileId));
+   return ownerId?{...product,printModel:{...ref,ownerId}}:product;
+  })};
+ }
  const db=validateDB(replaceAll?{...stripBackupSecrets(database),backupMode:"full"}:createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
  const files=[],entries=[];
  for(const record of records){if(mode==='costs'&&!['product-image','model','card-design'].includes(record.category))continue;const cache=record.category==='marketplace-image'&&record.owner===db.id+':marketplace-photos'&&typeof record.sku==='string'&&record.sku.trim();if(record.category==='marketplace-image'?!cache:!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:cache?null:owners.get(record.owner),...(cache?{sku:record.sku}:{}),...(record.plateQuantity?{plateQuantity:record.plateQuantity}:{}),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
@@ -45,6 +71,10 @@ export async function parseFullBackup(blob,{onProgress=()=>{}}={}){
  return {database,files,replaceAll,...(accessEnvelope&&{accessEnvelope})};
 }
 export function stageFullRestore(parsed,{localDatabase}={}){
+ if(backupMode(parsed.database)===newSkuBackupMode){
+  if(!localDatabase)throw Error('Для переноса новых артикулов нужна текущая база.');
+  return stageNewSkuRestore(parsed,localDatabase);
+ }
  const database=structuredClone(parsed.database);database.id=crypto.randomUUID();
  const references=new Map();
  const records=parsed.files.map(f=>{const id=crypto.randomUUID();if(f.fileId)references.set(f.productId+':'+f.fileId,id);return {id,owner:database.id+':'+(f.category==='marketplace-image'?'marketplace-photos':f.productId),...(f.category==='marketplace-image'?{sku:f.sku}:{}),...(f.plateQuantity?{plateQuantity:f.plateQuantity}:{}),name:f.name,category:f.category,createdAt:f.createdAt,blob:f.blob};});
@@ -87,6 +117,57 @@ export function stageFullRestore(parsed,{localDatabase}={}){
   }
   return {database:merged,records:transferred};
  }
+ return {database,records};
+}
+
+function stageNewSkuRestore(parsed,local){
+ const sources=planNewSkuImport(parsed.database,local);
+ if(!sources.length)throw Error('В архиве нет новых уникальных артикулов.');
+ const database=structuredClone(local);
+ const reserved=new Set([...local.products,...parsed.database.products].map(product=>product.id));
+ const localIds=new Set(local.products.map(product=>product.id));
+ const added=new Map();
+ for(const source of sources){
+  const product=newSkuProductData(source);
+  if(localIds.has(product.id)){
+   do{product.id=crypto.randomUUID();}while(reserved.has(product.id));
+   reserved.add(product.id);
+  }
+  delete product.printModel;
+  product.stockTargets={};
+  added.set(source.id,product);
+  database.products.push(product);
+ }
+
+ const sharedOwners=new Map();
+ for(const source of sources){
+  const ref=source.printModel;
+  if(ref&&!added.has(ref.ownerId))sharedOwners.set(modelKey(ref.ownerId,ref.fileId),added.get(source.id));
+ }
+ const references=new Map();
+ const records=[];
+ const files=parsed.files.filter(file=>file.category==='model')
+  .sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+ for(const file of files){
+  const key=modelKey(file.productId,file.fileId);
+  const owner=added.get(file.productId)??(!file.plateQuantity?sharedOwners.get(key):null);
+  if(!owner)continue;
+  const id=crypto.randomUUID();
+  records.push({id,owner:database.id+':'+owner.id,category:'model',name:file.name,createdAt:file.createdAt,blob:file.blob,
+   ...(file.plateQuantity&&{plateQuantity:file.plateQuantity})});
+  if(file.plateQuantity)owner.plateCapacity=Math.max(owner.plateCapacity??1,file.plateQuantity);
+  else{
+   const ref={ownerId:owner.id,fileId:id};
+   references.set(key,ref);
+   if(added.has(file.productId))owner.printModel=ref;
+  }
+ }
+ for(const source of sources){
+  const ref=source.printModel;
+  const mapped=ref&&references.get(modelKey(ref.ownerId,ref.fileId));
+  if(mapped)added.get(source.id).printModel={...mapped};
+ }
+ validateDB(structuredClone(database));
  return {database,records};
 }
 // Storage commit is last: a failed file write can never activate an incomplete database.

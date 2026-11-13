@@ -1,7 +1,29 @@
-import {databaseForCloud,preserveLocalPrintQueue,stripBackupSecrets} from './google-drive-backup.js?v=0.2.377';
-export const backupModes={full:'Полный бэкап',costs:'Только себестоимость'};
+import {databaseForCloud,preserveLocalPrintQueue,stripBackupSecrets} from './google-drive-backup.js?v=0.2.378';
+import {configuredCostPrices} from './expenses.js?v=0.2.378';
+export const newSkuBackupMode='new-skus';
+export const backupModes={full:'Полный бэкап',costs:'Только себестоимость',[newSkuBackupMode]:'Себестоимость и модели для новых артикулов'};
 export function backupMode(database){const mode=database.backupMode??'full';if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');return mode;}
-export function createBackupSnapshot(database,mode=database.backupMode??'full'){if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');const clean=databaseForCloud(database);if(mode==='full')return {...clean,backupMode:'full'};return {schema:clean.schema,id:clean.id,revision:clean.revision??0,updatedAt:clean.updatedAt,backupMode:'costs',products:clean.products.map(product=>{const copy={...product};delete copy.stockTargets;delete copy.listingDrafts;return copy;}),templates:clean.templates||[]};}
+export function createBackupSnapshot(database,mode=database.backupMode??'full'){
+ if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');
+ const clean=databaseForCloud(database);
+ if(mode==='full')return {...clean,backupMode:'full'};
+ const {schema,id,revision=0,updatedAt,products,templates=[]}=clean;
+ if(mode===newSkuBackupMode){
+  const articles=products.filter(product=>articleKey(product));
+  if(!articles.length)throw Error('Для выгрузки нужен хотя бы один товар с артикулом.');
+  const copied=articles.map(product=>({
+   ...newSkuProductData(product),
+   values:{...product.values,...configuredCostPrices(clean,product)}
+  }));
+  return {schema,id,revision,updatedAt,backupMode:mode,products:copied,templates:[]};
+ }
+ return {schema,id,revision,updatedAt,backupMode:mode,products:products.map(product=>{
+  const copy={...product};
+  delete copy.stockTargets;
+  delete copy.listingDrafts;
+  return copy;
+ }),templates};
+}
 export const costsDataFormat='workshop-costs-data-v1';
 
 function costProductData(source,{includeLabel=false}={}){
@@ -13,6 +35,31 @@ function costProductData(source,{includeLabel=false}={}){
    : snapshot);
  }
  return product;
+}
+
+const articleKey=product=>product.sku?.trim().toLowerCase()||'';
+
+export function newSkuProductData(source){
+ const product=costProductData(source);
+ delete product.marketplaceCardPrices;
+ delete product.marketplaceImageUrl;
+ delete product.marketplaceProfit;
+ if(source.printModel)product.printModel={...source.printModel};
+ if(source.plateCapacity)product.plateCapacity=source.plateCapacity;
+ return product;
+}
+
+export function planNewSkuImport(incoming,local){
+ const existing=new Set(local.products.map(articleKey));
+ const counts=new Map();
+ for(const product of incoming.products){
+  const key=articleKey(product);
+  counts.set(key,(counts.get(key)??0)+1);
+ }
+ return incoming.products.filter(product=>{
+  const key=articleKey(product);
+  return key&&!existing.has(key)&&counts.get(key)===1;
+ });
 }
 
 export function createCostsDataSnapshot(database){
@@ -55,6 +102,7 @@ function mergeCostPrices(local,incoming){
 export function costProductIds(incoming,local){return new Map(incoming.products.map(product=>{const current=local.products?.find(row=>row.id===product.id)||local.products?.find(row=>product.sku?.trim()&&row.sku?.trim()===product.sku.trim());return [product.id,current?.id||product.id];}));}
 export function applyBackupSnapshot(incoming,local,{modelReferences=false}={}){
 const mode=backupMode(incoming);
+if(mode===newSkuBackupMode)throw Error('Для переноса новых артикулов загрузите ZIP с моделями.');
 const costsData=incoming.format===costsDataFormat;
 if(costsData){
  if(mode!=='costs')throw Error('Неверный формат файла себестоимости');
