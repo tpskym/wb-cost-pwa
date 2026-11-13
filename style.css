@@ -966,3 +966,16 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
  .backup-workspace .sync-actions{margin-top:16px}
  .backup-workspace .sync-actions>button{flex:1 1 auto}
 }
+
+.backup-methods{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+.backup-method{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:18px;border:1px solid #dce5d5;border-radius:12px;background:#fafcf8}
+.backup-method h3{font-size:18px;margin:0 0 10px}
+.backup-method p{margin:0 0 12px}
+.backup-method label{width:100%;margin:4px 0 0}
+.backup-method .sync-actions{margin-top:auto;padding-top:20px;width:100%}
+.backup-method .sync-actions button{width:100%}
+.backup-method #drive-link{margin-top:12px}
+.backup-settings-link{min-height:44px;font-size:14px;padding:10px 14px}
+.backup-settings>.drive-setup-panel{margin-bottom:16px}
+.backup-settings>summary{font-size:17px}
+@media(max-width:700px){.backup-methods{grid-template-columns:minmax(0,1fr);gap:14px}.backup-method{padding:14px}}
