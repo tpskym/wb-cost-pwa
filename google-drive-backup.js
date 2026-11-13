@@ -1,6 +1,6 @@
 const API='https://www.googleapis.com/drive/v3/files';
 const UPLOAD='https://www.googleapis.com/upload/drive/v3/files';
-const NAME='Мастерская — полная база.zip';
+const NAME='Мастерская — резервная копия.zip';
 async function check(response,stage='Запрос к Google Drive'){
  if(response.ok)return response;
  let detail;try{detail=(await response.json()).error;}catch{}
@@ -19,7 +19,7 @@ async function check(response,stage='Запрос к Google Drive'){
  throw error;
 }
 function auth(token){if(!token)throw Error('Сначала подключите Google Drive');return {Authorization:'Bearer '+token};}
-export async function findDriveBackup(token,{fetcher=fetch,fileId=''}={}){if(fileId){const response=await fetcher(API+'/'+encodeURIComponent(fileId)+'?fields=id,name,size,modifiedTime,trashed,appProperties',{headers:auth(token)});if(response.status===404)throw Error('Привязанный файл Google Drive не найден. Восстановите его из корзины или проверьте Google-аккаунт. Новый файл автоматически не создаётся.');const file=await (await check(response,'Проверка облачного файла')).json();if(file.trashed||file.appProperties?.workshopBackup!=='full-v1')throw Error('Привязанный файл не является полной базой «Мастерской»');return file;}const params=new URLSearchParams({q:"trashed = false and appProperties has { key='workshopBackup' and value='full-v1' }",fields:'files(id,name,size,modifiedTime)',orderBy:'modifiedTime desc',pageSize:'1'});const result=await (await check(await fetcher(API+'?'+params,{headers:auth(token)}),'Поиск облачного файла')).json();return result.files?.[0]||null;}
+export async function findDriveBackup(token,{fetcher=fetch,fileId=''}={}){if(fileId){const response=await fetcher(API+'/'+encodeURIComponent(fileId)+'?fields=id,name,size,modifiedTime,trashed,appProperties',{headers:auth(token)});if(response.status===404)throw Error('Привязанный файл Google Drive не найден. Восстановите его из корзины или проверьте Google-аккаунт. Новый файл автоматически не создаётся.');const file=await (await check(response,'Проверка облачного файла')).json();if(file.trashed||file.appProperties?.workshopBackup!=='full-v1')throw Error('Привязанный файл не является резервной копией «Мастерской»');return file;}const params=new URLSearchParams({q:"trashed = false and appProperties has { key='workshopBackup' and value='full-v1' }",fields:'files(id,name,size,modifiedTime)',orderBy:'modifiedTime desc',pageSize:'1'});const result=await (await check(await fetcher(API+'?'+params,{headers:auth(token)}),'Поиск облачного файла')).json();return result.files?.[0]||null;}
 export async function uploadDriveBackup(blob,token,{fetcher=fetch,onProgress=()=>{},fileId=''}={}){
  const headers=auth(token),existing=await findDriveBackup(token,{fetcher,fileId});
  const started=await check(await fetcher(UPLOAD+(existing?'/'+encodeURIComponent(existing.id):'')+'?uploadType=resumable&fields=id,name,size,modifiedTime',{method:existing?'PATCH':'POST',headers:{...headers,'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':'application/zip','X-Upload-Content-Length':String(blob.size)},body:JSON.stringify({name:NAME,mimeType:'application/zip',appProperties:{workshopBackup:'full-v1'}})}),'Начало выгрузки');

@@ -1,5 +1,5 @@
-import {databaseForCloud,preserveLocalPrintQueue,stripBackupSecrets} from './google-drive-backup.js?v=0.2.381';
-import {configuredCostPrices} from './expenses.js?v=0.2.381';
+import {databaseForCloud,preserveLocalPrintQueue,stripBackupSecrets} from './google-drive-backup.js?v=0.2.382';
+import {configuredCostPrices} from './expenses.js?v=0.2.382';
 export const newSkuBackupMode='new-skus';
 export const backupModes={full:'Полный бэкап',costs:'Только себестоимость',[newSkuBackupMode]:'Себестоимость и модели для новых артикулов'};
 export function backupMode(database){const mode=database.backupMode??'full';if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');return mode;}

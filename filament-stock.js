@@ -1,4 +1,4 @@
-import {actionIcon} from './listing-fields.js?v=0.2.381';
+import {actionIcon} from './listing-fields.js?v=0.2.382';
 
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export const filamentTypes=['PLA Basic','PLA Lite','PETG Basic'];

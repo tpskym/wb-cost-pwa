@@ -1,47 +1,47 @@
-import {mountFinance} from './finance.js?v=0.2.381';
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.381';
-import {attachCardDesignZip} from './attachments.js?v=0.2.381';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.381';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.381';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.381';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot,newSkuBackupMode,planNewSkuImport} from './backup-modes.js?v=0.2.381';
-import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.381';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.381';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.381';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.381';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.381';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.381';
-import {ensureProductImage,productImageSources} from './product-images.js?v=0.2.381';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.381';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.381';
-import {installImagePreview} from './image-preview.js?v=0.2.381';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.381';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.381';
-import {openCostReport} from './cost-report.js?v=0.2.381';
-import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.381';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.381';
-import {mountReleaseHistory} from './release-history.js?v=0.2.381';
-import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.381';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.381';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.381';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.381';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.381';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.381';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.381';
-import {mountSales} from './sales.js?v=0.2.381';
-import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.381';
-import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.381';
-import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.381';
-import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.381';
-import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.381';
-import {installNumberControls} from './number-controls.js?v=0.2.381';
-const APP_VERSION='0.2.381';
+import {mountFinance} from './finance.js?v=0.2.382';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.382';
+import {attachCardDesignZip} from './attachments.js?v=0.2.382';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.382';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.382';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.382';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot,newSkuBackupMode,planNewSkuImport} from './backup-modes.js?v=0.2.382';
+import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.382';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.382';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.382';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.382';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.382';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.382';
+import {ensureProductImage,productImageSources} from './product-images.js?v=0.2.382';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.382';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.382';
+import {installImagePreview} from './image-preview.js?v=0.2.382';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.382';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.382';
+import {openCostReport} from './cost-report.js?v=0.2.382';
+import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.382';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.382';
+import {mountReleaseHistory} from './release-history.js?v=0.2.382';
+import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.382';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.382';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.382';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.382';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.382';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.382';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.382';
+import {mountSales} from './sales.js?v=0.2.382';
+import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.382';
+import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.382';
+import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.382';
+import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.382';
+import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.382';
+import {installNumberControls} from './number-controls.js?v=0.2.382';
+const APP_VERSION='0.2.382';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.381';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.381';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.381';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.381';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.381';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.382';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.382';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.382';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.382';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.382';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#finance'?'finance':globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -56,7 +56,7 @@ function save(){if(recoveryRaw){toast('Сохранение заблокиров
 
 async function backup(){await writeDatabaseBackup(JSON.stringify(db),{key:KEY});}
 function download(data,name){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function exportDB(){if(recoveryRaw){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([recoveryRaw],{type:'application/json'}));a.download='workshop-recovery.json';a.click();return;}if(selectedBackupMode()===newSkuBackupMode)return toast('Для переноса новых артикулов скачайте ZIP с моделями.');download(createBackupSnapshot(db,selectedBackupMode()),'workshop-'+new Date().toISOString().slice(0,10)+'.json');}
+function exportDB({mode=jsonBackupMode}={}){if(recoveryRaw){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([recoveryRaw],{type:'application/json'}));a.download='workshop-recovery.json';a.click();return;}if(mode===newSkuBackupMode)return toast('Для переноса новых артикулов скачайте ZIP с моделями.');download(createBackupSnapshot(db,mode),'workshop-'+new Date().toISOString().slice(0,10)+'.json');}
 function exportCostsData(){
  if(recoveryRaw)throw Error('Для выгрузки себестоимости сначала восстановите базу.');
  download(createCostsDataSnapshot(db),'workshop-costs-'+new Date().toISOString().slice(0,10)+'.json');
@@ -109,120 +109,165 @@ const backupModeDescriptions={
 };
 function renderBackupContent(){
  const mode=selectedBackupMode();
- return ` <details class="panel backup-settings backup-disclosure" id="backup-settings">
-  <summary>Настройки Google Drive и устройства</summary>
+ return `<details class="panel backup-settings backup-disclosure" id="backup-settings">
+  <summary>Настройки подключения и устройства</summary>
   ${renderGoogleDriveSetup({clientId:config.clientId,status:googleStatus,driveId,origin:location.origin})}
-  <details class="panel backup-disclosure">
-   <summary>Рабочая папка для этикеток и моделей</summary>
-   <p>В Chrome и Edge выберите папку для файлов label.pdf и model.*. В Safari папка задаётся в установщике компонента macOS.</p>
-   <button type="button" data-working-folder>Папка label / model</button>
+  <details class="backup-mode-guide">
+   <summary>Папка для этикеток и моделей</summary>
+   <p>Выберите, куда сохранять файлы для печати. В Safari папка задаётся в компоненте macOS.</p>
+   <button type="button" data-working-folder>Выбрать папку</button>
    <div data-working-recent></div>
    ${renderWindowsOpenerSettings()}
   </details>
-  <details class="panel backup-disclosure">
-   <summary>Открыть приложение на другом устройстве</summary>
+  <details class="backup-mode-guide">
+   <summary>Открыть «Мастерскую» на другом устройстве</summary>
    ${renderAppAccessGuide()}
   </details>
-  <details class="panel backup-disclosure">
-   <summary>Место на устройстве</summary>
+  <details class="backup-mode-guide">
+   <summary>Сколько места занимает приложение</summary>
    <section class="storage-usage-panel" data-backup-storage></section>
   </details>
  </details>
  <section class="panel backup-card backup-download" aria-labelledby="backup-download-title">
-  <h2 id="backup-download-title">Сохранить копию</h2>
+  <header class="backup-section-heading">
+   <h2 id="backup-download-title">Сохранить копию данных</h2>
+   <p>Выберите состав копии, затем место сохранения.</p>
+  </header>
+  <div class="backup-common-mode">
+   <label>Что сохранить<select class="ui-select" data-backup-mode aria-describedby="backup-mode-description backup-mode-destinations">
+    ${Object.entries(backupModes).map(([key,label])=>`<option value="${key}" ${mode===key?'selected':''}>${key===newSkuBackupMode?'Себестоимость и модели':label}</option>`).join('')}
+   </select></label>
+   <p id="backup-mode-description" aria-live="polite">${backupModeDescriptions[mode]}</p>
+   <small id="backup-mode-destinations">Этот состав используется для обеих кнопок ниже.</small>
+  </div>
   <div class="backup-methods">
    <div class="backup-method">
-    <h3>На компьютер</h3>
-    <p>Файл сохранится в папку загрузок вашего браузера.</p>
-    <label>Состав локальной копии<select class="ui-select" data-backup-mode aria-describedby="backup-mode-description">
-     ${Object.entries(backupModes).map(([key,label])=>`<option value="${key}" ${mode===key?'selected':''}>${key===newSkuBackupMode?'Себестоимость и модели':label}</option>`).join('')}
-    </select></label>
-    <p id="backup-mode-description" aria-live="polite">${backupModeDescriptions[mode]}</p>
+    <h3>Файл на компьютере</h3>
+    <p>Скачайте архив ZIP и храните его в выбранной папке.</p>
     <div class="sync-actions"><button type="button" id="full-export" class="backup-primary">Скачать ZIP на компьютер</button></div>
    </div>
    <div class="backup-method">
-    <h3>В Google Drive</h3>
-    <p>ZIP сохранится в вашем Google Drive. Повторная выгрузка обновляет тот же облачный файл.</p>
-    <p>Всегда полная база с файлами, очередью печати и остатками филамента.</p>
-    <p data-drive-action-status role="status"></p>
-    <button type="button" class="backup-settings-link" data-open-backup-settings>Настроить Google Drive</button>
+    <h3>Копия в Google Drive</h3>
+    <p>Архив ZIP сохранится в облаке. Следующая выгрузка обновит этот файл.</p>
+    <p class="backup-connection-status" data-drive-action-status role="status"></p>
+    <button type="button" class="backup-settings-link" data-open-backup-settings>Подключить Google Drive</button>
     <div class="sync-actions"><button type="button" id="drive-create" class="backup-primary" disabled>Выгрузить ZIP в Google Drive</button></div>
-    <a id="drive-link" ${driveId?`href="https://drive.google.com/file/d/${encodeURIComponent(driveId)}/view"`:'hidden'} target="_blank" rel="noreferrer">Открыть копию в Google Drive ↗</a>
+    <a id="drive-link" ${driveId?`href="https://drive.google.com/file/d/${encodeURIComponent(driveId)}/view"`:'hidden'} target="_blank" rel="noreferrer">Открыть сохранённый файл ↗</a>
    </div>
   </div>
-   <details class="backup-mode-guide">
-    <summary>Что входит в каждый режим</summary>
-    <dl>${Object.entries(backupModes).map(([key,label])=>`<div><dt>${label}</dt><dd>${backupModeDescriptions[key]}</dd></div>`).join('')}</dl>
-    <p>Обычные копии сохраняют размеры, вес и категории. Очередь печати и остатки филамента переносятся через ZIP для полной замены или Google Drive. Доступы настраиваются отдельно на каждом устройстве.</p>
-   </details>
-
-  <details class="backup-mode-guide"><summary>Скачать JSON на компьютер</summary>
-   <small data-backup-format-hint>${backupFormatHint}</small>
-   <div class="sync-actions"><button type="button" id="export">Скачать JSON на компьютер</button></div>
+  <details class="backup-mode-guide">
+   <summary>Подробнее о составе копии</summary>
+   <dl>${Object.entries(backupModes).map(([key,label])=>`<div><dt>${label}</dt><dd>${backupModeDescriptions[key]}</dd></div>`).join('')}</dl>
+   <p>Размеры, вес и категории товаров входят во все режимы. Очередь печати и остатки филамента входят в архив для переезда, доступный в дополнительных действиях. Доступы к площадкам настраиваются на каждом устройстве.</p>
   </details>
  </section>
  <section class="panel backup-card backup-upload" aria-labelledby="backup-upload-title">
-  <h2 id="backup-upload-title">Загрузить копию в приложение</h2>
+  <header class="backup-section-heading">
+   <h2 id="backup-upload-title">Загрузить данные из копии</h2>
+   <p>Выберите, где хранится ваша копия. Режим определяется по файлу, изменения показываются перед подтверждением.</p>
+  </header>
   <div class="backup-methods">
    <div class="backup-method">
-    <h3>С компьютера</h3>
-    <p>Выберите ранее сохранённый ZIP. Приложение определит режим по файлу и покажет изменения перед подтверждением.</p>
-    <div class="sync-actions"><button type="button" data-backup-file="full-import">Загрузить ZIP с компьютера</button></div>
+    <h3>Файл на компьютере</h3>
+    <p>Откройте ZIP, который ранее скачали из «Мастерской».</p>
+    <div class="sync-actions"><button type="button" data-backup-file="full-import">Выбрать ZIP на компьютере</button></div>
     <input id="full-import" type="file" accept=".zip,application/zip" hidden>
    </div>
    <div class="backup-method">
-    <h3>Из Google Drive</h3>
-    <p>Облачная копия заменит текущую базу, включая файлы, очередь печати и остатки филамента. Приложение запросит подтверждение.</p>
-    <p data-drive-action-status role="status"></p>
-    <button type="button" class="backup-settings-link" data-open-backup-settings>Настроить Google Drive</button>
+    <h3>Копия в Google Drive</h3>
+    <p>Загрузите последний архив, сохранённый в подключённом Google Drive.</p>
+    <p class="backup-connection-status" data-drive-action-status role="status"></p>
+    <button type="button" class="backup-settings-link" data-open-backup-settings>Подключить Google Drive</button>
     <div class="sync-actions"><button type="button" id="drive-load" disabled>Загрузить ZIP из Google Drive</button></div>
    </div>
   </div>
-  <details class="backup-mode-guide"><summary>Загрузить JSON с компьютера</summary>
-   <div class="sync-actions"><button type="button" data-backup-file="import">Выбрать JSON на компьютере</button></div>
-   <input id="import" type="file" accept=".json,application/json" hidden>
-  </details>
-  <div class="backup-recovery"><h3>Предыдущая база на этом устройстве</h3><button type="button" id="restore">Вернуть предыдущую базу</button></div>
  </section>
  <section class="backup-extra" aria-labelledby="backup-extra-title">
-  <h2 id="backup-extra-title">Другие способы переноса</h2>
-  <details class="panel backup-disclosure">
-   <summary>ZIP для полной замены</summary>
-   <p>Для переезда на другое устройство. Включает всю базу, файлы, очередь печати и остатки филамента. При загрузке текущая база заменяется целиком. Чтобы открыть такой архив, нажмите «Загрузить ZIP» в карточке загрузки.</p>
-   <div class="sync-actions"><button type="button" id="transfer-export">Скачать ZIP для полной замены</button></div>
+  <h2 id="backup-extra-title">Дополнительные действия</h2>
+  <details class="panel backup-disclosure backup-optional">
+   <summary>Сохранить или загрузить файл расчётов JSON</summary>
+   <p>JSON — файл с данными товаров и расчётами. Его используют для переноса данных и PDF-этикеток. Для фотографий и моделей используется архив ZIP.</p>
+   <div class="backup-optional-grid">
+    <section>
+     <h3>Скачать файл расчётов</h3>
+     <label>Что включить в JSON<select class="ui-select" data-json-backup-mode>
+      <option value="costs">Только себестоимость</option>
+      <option value="full">Полная база расчётов</option>
+     </select></label>
+     <p data-backup-format-hint>${backupFormatHint}</p>
+     <div class="sync-actions"><button type="button" id="export">Скачать файл JSON</button></div>
+    </section>
+    <section>
+     <h3>Загрузить имеющийся файл</h3>
+     <p>Выберите файл с расширением .json, ранее сохранённый в «Мастерской». Перед загрузкой приложение покажет, какие данные изменятся.</p>
+     <div class="sync-actions"><button type="button" data-backup-file="import">Выбрать файл JSON</button></div>
+     <input id="import" type="file" accept=".json,application/json" hidden>
+    </section>
+   </div>
   </details>
-  <details class="panel backup-disclosure">
-   <summary>Себестоимость и этикетки без моделей</summary>
-   <p>Отдельный JSON с расчётами, историей, шаблонами, PDF-этикетками и справочными ценами. При загрузке расчёты и этикетки добавляются или обновляются.</p>
+  <details class="panel backup-disclosure backup-optional">
+   <summary>Восстановить резервную копию этого устройства</summary>
+   <p>Приложение сохраняет предыдущую базу перед загрузкой данных и некоторыми изменениями. Здесь можно вернуть эту копию, если текущие данные нужно восстановить.</p>
+   <p data-previous-backup-status role="status">Проверяем сохранённую копию…</p>
+   <div class="sync-actions"><button type="button" id="restore">Восстановить резервную базу</button></div>
+  </details>
+  <details class="panel backup-disclosure backup-optional">
+   <summary>Перенести приложение целиком на другое устройство</summary>
+   <p>Архив для переезда включает товары, расчёты, файлы, очередь печати и остатки филамента. При загрузке он полностью заменяет базу принимающего устройства.</p>
    <div class="sync-actions">
-    <button type="button" id="costs-data-export">Выгрузить себестоимость</button>
-    <button type="button" id="costs-data-import">Загрузить себестоимость</button>
+    <button type="button" id="transfer-export">Скачать ZIP для переезда</button>
+    <button type="button" data-backup-file="full-import">Загрузить ZIP для переезда</button>
+   </div>
+  </details>
+  <details class="panel backup-disclosure backup-optional">
+   <summary>Перенести себестоимость вместе с этикетками</summary>
+   <p>Файл JSON с расчётами, историей, шаблонами, PDF-этикетками и справочными ценами. При загрузке эти данные добавляются или обновляются у соответствующих товаров.</p>
+   <div class="sync-actions">
+    <button type="button" id="costs-data-export">Скачать себестоимость и этикетки</button>
+    <button type="button" id="costs-data-import">Загрузить себестоимость и этикетки</button>
     <input type="file" id="costs-data-file" accept=".json,application/json" hidden>
    </div>
   </details>
-  <details class="panel backup-disclosure">
-   <summary>Общий JSON-файл на компьютере</summary>
-   <p>Для работы с JSON в синхронизируемой папке, если браузер поддерживает прямой доступ к файлам. Загрузка учитывает режим, записанный в файле.</p>
-   <p data-shared-file-mode></p>
+  <details class="panel backup-disclosure backup-optional">
+   <summary>Обновлять один и тот же файл на компьютере</summary>
+   <p>Выберите существующий файл JSON. Затем можно записывать в него текущие расчёты или загружать данные из него в приложение.</p>
+   <label>Что записывать в этот файл<select class="ui-select" data-shared-backup-mode>
+    <option value="costs">Только себестоимость</option>
+    <option value="full">Полная база расчётов</option>
+   </select></label>
+   <div class="sync-actions"><button type="button" id="pick-file">Выбрать файл JSON</button></div>
+   <p id="file-status" role="status">${fileHandle?esc(fileHandle.name)+' · выбран':'Файл ещё не выбран'}</p>
    <div class="sync-actions">
-    <button type="button" id="pick-file">Выбрать файл</button>
-    <button type="button" id="read-file">Загрузить выбранный</button>
-    <button type="button" id="write-file">Сохранить в выбранный</button>
+    <button type="button" id="read-file" ${fileHandle?'':'disabled'}>Загрузить данные из файла</button>
+    <button type="button" id="write-file" ${fileHandle?'':'disabled'}>Записать данные в файл</button>
    </div>
-   <p id="file-status" role="status">${fileHandle?esc(fileHandle.name)+' · выбран':'Файл не выбран'}</p>
+   <small>Прямое обновление файла доступно в браузерах с поддержкой выбора файла, например Chrome и Edge.</small>
   </details>
- </section>
-`;
+ </section>`;
 }
 function updateBackupModeLabels(){
  const mode=selectedBackupMode();
- const zipOnly=mode===newSkuBackupMode&&!recoveryRaw;
  $('#backup-mode-description').textContent=backupModeDescriptions[mode];
- $('#export').hidden=zipOnly;
- $('#export').disabled=zipOnly;
- $('[data-backup-format-hint]').textContent=zipOnly?'Этот режим доступен в формате ZIP.':backupFormatHint;
- $('#write-file').disabled=mode===newSkuBackupMode;
- $('[data-shared-file-mode]').textContent=mode===newSkuBackupMode?'Для записи в JSON выберите режим «Полный бэкап» или «Только себестоимость».':'Запись в файл использует режим «'+backupModes[mode]+'».';
+ $('[data-json-backup-mode]').value=jsonBackupMode;
+ $('[data-backup-format-hint]').textContent=jsonBackupMode==='full'?'Данные товаров, расчёты, затраты, нормы WB/Ozon и PDF-этикетки.':'Данные товаров, расчёты, шаблоны и PDF-этикетки.';
+ $('#read-file').disabled=!fileHandle;
+ $('#write-file').disabled=!fileHandle;
+ $('[data-shared-backup-mode]').value=sharedBackupMode;
+}
+async function showPreviousBackupStatus(){
+ const status=$('[data-previous-backup-status]');
+ const button=$('#restore');
+ if(!status)return;
+ button.disabled=true;
+ try{
+  const previous=await readDatabaseBackup({key:KEY});
+  if(!status.isConnected)return;
+  const date=new Date(previous._backupAt||previous.updatedAt);
+  status.textContent='Сохранённая копия'+(Number.isNaN(date.getTime())?'':' от '+date.toLocaleString('ru-RU'))+' · товаров: '+previous.products.length;
+  button.disabled=fullBackupBusy;
+ }catch{
+  if(status.isConnected)status.textContent='На этом устройстве пока нет автоматически сохранённой копии.';
+ }
 }
 function lockBackupUI(){document.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);}
 function showArchiveProgress(title){const dialog=document.createElement('dialog');dialog.className='product-category-dialog archive-progress-dialog';dialog.innerHTML='<h2></h2><p data-progress-stage role="status"></p><progress max="100" aria-label="Прогресс архива"></progress><p data-progress-detail></p>';dialog.querySelector('h2').textContent=title;dialog.oncancel=event=>event.preventDefault();document.body.append(dialog);dialog.showModal();return {update({stage,done,total,unit}){dialog.querySelector('[data-progress-stage]').textContent=stage;const bar=dialog.querySelector('progress'),detail=dialog.querySelector('[data-progress-detail]');if(Number.isFinite(total)&&total>0&&Number.isFinite(done)){const percent=Math.min(100,Math.round(done/total*100));bar.value=percent;detail.textContent=percent+'%'+(unit==='files'?' · '+done+' из '+total+' файлов':unit==='bytes'?' · '+(done/1048576).toFixed(1)+' из '+(total/1048576).toFixed(1)+' МБ':'');}else{bar.removeAttribute('value');detail.textContent=unit==='bytes'&&Number.isFinite(done)?'Скачано '+(done/1048576).toFixed(1)+' МБ':'Пожалуйста, дождитесь завершения';}},close(){dialog.close();dialog.remove();}};}
@@ -232,6 +277,30 @@ async function prepareCostsExport(database, records, mode) {
  const selection=await selectCostsTransfer({database,files},{exporting:true});
  return selection&&{database:selection.database,records:selection.files.map(({productId,...record})=>record)};
 }
+async function prepareBackupArchive(mode,{replaceAll=false,onProgress=()=>{}}={}){
+ await modelMigration;
+ await databaseStorage.flush();
+ const snapshot=structuredClone(db);
+ const fileLists=snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id));
+ if(mode!==newSkuBackupMode)fileLists.push(listFiles(snapshot.id+':marketplace-photos'));
+ const records=(await Promise.all(fileLists)).flat();
+ const selection=await prepareCostsExport(snapshot,records,mode);
+ if(!selection)return;
+ onProgress({stage:'Собираем товары и файлы'});
+ const chosen=selection.database, included=selection.records;
+ const photos=new Set(included.filter(file=>file.category==='product-image').map(file=>file.owner));
+ let unavailablePhotos=0;
+ for(const product of mode===newSkuBackupMode?[]:chosen.products){
+  const owner=chosen.id+':'+product.id;
+  if(photos.has(owner)||product.transferParts?.parameters===false)continue;
+  try{
+   if(!await ensureProductImage(chosen,product,{download:false}))unavailablePhotos++;
+   included.push(...(await listFiles(owner)).filter(file=>file.category==='product-image'));
+  }catch{unavailablePhotos++;}
+ }
+ const zip=await createFullBackup(chosen,included,{mode,replaceAll,onProgress});
+ return {zip,count:chosen.products.length,unavailablePhotos};
+}
 async function exportFullArchive({replaceAll=false}={}){
  if(fullBackupBusy)return;
  if(recoveryRaw){exportDB();return toast('Сначала восстановите базу. Скачан исходный JSON для восстановления.');}
@@ -240,29 +309,12 @@ async function exportFullArchive({replaceAll=false}={}){
  let progress;
  try{
   const mode=replaceAll?'full':selectedBackupMode();
-  await modelMigration;
-  const snapshot=structuredClone(db);
-  const fileLists=snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id));
-  if(mode!==newSkuBackupMode)fileLists.push(listFiles(snapshot.id+':marketplace-photos'));
-  const records=(await Promise.all(fileLists)).flat();
-  const selection=await prepareCostsExport(snapshot,records,mode);
-  if(!selection)return;
   progress=showArchiveProgress('Создание архива');
-  progress.update({stage:'Собираем товары и файлы'});
-  const chosen=selection.database, included=selection.records;
-  const photos=new Set(included.filter(file=>file.category==='product-image').map(file=>file.owner));
-  let unavailablePhotos=0;
-  for(const product of mode===newSkuBackupMode?[]:chosen.products){
-   const owner=chosen.id+':'+product.id;
-   if(photos.has(owner)||product.transferParts?.parameters===false)continue;
-   try{
-    if(!await ensureProductImage(chosen,product,{download:false}))unavailablePhotos++;
-    included.push(...(await listFiles(owner)).filter(file=>file.category==='product-image'));
-   }catch{unavailablePhotos++;}
-  }
-  const zip=await createFullBackup(chosen,included,{mode,replaceAll,onProgress:progress.update});
+  const archive=await prepareBackupArchive(mode,{replaceAll,onProgress:progress.update});
+  if(!archive)return;
+  const {zip,count,unavailablePhotos}=archive;
   downloadBlob(zip,'workshop-'+(replaceAll?'transfer':mode)+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.zip');
-  toast('Архив подготовлен: '+chosen.products.length+' товаров'+(unavailablePhotos?' · без сохранённого фото: '+unavailablePhotos:''));
+  toast('Архив подготовлен: '+count+' товаров'+(unavailablePhotos?' · без сохранённого фото: '+unavailablePhotos:''));
  }finally{progress?.close();fullBackupBusy=false;render();}
 }
 function selectCostsTransfer(parsed,{exporting=false}={}) {
@@ -408,7 +460,7 @@ async function restoreFullArchive(file,{cloud=false}={}){
   const message=`Обновятся расчёты у товаров: ${updated}. Добавится товаров: ${added}. Модели будут перенесены только для новых артикулов.`
    +(skipped?` Пропущено неоднозначных совпадений: ${skipped}.`:'');
   if(!await confirmAction(message,{title:'Загрузить себестоимость и модели?',accept:'Загрузить'}))return;
- }else if(!await confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? '+backupModes[mode]+'. '+(parsed.replaceAll?'Локальная база будет полностью заменена, включая очередь печати и остатки филамента.':mode==='costs'?'Будут перенесены отмеченные параметры, этикетки и файлы моделей.':'Нормы WB/Ozon, затраты и остальные переносимые данные будут заменены содержимым архива. Очередь печати и остатки филамента сохранятся.')+' Предыдущая база и её файлы останутся доступны через «Вернуть предыдущую базу».'))return;
+ }else if(!await confirm('Восстановить '+parsed.database.products.length+' товаров и '+parsed.files.length+' файлов из архива? '+backupModes[mode]+'. '+(parsed.replaceAll?'Локальная база будет полностью заменена, включая очередь печати и остатки филамента.':mode==='costs'?'Будут перенесены отмеченные параметры, этикетки и файлы моделей.':'Нормы WB/Ozon, затраты и остальные переносимые данные будут заменены содержимым архива. Очередь печати и остатки филамента сохранятся.')+' Предыдущая база и её файлы останутся доступны через «Восстановить резервную базу».'))return;
  const restoring=showArchiveProgress('Восстановление базы');let restored;try{restored=await commitFullRestore(parsed,{onProgress:restoring.update,localDatabase:db,savePrevious:backup,writeFiles:putFiles,commitDatabase:async database=>{database.revision++;database.updatedAt=new Date().toISOString();await databaseStorage.saveRaw(JSON.stringify(database));}});}finally{restoring.close();}
  db=restored;recoveryRaw=null;
  if(!costImport)selected=db.products[0].id;
@@ -586,7 +638,7 @@ function render({preserveCatalogue=false}={}){
  $('.workspace-nav').scrollTop=navScrollTop;
  if(focusedNav)document.querySelector('.workspace-nav [data-space="'+focusedNav+'"]')?.focus({preventScroll:true});
  const catalogue=$('.side-products');catalogue.classList.add('product-catalogue');catalogue.setAttribute('role','complementary');catalogue.setAttribute('aria-label','Мои товары');$('.sidebar').after(catalogue);mountCatalogueResize(catalogue);
- if(space==='backup')mountStorageUsage($('[data-backup-storage]'));renderFields();renderCustom();renderResults();renderHistory();bind();mountLabelThumbnail({root:$('#label-thumbnail'),label:p.labelPdf});mountReleaseHistory({root:document.querySelector('main'),button:document.querySelector('#release-history'),version:APP_VERSION});mountProductImage();document.querySelectorAll('.sidebar [data-space]').forEach(button=>{if(button.dataset.space===space)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});if(!['finance','expenses','prices','sales','filament','api','stocks','backup','print-queue'].includes(space))renderFiles();if(space==='print-queue')mountPrintQueue({root:$('#print-queue-workspace'),sortButton:$('#queue-sort-printing'),database:db,save,getCredentials:getMarketplaceCredentials,notify:toast,onOpenProduct:id=>{if(!db.products.some(p=>p.id===id))return toast('Товар удалён');selected=id;space='cost';history.replaceState(null,'','#cost');render();},getModelInfo:async id=>{await modelMigration.catch(()=>{});const target=db.products.find(p=>p.id===id);if(!target)throw Error('Товар удалён');const choices=await plateModels(db,target);if(!choices.size)throw Error('Модель не прикреплена');return choices.values().next().value;},onStocks:()=>{space='stocks';history.replaceState(null,'','#stocks');render();},onModel:async id=>{const target=db.products.find(p=>p.id===id);if(!target)throw Error('Товар удалён. Модель недоступна.');await openPlateModel(target);},onLabel:(sku,quantity)=>openStockLabelDialog({database:db,sku,quantity,notify:toast})});if(space==='prices')disposePrices=mountMarketplacePrices({root:$('#prices-workspace'),database:db,save,getCredentials:getMarketplaceCredentials,onOpenApi:()=>{space='api';history.replaceState(null,'','#api');render();}});if(space==='stocks')mountWarehouseStocks({root:$('#stocks-workspace'),database:db,save,getCredentials:getMarketplaceCredentials,onEnqueue:(sku,quantity,market)=>openEnqueueDialog({database:db,sku,quantity,market,save,notify:toast}),onOpenLabel:(sku,quantity)=>openStockLabelDialog({database:db,sku,quantity,save,notify:toast}),onOpenModel:safe(async sku=>{const target=db.products.find(q=>q.sku.trim()===sku.trim());if(!target)throw Error('Сначала загрузите карточку этого артикула в приложение');await openPlateModel(target);}),onOpenProduct:id=>{selected=id;space='cost';history.replaceState(null,'','#cost');render();document.querySelector('.product-stock-targets')?.scrollIntoView?.({block:'center'});},onOpenApi:()=>{space='api';history.replaceState(null,'','#api');render();}});if(space==='finance')mountFinance($('#finance-workspace'),db.orderSnapshots??[],orderProfitLookup(),db.products,categoriesFromProduct);if(space==='expenses')mountExpenses({root:$('#expenses-workspace'),database:db,save,notify:toast});if(space==='filament')mountFilamentStock({root:$('#filament-workspace'),database:db,save,toast});if(space==='sales')mountSales({root:$('#sales-workspace'),profitForRow:orderProfitLookup(),database:db,selectedProductId:p.id,save,toast,getCredentials:getMarketplaceCredentials,onOpenApi:()=>{activateMarketplaceSettings();space='api';history.replaceState(null,'','#api');render();window.scrollTo?.({top:0});}});if(['cards','api'].includes(space))mountMarketplaceUI({settingsOnly:space==='api',getGoogleClientId:()=>config.clientId||'',saveGoogleClientId:value=>{const next={...config,clientId:value};if(config.clientId!==value){delete next.googleAccount;delete next.driveFileId;}localStorage.setItem(CONFIG,JSON.stringify(next));if(config.clientId!==value){token=null;googleTokenExpires=0;driveId=null;googleStatus='Google Client ID сохранён. Подключение произойдёт при обмене.';}config=next;if($('#client-id'))$('#client-id').value=value;updateDriveControls();},onOpenSettings:()=>{space='api';history.replaceState(null,'','#api');render();},listingTemplates:()=>db.listingTemplates??=([]),onCreateFromTemplate:template=>{const target=blankProduct();const draft=draftFromListingTemplate(template,target);const body=JSON.parse(draft.body);target.name=template.market==='wb'?body[0].variants[0].title||template.name:body.items[0].name||template.name;target.listingDrafts={[template.market]:draft};db.products.push(target);selected=target.id;productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';productPage=catalogueProductBatches(db.products,productPageSize).findIndex(page=>page.some(q=>q.id===target.id));productGroupOpen.set('',true);cardsMarket=template.market;space='cards';history.replaceState(null,'','#cards');save();render();},listingProducts:()=>db.products,onCardsListed:(market,cards,complete)=>{rememberCatalogueCards(db,market,cards,complete);save();$('#product-list').innerHTML=productList(product());bindProductList();},onCardLoaded:(draft,sku,market)=>{if(!sku.trim())throw Error('Площадка не вернула артикул карточки');let target=db.products.find(q=>q.sku.trim()===sku.trim());if(target?.id===p.id){restoreSharedEdits(target,market,draft);return false;}if(!target){const body=JSON.parse(draft.body),item=market==='wb'?body[0]:body.items[0];target=blankProduct();target.sku=sku;target.name=item.title||item.name||sku;db.products.push(target);}restoreSharedEdits(target,market,draft);target.listingDrafts??={};target.listingDrafts[market]=draft;selected=target.id;productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';productPage=catalogueProductBatches(db.products,productPageSize).findIndex(page=>page.some(q=>q.id===target.id));productGroupOpen.set(target.productGroup||'',true);cardsMarket=market;save();render();toast('Открыт товар '+sku);return true;},listingSources:market=>db.products.filter(q=>q.listingDrafts?.[market]).map(q=>({product:q,draft:q.listingDrafts[market]})),initialMarket:cardsMarket,container:$('#marketplace-api'),product:p,owner:db.id+':'+p.id,save,toast,lookupCost:sku=>productCostsBySku(db.products.filter(row=>row.sku?.trim()===String(sku||'').trim()).map(productWithConfiguredPrices),sku),lookupListing:(sku,market)=>loadedListingForSku(db.products,sku,market),openListing:match=>{selected=match.ownerId;cardsMarket=match.market;space='cards';history.replaceState(null,'','#cards');render();window.scrollTo?.({top:0});},openCost:id=>{if(!db.products.some(p=>p.id===id))return;selected=id;space='cost';history.replaceState(null,'','#cost');render();window.scrollTo?.({top:0});}});if(['stocks','sales'].includes(space)){const heading=document.querySelector('main>.heading'),rail=document.querySelector('main .table-filter-rail');if(heading&&rail)rail.prepend(heading);}if(space==='prices')document.querySelector('main>.heading').hidden=true;disposeTopRefresh=mountTopRefresh(document,{'print-queue':'#queue-refresh-stocks',stocks:'#stock-refresh',prices:'#prices-refresh',sales:'#orders-refresh'}[space]);const sortButton=$('#queue-sort-printing');if(sortButton)sortButton.parentElement.append(sortButton);cardsMarket=null;$('.product-catalogue').scrollTop=sidebarScroll;}
+ if(space==='backup'){mountStorageUsage($('[data-backup-storage]'));showPreviousBackupStatus();}renderFields();renderCustom();renderResults();renderHistory();bind();mountLabelThumbnail({root:$('#label-thumbnail'),label:p.labelPdf});mountReleaseHistory({root:document.querySelector('main'),button:document.querySelector('#release-history'),version:APP_VERSION});mountProductImage();document.querySelectorAll('.sidebar [data-space]').forEach(button=>{if(button.dataset.space===space)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});if(!['finance','expenses','prices','sales','filament','api','stocks','backup','print-queue'].includes(space))renderFiles();if(space==='print-queue')mountPrintQueue({root:$('#print-queue-workspace'),sortButton:$('#queue-sort-printing'),database:db,save,getCredentials:getMarketplaceCredentials,notify:toast,onOpenProduct:id=>{if(!db.products.some(p=>p.id===id))return toast('Товар удалён');selected=id;space='cost';history.replaceState(null,'','#cost');render();},getModelInfo:async id=>{await modelMigration.catch(()=>{});const target=db.products.find(p=>p.id===id);if(!target)throw Error('Товар удалён');const choices=await plateModels(db,target);if(!choices.size)throw Error('Модель не прикреплена');return choices.values().next().value;},onStocks:()=>{space='stocks';history.replaceState(null,'','#stocks');render();},onModel:async id=>{const target=db.products.find(p=>p.id===id);if(!target)throw Error('Товар удалён. Модель недоступна.');await openPlateModel(target);},onLabel:(sku,quantity)=>openStockLabelDialog({database:db,sku,quantity,notify:toast})});if(space==='prices')disposePrices=mountMarketplacePrices({root:$('#prices-workspace'),database:db,save,getCredentials:getMarketplaceCredentials,onOpenApi:()=>{space='api';history.replaceState(null,'','#api');render();}});if(space==='stocks')mountWarehouseStocks({root:$('#stocks-workspace'),database:db,save,getCredentials:getMarketplaceCredentials,onEnqueue:(sku,quantity,market)=>openEnqueueDialog({database:db,sku,quantity,market,save,notify:toast}),onOpenLabel:(sku,quantity)=>openStockLabelDialog({database:db,sku,quantity,save,notify:toast}),onOpenModel:safe(async sku=>{const target=db.products.find(q=>q.sku.trim()===sku.trim());if(!target)throw Error('Сначала загрузите карточку этого артикула в приложение');await openPlateModel(target);}),onOpenProduct:id=>{selected=id;space='cost';history.replaceState(null,'','#cost');render();document.querySelector('.product-stock-targets')?.scrollIntoView?.({block:'center'});},onOpenApi:()=>{space='api';history.replaceState(null,'','#api');render();}});if(space==='finance')mountFinance($('#finance-workspace'),db.orderSnapshots??[],orderProfitLookup(),db.products,categoriesFromProduct);if(space==='expenses')mountExpenses({root:$('#expenses-workspace'),database:db,save,notify:toast});if(space==='filament')mountFilamentStock({root:$('#filament-workspace'),database:db,save,toast});if(space==='sales')mountSales({root:$('#sales-workspace'),profitForRow:orderProfitLookup(),database:db,selectedProductId:p.id,save,toast,getCredentials:getMarketplaceCredentials,onOpenApi:()=>{activateMarketplaceSettings();space='api';history.replaceState(null,'','#api');render();window.scrollTo?.({top:0});}});if(['cards','api'].includes(space))mountMarketplaceUI({settingsOnly:space==='api',getGoogleClientId:()=>config.clientId||'',saveGoogleClientId:value=>{const next={...config,clientId:value};if(config.clientId!==value){delete next.googleAccount;delete next.driveFileId;}localStorage.setItem(CONFIG,JSON.stringify(next));if(config.clientId!==value){token=null;googleTokenExpires=0;driveId=null;googleStatus='Google Client ID сохранён. Подключение произойдёт при обмене.';}config=next;if($('#client-id'))$('#client-id').value=value;updateDriveControls();},onOpenSettings:()=>{space='api';history.replaceState(null,'','#api');render();},listingTemplates:()=>db.listingTemplates??=([]),onCreateFromTemplate:template=>{const target=blankProduct();const draft=draftFromListingTemplate(template,target);const body=JSON.parse(draft.body);target.name=template.market==='wb'?body[0].variants[0].title||template.name:body.items[0].name||template.name;target.listingDrafts={[template.market]:draft};db.products.push(target);selected=target.id;productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';productPage=catalogueProductBatches(db.products,productPageSize).findIndex(page=>page.some(q=>q.id===target.id));productGroupOpen.set('',true);cardsMarket=template.market;space='cards';history.replaceState(null,'','#cards');save();render();},listingProducts:()=>db.products,onCardsListed:(market,cards,complete)=>{rememberCatalogueCards(db,market,cards,complete);save();$('#product-list').innerHTML=productList(product());bindProductList();},onCardLoaded:(draft,sku,market)=>{if(!sku.trim())throw Error('Площадка не вернула артикул карточки');let target=db.products.find(q=>q.sku.trim()===sku.trim());if(target?.id===p.id){restoreSharedEdits(target,market,draft);return false;}if(!target){const body=JSON.parse(draft.body),item=market==='wb'?body[0]:body.items[0];target=blankProduct();target.sku=sku;target.name=item.title||item.name||sku;db.products.push(target);}restoreSharedEdits(target,market,draft);target.listingDrafts??={};target.listingDrafts[market]=draft;selected=target.id;productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';productPage=catalogueProductBatches(db.products,productPageSize).findIndex(page=>page.some(q=>q.id===target.id));productGroupOpen.set(target.productGroup||'',true);cardsMarket=market;save();render();toast('Открыт товар '+sku);return true;},listingSources:market=>db.products.filter(q=>q.listingDrafts?.[market]).map(q=>({product:q,draft:q.listingDrafts[market]})),initialMarket:cardsMarket,container:$('#marketplace-api'),product:p,owner:db.id+':'+p.id,save,toast,lookupCost:sku=>productCostsBySku(db.products.filter(row=>row.sku?.trim()===String(sku||'').trim()).map(productWithConfiguredPrices),sku),lookupListing:(sku,market)=>loadedListingForSku(db.products,sku,market),openListing:match=>{selected=match.ownerId;cardsMarket=match.market;space='cards';history.replaceState(null,'','#cards');render();window.scrollTo?.({top:0});},openCost:id=>{if(!db.products.some(p=>p.id===id))return;selected=id;space='cost';history.replaceState(null,'','#cost');render();window.scrollTo?.({top:0});}});if(['stocks','sales'].includes(space)){const heading=document.querySelector('main>.heading'),rail=document.querySelector('main .table-filter-rail');if(heading&&rail)rail.prepend(heading);}if(space==='prices')document.querySelector('main>.heading').hidden=true;disposeTopRefresh=mountTopRefresh(document,{'print-queue':'#queue-refresh-stocks',stocks:'#stock-refresh',prices:'#prices-refresh',sales:'#orders-refresh'}[space]);const sortButton=$('#queue-sort-printing');if(sortButton)sortButton.parentElement.append(sortButton);cardsMarket=null;$('.product-catalogue').scrollTop=sidebarScroll;}
 const packagingGroups=[
  ['Коробки','Индивидуальная упаковка — на одно изделие. Общая — на отправляемую партию.',['box','outer','capacity']],
  ['Этикетки','Цена и количество относятся ко всей купленной партии этикеток. Расход наклеек укажите отдельно.',['labelPack','labelCount','labels','outerLabels']],
@@ -1311,32 +1363,70 @@ function renderMarketplaceProfitTable(p,r){
 }
 function renderCustom(){const p=product();$('#custom').innerHTML=p.custom.map(c=>`<div class="custom-row"><input data-cname="${esc(c.id)}" aria-label="Название расхода" value="${esc(c.name)}"><select data-cmode="${esc(c.id)}" aria-label="Способ расчёта"><option value="unit" ${c.mode==='unit'?'selected':''}>₽ на изделие</option>${c.mode==='percent'?'<option value="percent" selected>Старый процент · не учитывается</option>':''}</select><input data-camount="${esc(c.id)}" aria-label="Величина расхода" type="number" min="0" step="any" value="${c.amount??''}" placeholder="Не задано"><button data-cdelete="${esc(c.id)}" aria-label="Удалить расход">×</button></div>`).join('')||'<p class="empty">Пока нет дополнительных статей.</p>';
  for(const attr of ['cname','cmode','camount'])$('#custom').querySelectorAll(`[data-${attr}]`).forEach(e=>e.onchange=()=>{const c=p.custom.find(x=>x.id===e.dataset[attr]);c[{cname:'name',cmode:'mode',camount:'amount'}[attr]]=attr==='camount'?(e.value===''?null:Number(e.value)):e.value;save();renderResults();});$('#custom').querySelectorAll('[data-cdelete]').forEach(e=>e.onclick=()=>{p.custom=p.custom.filter(c=>c.id!==e.dataset.cdelete);save();renderCustom();renderResults();});}
-function renderHistory(){const p=product();const clear=$('#clear-history');clear.disabled=!p.history.length;clear.onclick=safe(async()=>{if(!p.history.length||!await confirm('Очистить все сохранённые расчёты текущего товара «'+(p.sku||p.name)+'»? Текущие поля и файлы товара сохранятся.'))return;await backup();const previous=p.history;p.history=[];var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false)){p.history=previous;return;}renderHistory();toast('История расчётов очищена. Восстановление: Бэкап → Вернуть предыдущую базу.');});$('#history').innerHTML=p.history.slice().reverse().map((h,i)=>`<div class="history-row"><span>${esc(h.date)}<small>${esc(h.platform)}</small></span><span>Цена ${rub(h.price)}</span><span>Прибыль ${rub(h.profit)} ${h.partial?'· частично':''}</span><button data-history="${p.history.length-1-i}">Открыть снимок JSON</button></div>`).join('')||'<p class="empty">Сохраните расчёт, чтобы сравнить его после изменения цен и тарифов.</p>';$('#history').querySelectorAll('[data-history]').forEach(e=>e.onclick=()=>download(p.history[+e.dataset.history],'calculation.json'));}
-let fileHandle=null,fileOriginal=null,fileBusy=false;
-async function fileAction(kind){if(fileBusy)return;fileBusy=true;try{if(!window.showOpenFilePicker)throw Error('Этот браузер не поддерживает прямую работу с файлом. Используйте экспорт и загрузку базы.');if(kind==='pick'){[fileHandle]=await window.showOpenFilePicker({types:[{description:'База JSON',accept:{'application/json':['.json']}}],multiple:false});fileOriginal=await(await fileHandle.getFile()).text();validateDB(JSON.parse(fileOriginal));$('#file-status').textContent=fileHandle.name+' · выбран; данные ещё не загружены';}else{if(!fileHandle)throw Error('Сначала выберите файл');const text=await(await fileHandle.getFile()).text();if(kind==='read'){const x=validateDB(JSON.parse(text));if(!await confirm(backupModes[backupMode(x)]+': загрузить выбранный файл? Очередь и филамент останутся на устройстве. Текущая база будет сохранена как резервная.'))return;await changeDB(x);fileOriginal=text;toast('Полная база загружена');}else{if(selectedBackupMode()===newSkuBackupMode)throw Error('Для переноса новых артикулов скачайте ZIP с моделями.');if(fileOriginal===null||text!==fileOriginal)throw Error('Файл изменился с момента выбора. Скачайте локальную копию и загрузите свежий файл.');if(!await confirm('Сохранить всю текущую базу в выбранный файл? Не сохраняйте одновременно с другого устройства.'))return;exportDB();const data=JSON.stringify(createBackupSnapshot(db,selectedBackupMode()),null,2),writer=await fileHandle.createWritable();await writer.write(data);await writer.close();fileOriginal=data;$('#file-status').textContent='Файл сохранён · '+new Date().toLocaleTimeString('ru-RU');toast('База записана. Перед переходом дождитесь синхронизации приложения Google Drive.');}}}catch(e){if(e.name!=='AbortError')toast(e.message);}finally{fileBusy=false;}}
+function renderHistory(){const p=product();const clear=$('#clear-history');clear.disabled=!p.history.length;clear.onclick=safe(async()=>{if(!p.history.length||!await confirm('Очистить все сохранённые расчёты текущего товара «'+(p.sku||p.name)+'»? Текущие поля и файлы товара сохранятся.'))return;await backup();const previous=p.history;p.history=[];var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false)){p.history=previous;return;}renderHistory();toast('История расчётов очищена. Восстановление: Бэкап → Восстановить резервную базу.');});$('#history').innerHTML=p.history.slice().reverse().map((h,i)=>`<div class="history-row"><span>${esc(h.date)}<small>${esc(h.platform)}</small></span><span>Цена ${rub(h.price)}</span><span>Прибыль ${rub(h.profit)} ${h.partial?'· частично':''}</span><button data-history="${p.history.length-1-i}">Открыть снимок JSON</button></div>`).join('')||'<p class="empty">Сохраните расчёт, чтобы сравнить его после изменения цен и тарифов.</p>';$('#history').querySelectorAll('[data-history]').forEach(e=>e.onclick=()=>download(p.history[+e.dataset.history],'calculation.json'));}
+let fileHandle=null,fileOriginal=null,fileBusy=false,sharedBackupMode='costs',jsonBackupMode='costs';
+async function fileAction(kind){
+ if(fileBusy)return;
+ fileBusy=true;
+ try{
+  if(!window.showOpenFilePicker)throw Error('Прямая работа с файлом доступна в Chrome и Edge. Вы можете скачать копию или загрузить её с компьютера.');
+  if(kind==='pick'){
+   const [handle]=await window.showOpenFilePicker({types:[{description:'Копия расчётов JSON',accept:{'application/json':['.json']}}],multiple:false});
+   const raw=await(await handle.getFile()).text();
+   validateDB(JSON.parse(raw));
+   fileHandle=handle;
+   fileOriginal=raw;
+   $('#file-status').textContent=fileHandle.name+' · файл выбран';
+  }else{
+   if(!fileHandle)throw Error('Сначала выберите файл');
+   const text=await(await fileHandle.getFile()).text();
+   if(kind==='read'){
+    const incoming=validateDB(JSON.parse(text));
+    if(!await confirm(backupModes[backupMode(incoming)]+': загрузить данные из «'+fileHandle.name+'»? Текущая база будет сохранена как резервная.'))return;
+    await changeDB(incoming);
+    fileOriginal=text;
+    toast('Данные из файла загружены');
+   }else{
+    const mode=sharedBackupMode;
+    if(fileOriginal===null||text!==fileOriginal)throw Error('Файл изменился с момента выбора. Выберите его заново и загрузите изменения перед записью.');
+    if(!await confirm('Записать «'+backupModes[mode]+'» в файл «'+fileHandle.name+'»? Содержимое файла будет заменено.'))return;
+    const snapshot=createBackupSnapshot(db,mode);
+    download(snapshot,'workshop-'+mode+'-'+new Date().toISOString().slice(0,10)+'.json');
+    const data=JSON.stringify(snapshot,null,2);
+    const writer=await fileHandle.createWritable();
+    await writer.write(data);
+    await writer.close();
+    fileOriginal=data;
+    $('#file-status').textContent=fileHandle.name+' · сохранён '+new Date().toLocaleTimeString('ru-RU');
+    toast('Файл обновлён');
+   }
+  }
+ }catch(error){if(error.name!=='AbortError')toast(error.message);}
+ finally{fileBusy=false;updateBackupModeLabels();}
+}
+
 let token=null,googleTokenExpires=0,googlePending=null,googleScript=null,driveId=config.driveFileId||null,googleStatus=config.googleAccount?'Запомнен аккаунт '+config.googleAccount+'. Подключится при обмене.':'Не подключено',googleError=null;
 function loadGoogleIdentity(){if(window.google?.accounts?.oauth2)return Promise.resolve();return googleScript??=(new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.onload=resolve;script.onerror=()=>{googleScript=null;reject(Error('Не удалось загрузить вход Google'));};document.head.append(script);}));}
 function ensureGoogle(){return token&&Date.now()<googleTokenExpires?Promise.resolve(token):connectGoogle(false);}
 function rememberDriveFile(id){config.driveFileId=id;driveId=id;localStorage.setItem(CONFIG,JSON.stringify(config));}
 async function api(path,options={}){if(!token)throw Error('Сначала войдите через Google');const res=await fetch('https://www.googleapis.com/drive/v3/'+path,{...options,headers:{Authorization:'Bearer '+token,...options.headers}});if(!res.ok)throw Error(res.status===401?'Вход истёк. Войдите снова.':'Ошибка Google Drive: '+res.status);return res.json();}
 async function runDriveBackup(action,{restore=false}={}){if(fullBackupBusy)return;if(recoveryRaw&&!restore)throw Error('Сначала восстановите исправную базу');googleError=null;const help=$('#google-error-help');if(help)help.innerHTML='';fullBackupBusy=true;lockBackupUI();try{await action();}catch(error){googleError=error;googleStatus='Обмен с Google Drive не завершён. Подробности ниже.';throw error;}finally{fullBackupBusy=false;render();}}
-function driveProgress(message){googleStatus=message;const status=$('#google-status');if(status)status.textContent=message;}
-async function driveLoad(){return runDriveBackup(async()=>{const accessToken=await ensureGoogle();driveProgress('Ищу полную базу в Google Drive…');const file=await findDriveBackup(accessToken,{fileId:config.driveFileId});if(!file)throw Error('Полной базы в Google Drive пока нет. На компьютере с данными нажмите «Выгрузить ZIP в Google Drive».');driveProgress('Скачиваю базу, фотографии и модели из Google Drive · обновлено '+new Date(file.modifiedTime).toLocaleString('ru-RU')+'…');const progress=showArchiveProgress('Скачивание из Google Drive');let blob;try{blob=await downloadDriveBackup(file,accessToken,{onProgress:(done,total)=>progress.update({stage:'Скачиваем архив с базой и файлами',done,total,unit:'bytes'})});}finally{progress.close();}const restored=await restoreFullArchive(blob,{cloud:true});if(restored){rememberDriveFile(file.id);driveProgress('Загрузка из Google Drive завершена');}else driveProgress('Загрузка отменена. Текущая база сохранена.');},{restore:true});}
+function driveProgress(message){googleStatus=message;const status=$('#google-status');if(status)status.textContent=message;document.querySelectorAll('[data-drive-action-status]').forEach(node=>node.textContent=message);}
+async function driveLoad(){return runDriveBackup(async()=>{const accessToken=await ensureGoogle();driveProgress('Ищу копию в Google Drive…');const file=await findDriveBackup(accessToken,{fileId:config.driveFileId});if(!file)throw Error('Копии в Google Drive пока нет. На компьютере с данными нажмите «Выгрузить ZIP в Google Drive».');driveProgress('Скачиваю базу, фотографии и модели из Google Drive · обновлено '+new Date(file.modifiedTime).toLocaleString('ru-RU')+'…');const progress=showArchiveProgress('Скачивание из Google Drive');let blob;try{blob=await downloadDriveBackup(file,accessToken,{onProgress:(done,total)=>progress.update({stage:'Скачиваем архив с базой и файлами',done,total,unit:'bytes'})});}finally{progress.close();}const restored=await restoreFullArchive(blob,{cloud:true});if(restored){rememberDriveFile(file.id);driveProgress('Загрузка из Google Drive завершена');}else driveProgress('Загрузка отменена. Текущая база сохранена.');},{restore:true});}
 async function driveCreate(){
+ const mode=selectedBackupMode();
  return runDriveBackup(async()=>{
   const accessToken=await ensureGoogle();
-  await modelMigration;
-  await databaseStorage.flush();
-  const snapshot=structuredClone(db);
-  const records=(await Promise.all([...snapshot.products.map(p=>listFiles(snapshot.id+':'+p.id)),listFiles(snapshot.id+':marketplace-photos')])).flat();
-  driveProgress('Собираю полную базу с фотографиями и моделями…');
-  const blob=await createFullBackup(snapshot,records,{mode:'full',replaceAll:true,onProgress:({stage,done,total})=>driveProgress(stage+(total?' · '+Math.round(done/total*100)+'%':''))});
-  const file=await uploadDriveBackup(blob,accessToken,{fileId:config.driveFileId,onProgress:(done,total)=>driveProgress('Выгружаю в Google Drive: '+Math.round(done/total*100)+'%')});
+  driveProgress('Подготавливаю архив · '+backupModes[mode]);
+  const archive=await prepareBackupArchive(mode,{onProgress:({stage,done,total})=>driveProgress(stage+(total?' · '+Math.round(done/total*100)+'%':''))});
+  if(!archive){driveProgress('Выгрузка отменена');return;}
+  const file=await uploadDriveBackup(archive.zip,accessToken,{fileId:config.driveFileId,onProgress:(done,total)=>driveProgress('Выгружаю в Google Drive: '+Math.round(done/total*100)+'%')});
   rememberDriveFile(file.id);
-  driveProgress('Полная база сохранена в Google Drive: '+snapshot.products.length+' товаров.');
+  driveProgress('Копия сохранена в Google Drive · '+backupModes[mode]+' · '+archive.count+' товаров.'+(archive.unavailablePhotos?' Без сохранённого фото: '+archive.unavailablePhotos+'.':''));
   toast(googleStatus);
  });
 }
+
 function updateDriveControls(){const input=$('#client-id');if(!input)return;const valid=validGoogleClientId(input.value);document.querySelectorAll('[data-drive-action-status]').forEach(node=>node.textContent=valid?googleStatus:'Для обмена подключите Google Drive в настройках.');document.querySelectorAll('[data-open-backup-settings]').forEach(node=>node.hidden=valid);$('#google-connect').disabled=!valid||fullBackupBusy||!!googlePending;$('#google-connect').textContent=config.googleAccount?'Сменить аккаунт Google':'Подключить Google Drive';$('#drive-client-hint').textContent=valid?(config.googleAccount?'Запомнен аккаунт '+config.googleAccount+'. Нажмите «Выгрузить» или «Загрузить» — приложение подключится само.':'Client ID заполнен. Можно сразу нажать «Выгрузить» или «Загрузить».'):'Вставьте Client ID. Инструкция по подключению находится ниже.';for(const id of ['drive-load','drive-create'])$('#'+id).disabled=!valid||fullBackupBusy||!!googlePending;$('#google-out').disabled=(!token&&!config.googleAccount)||fullBackupBusy;$('#google-status').textContent=googleStatus;const errorHelp=$('#google-error-help');if(errorHelp)errorHelp.innerHTML=renderGoogleDriveError(googleError);const link=$('#drive-link');if(link){link.hidden=!driveId;if(driveId)link.href='https://drive.google.com/file/d/'+encodeURIComponent(driveId)+'/view';}}
 async function connectGoogle(chooseAccount=true){
  if(googlePending)return googlePending;
@@ -1563,7 +1653,7 @@ function bind(){
  $('#template-rename').onclick=safe(async()=>{const t=chosenTemplate();if(!t)return;const name=prompt('Новое имя шаблона',t.name);if(name===null)return;const title=name.trim();if(!title)throw Error('Введите имя шаблона');if(db.templates.some(x=>x.id!==t.id&&x.name===title))throw Error('Шаблон с таким именем уже есть');await backup();t.name=title;save();render();toast('Шаблон переименован');});
  $('#template-update').onclick=safe(async()=>{const t=chosenTemplate();if(!t)return;if(!await confirm('Обновить шаблон «'+t.name+'» параметрами текущего расчёта?'))return;await backup();t.inputs=createTemplate(product(),t.name).inputs;save();render();toast('Шаблон обновлён из текущего расчёта');});
  $('#template-delete').onclick=safe(async()=>{const t=chosenTemplate();if(!t)return;if(!await confirm('Удалить шаблон «'+t.name+'»? Товары останутся без изменений.'))return;await backup();db.templates=db.templates.filter(x=>x.id!==t.id);save();render();toast('Шаблон удалён. Для отмены доступна предыдущая база в разделе данных.');});
- $('#template-apply').onclick=async()=>{const t=db.templates.find(x=>x.id===$('#template-select').value);if(!t)return toast('Выберите шаблон');if(!await confirm('Заполнить текущий товар по шаблону «'+t.name+'»? Текущие параметры будут заменены. Предыдущая база сохранится как резервная.'))return;try{const original=product();await backup();const previous=db.products,q=applyTemplate(original,t);db.products=db.products.map(x=>x.id===q.id?q:x);var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false)){db.products=previous;throw Error('Шаблон не применён: не удалось сохранить товар');}render();toast('Шаблон применён');}catch(e){toast(e.message);}};$('#mobile-product').onchange=e=>{selected=e.target.value;render();};$('#mobile-add').onclick=()=>$('#add-product').click();$('#add-product').onclick=()=>{const q=blankProduct();db.products.push(q);selected=q.id;productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';productGroupOpen.set(q.productGroup||'',true);productPage=catalogueProductBatches(db.products,productPageSize).findIndex(page=>page.some(item=>item.id===q.id));save();render();document.querySelector('#product-list .chosen')?.scrollIntoView?.({block:'nearest'});};document.querySelectorAll('[data-stock-market]').forEach(input=>{input.onchange=()=>{const value=input.value===''?null:Number(input.value);if(value!==null&&(!Number.isSafeInteger(value)||value<0||value>1000000)){input.setCustomValidity('Введите целое число от 0 до 1000000');input.reportValidity();return;}input.setCustomValidity('');p.stockTargets??={};p.stockTargets[input.dataset.stockMarket]??={minimum:null,normal:null};p.stockTargets[input.dataset.stockMarket][input.dataset.stockKey]=value;save();updateStockTargetHelp();};});const updateStockTargetHelp=()=>{for(const market of ['wb','ozon']){const rule=p.stockTargets?.[market];document.querySelector('[data-stock-target-help="'+market+'"]').textContent=rule?.minimum!==null&&rule?.minimum!==undefined&&rule?.normal!==null&&rule?.normal!==undefined?(rule.normal>rule.minimum?'Допечатать до '+rule.normal+' шт., когда останется '+rule.minimum+' шт. или меньше.':'Нормальный остаток должен быть больше минимального.'): 'Задайте оба значения для расчёта.';}};updateStockTargetHelp();document.querySelectorAll('[data-tab]').forEach(e=>e.onclick=()=>{tab=e.dataset.tab;render();});for(const k of ['name','sku','productGroup','variantNote','variantNumber','barcode'])$('#'+k).onchange=e=>{p[k]=e.target.value;if(k==='variantNote'){const sku=variantSkuForColor(p.sku,p.variantNote);if(sku!==null)p.sku=sku;}save();render();};$('#duplicate').onclick=()=>{const q=structuredClone(p);q.id=crypto.randomUUID();q.history=[];q.sku=variantSkuPrefix(p.sku);q.variantNote='';q.colorCode='';q.barcode='';q.labelPdf=null;delete q.printModel;q.listingDrafts={};delete q.sharedListingChanges;if(!p.productGroup){p.productGroup=p.name;q.productGroup=p.name;}db.products.push(q);selected=q.id;save();render();};$('#delete-product').onclick=safe(async()=>{const queued=(db.printQueue||[]).filter(j=>j.productId===p.id&&!j.archivedAt).length;if(!await confirm('Удалить из приложения только вариант «'+(p.sku||p.name)+'»? Остальные варианты группы сохранятся. Карточка на площадке останется.'+(queued?' В очереди печати останутся задания этого варианта: '+queued+'.':'')))return;await backup();const before=structuredClone(db.products),previousSelected=selected,files=(await listFiles(db.id+':'+p.id)).filter(f=>f.category==='model');try{await rehomePrintModels(db,p);db.products=db.products.filter(q=>q.id!==p.id);if(!db.products.length)db.products.push(blankProduct());selected=db.products[0].id;var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false))throw Error('Не удалось сохранить удаление варианта');}catch(error){await putFiles(files);db.products=before;selected=previousSelected;render();throw error;}render();toast('Вариант удалён. При необходимости используйте «Бэкап → Вернуть предыдущую базу».');});$('#add-custom').onclick=()=>{p.custom.push({id:crypto.randomUUID(),name:'Новый расход',mode:'unit',amount:null});save();renderCustom();renderResults();};$('#cost-report-pdf').onclick=safe(()=>openCostReport(db.products.map(productWithConfiguredPrices)));$('#snapshot').onclick=()=>{const r=calculate(p);p.history.push({date:new Date().toLocaleString('ru-RU'),platform:p.platform,price:r.price,profit:r.profit,markets:structuredClone(r.markets),partial:!!(r.missing.length||r.invalid.length),inputs:structuredClone({...p,history:[]}),results:r});save();renderHistory();toast('Снимок расчёта сохранён');};$('#full-export').onclick=safe(exportFullArchive);$('#transfer-export').onclick=safe(()=>exportFullArchive({replaceAll:true}));for(const button of document.querySelectorAll('[data-open-backup-settings]'))button.onclick=()=>{const settings=$('#backup-settings');settings.open=true;$('#client-id').scrollIntoView({block:'center'});$('#client-id').focus({preventScroll:true});};for(const button of document.querySelectorAll('[data-backup-file]'))button.onclick=()=>document.getElementById(button.dataset.backupFile).click();$('#full-import').onchange=safe(event=>restoreFullArchive(event.target.files[0]));$('#export').onclick=exportDB;$('#import').onchange=safe(event=>importBackupJson(event.target));$('#costs-data-export').onclick=safe(exportCostsData);$('#costs-data-import').onclick=()=>$('#costs-data-file').click();$('#costs-data-file').onchange=safe(event=>importBackupJson(event.target,{costsOnly:true}));$('#restore').onclick=safe(async()=>{const x=validateDB(await readDatabaseBackup({key:KEY}));if(await confirm('Вернуть предыдущую базу?'))await changeDB(x);});$('#pick-file').onclick=()=>fileAction('pick');$('#read-file').onclick=()=>fileAction('read');$('#write-file').onclick=()=>fileAction('write');$('#google-connect').onclick=safe(()=>connectGoogle(true));if(space==='backup')loadGoogleIdentity().catch(()=>{});$('#client-id').oninput=updateDriveControls;document.querySelector('[data-copy-app-address]').onclick=safe(async()=>{await navigator.clipboard.writeText('https://tpskym.github.io/wb-cost-pwa/');const button=document.querySelector('[data-copy-app-address]');if(button){button.textContent='✓ Адрес скопирован';button.setAttribute('aria-label','Адрес приложения скопирован');}toast('Адрес приложения скопирован');});updateDriveControls();$('#drive-load').onclick=safe(driveLoad);$('#drive-create').onclick=safe(driveCreate);$('#google-out').onclick=()=>{if(token&&window.google)window.google.accounts.oauth2.revoke(token);token=null;googleTokenExpires=0;delete config.googleAccount;delete config.driveFileId;localStorage.setItem(CONFIG,JSON.stringify(config));driveId=null;googleError=null;googleStatus='Не подключено';updateDriveControls();$('#drive-link').hidden=true;};$('#install').onclick=async()=>{await installPrompt?.prompt();installPrompt=null;$('#install').hidden=true;};}
+ $('#template-apply').onclick=async()=>{const t=db.templates.find(x=>x.id===$('#template-select').value);if(!t)return toast('Выберите шаблон');if(!await confirm('Заполнить текущий товар по шаблону «'+t.name+'»? Текущие параметры будут заменены. Предыдущая база сохранится как резервная.'))return;try{const original=product();await backup();const previous=db.products,q=applyTemplate(original,t);db.products=db.products.map(x=>x.id===q.id?q:x);var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false)){db.products=previous;throw Error('Шаблон не применён: не удалось сохранить товар');}render();toast('Шаблон применён');}catch(e){toast(e.message);}};$('#mobile-product').onchange=e=>{selected=e.target.value;render();};$('#mobile-add').onclick=()=>$('#add-product').click();$('#add-product').onclick=()=>{const q=blankProduct();db.products.push(q);selected=q.id;productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';productGroupOpen.set(q.productGroup||'',true);productPage=catalogueProductBatches(db.products,productPageSize).findIndex(page=>page.some(item=>item.id===q.id));save();render();document.querySelector('#product-list .chosen')?.scrollIntoView?.({block:'nearest'});};document.querySelectorAll('[data-stock-market]').forEach(input=>{input.onchange=()=>{const value=input.value===''?null:Number(input.value);if(value!==null&&(!Number.isSafeInteger(value)||value<0||value>1000000)){input.setCustomValidity('Введите целое число от 0 до 1000000');input.reportValidity();return;}input.setCustomValidity('');p.stockTargets??={};p.stockTargets[input.dataset.stockMarket]??={minimum:null,normal:null};p.stockTargets[input.dataset.stockMarket][input.dataset.stockKey]=value;save();updateStockTargetHelp();};});const updateStockTargetHelp=()=>{for(const market of ['wb','ozon']){const rule=p.stockTargets?.[market];document.querySelector('[data-stock-target-help="'+market+'"]').textContent=rule?.minimum!==null&&rule?.minimum!==undefined&&rule?.normal!==null&&rule?.normal!==undefined?(rule.normal>rule.minimum?'Допечатать до '+rule.normal+' шт., когда останется '+rule.minimum+' шт. или меньше.':'Нормальный остаток должен быть больше минимального.'): 'Задайте оба значения для расчёта.';}};updateStockTargetHelp();document.querySelectorAll('[data-tab]').forEach(e=>e.onclick=()=>{tab=e.dataset.tab;render();});for(const k of ['name','sku','productGroup','variantNote','variantNumber','barcode'])$('#'+k).onchange=e=>{p[k]=e.target.value;if(k==='variantNote'){const sku=variantSkuForColor(p.sku,p.variantNote);if(sku!==null)p.sku=sku;}save();render();};$('#duplicate').onclick=()=>{const q=structuredClone(p);q.id=crypto.randomUUID();q.history=[];q.sku=variantSkuPrefix(p.sku);q.variantNote='';q.colorCode='';q.barcode='';q.labelPdf=null;delete q.printModel;q.listingDrafts={};delete q.sharedListingChanges;if(!p.productGroup){p.productGroup=p.name;q.productGroup=p.name;}db.products.push(q);selected=q.id;save();render();};$('#delete-product').onclick=safe(async()=>{const queued=(db.printQueue||[]).filter(j=>j.productId===p.id&&!j.archivedAt).length;if(!await confirm('Удалить из приложения только вариант «'+(p.sku||p.name)+'»? Остальные варианты группы сохранятся. Карточка на площадке останется.'+(queued?' В очереди печати останутся задания этого варианта: '+queued+'.':'')))return;await backup();const before=structuredClone(db.products),previousSelected=selected,files=(await listFiles(db.id+':'+p.id)).filter(f=>f.category==='model');try{await rehomePrintModels(db,p);db.products=db.products.filter(q=>q.id!==p.id);if(!db.products.length)db.products.push(blankProduct());selected=db.products[0].id;var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false))throw Error('Не удалось сохранить удаление варианта');}catch(error){await putFiles(files);db.products=before;selected=previousSelected;render();throw error;}render();toast('Вариант удалён. При необходимости используйте «Бэкап → Восстановить резервную базу».');});$('#add-custom').onclick=()=>{p.custom.push({id:crypto.randomUUID(),name:'Новый расход',mode:'unit',amount:null});save();renderCustom();renderResults();};$('#cost-report-pdf').onclick=safe(()=>openCostReport(db.products.map(productWithConfiguredPrices)));$('#snapshot').onclick=()=>{const r=calculate(p);p.history.push({date:new Date().toLocaleString('ru-RU'),platform:p.platform,price:r.price,profit:r.profit,markets:structuredClone(r.markets),partial:!!(r.missing.length||r.invalid.length),inputs:structuredClone({...p,history:[]}),results:r});save();renderHistory();toast('Снимок расчёта сохранён');};$('#full-export').onclick=safe(exportFullArchive);$('#transfer-export').onclick=safe(()=>exportFullArchive({replaceAll:true}));$('[data-json-backup-mode]').onchange=event=>{jsonBackupMode=event.target.value;updateBackupModeLabels();};$('[data-shared-backup-mode]').onchange=event=>{sharedBackupMode=event.target.value;};for(const button of document.querySelectorAll('[data-open-backup-settings]'))button.onclick=()=>{const settings=$('#backup-settings');settings.open=true;$('#client-id').scrollIntoView({block:'center'});$('#client-id').focus({preventScroll:true});};for(const button of document.querySelectorAll('[data-backup-file]'))button.onclick=()=>document.getElementById(button.dataset.backupFile).click();$('#full-import').onchange=safe(event=>restoreFullArchive(event.target.files[0]));$('#export').onclick=()=>exportDB();$('#import').onchange=safe(event=>importBackupJson(event.target));$('#costs-data-export').onclick=safe(exportCostsData);$('#costs-data-import').onclick=()=>$('#costs-data-file').click();$('#costs-data-file').onchange=safe(event=>importBackupJson(event.target,{costsOnly:true}));$('#restore').onclick=safe(async()=>{const x=validateDB(await readDatabaseBackup({key:KEY}));if(await confirm('Восстановить резервную базу?'))await changeDB(x);});$('#pick-file').onclick=()=>fileAction('pick');$('#read-file').onclick=()=>fileAction('read');$('#write-file').onclick=()=>fileAction('write');$('#google-connect').onclick=safe(()=>connectGoogle(true));if(space==='backup')loadGoogleIdentity().catch(()=>{});$('#client-id').oninput=updateDriveControls;document.querySelector('[data-copy-app-address]').onclick=safe(async()=>{await navigator.clipboard.writeText('https://tpskym.github.io/wb-cost-pwa/');const button=document.querySelector('[data-copy-app-address]');if(button){button.textContent='✓ Адрес скопирован';button.setAttribute('aria-label','Адрес приложения скопирован');}toast('Адрес приложения скопирован');});updateDriveControls();$('#drive-load').onclick=safe(driveLoad);$('#drive-create').onclick=safe(driveCreate);$('#google-out').onclick=()=>{if(token&&window.google)window.google.accounts.oauth2.revoke(token);token=null;googleTokenExpires=0;delete config.googleAccount;delete config.driveFileId;localStorage.setItem(CONFIG,JSON.stringify(config));driveId=null;googleError=null;googleStatus='Не подключено';updateDriveControls();$('#drive-link').hidden=true;};$('#install').onclick=async()=>{await installPrompt?.prompt();installPrompt=null;$('#install').hidden=true;};}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;if($('#install'))$('#install').hidden=false;});window.addEventListener('online',()=>{$('#network').textContent='Онлайн';});window.addEventListener('offline',()=>{$('#network').textContent='Офлайн';});window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==JSON.stringify(db)){toast('База изменена в другой вкладке. Перезагрузите страницу перед редактированием.');document.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);}});
 installNumberControls();installPrintActionControls();modelMigration=migrateProductModels(db);render();modelMigration.then(changed=>{if(changed){save();if(['cost','cards'].includes(space))renderFiles();}}).catch(()=>toast('Не удалось проверить старые модели. Файлы сохранены, попробуйте открыть себестоимость снова.'));if(initialStorageError)toast('Не удалось создать базу в IndexedDB. Сохранение на устройстве недоступно.');if(backupMigrationError)toast('Не удалось перенести старую резервную копию. Она сохранена в прежнем хранилище.');if(databaseStorage.migrationError)toast('Не удалось перенести базу в IndexedDB. Исходная база сохранена. Скачайте полный ZIP.');if(recoveryRaw)toast('Повреждённая база сохранена. Используйте экспорт для восстановления.');if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>toast('Офлайн-режим недоступен в этом браузере'));
 
