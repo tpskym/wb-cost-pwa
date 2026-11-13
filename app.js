@@ -1,47 +1,47 @@
-import {mountFinance} from './finance.js?v=0.2.383';
-import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.383';
-import {attachCardDesignZip} from './attachments.js?v=0.2.383';
-import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.383';
-import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.383';
-import {installPrintActionControls} from './print-action-controls.js?v=0.2.383';
-import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot,newSkuBackupMode,planNewSkuImport} from './backup-modes.js?v=0.2.383';
-import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.383';
-import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.383';
-import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.383';
-import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.383';
-import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.383';
-import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.383';
-import {ensureProductImage,productImageSources} from './product-images.js?v=0.2.383';
-import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.383';
-import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.383';
-import {installImagePreview} from './image-preview.js?v=0.2.383';
-import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.383';
-import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.383';
-import {openCostReport} from './cost-report.js?v=0.2.383';
-import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.383';
-import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.383';
-import {mountReleaseHistory} from './release-history.js?v=0.2.383';
-import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.383';
-import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.383';
-import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.383';
-import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.383';
-import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.383';
-import {draftFromListingTemplate} from './listing-templates.js?v=0.2.383';
-import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.383';
-import {mountSales} from './sales.js?v=0.2.383';
-import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.383';
-import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.383';
-import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.383';
-import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.383';
-import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.383';
-import {installNumberControls} from './number-controls.js?v=0.2.383';
-const APP_VERSION='0.2.383';
+import {mountFinance} from './finance.js?v=0.2.384';
+import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.384';
+import {attachCardDesignZip} from './attachments.js?v=0.2.384';
+import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.384';
+import {mountCatalogueResize} from './catalogue-resize.js?v=0.2.384';
+import {installPrintActionControls} from './print-action-controls.js?v=0.2.384';
+import {backupModes,backupMode,createBackupSnapshot,applyBackupSnapshot,costsDataFormat,createCostsDataSnapshot,newSkuBackupMode,planNewSkuImport} from './backup-modes.js?v=0.2.384';
+import {mountExpenses,configuredCostPrices} from './expenses.js?v=0.2.384';
+import {renderWindowsOpenerSettings} from './windows-opener.js?v=0.2.384';
+import {workingDownloads,bindWorkingFolderControls} from './working-downloads.js?v=0.2.384';
+import {findDriveBackup,uploadDriveBackup,downloadDriveBackup} from './google-drive-backup.js?v=0.2.384';
+import {createDatabaseStorage,mountStorageUsage} from './database-storage.js?v=0.2.384';
+import {renderGoogleDriveSetup,validGoogleClientId,renderAppAccessGuide,renderGoogleDriveError} from './google-drive-setup.js?v=0.2.384';
+import {ensureProductImage,productImageSources} from './product-images.js?v=0.2.384';
+import {writeDatabaseBackup,readDatabaseBackup,migrateLegacyDatabaseBackup} from './database-backup.js?v=0.2.384';
+import {skuCopyButton,installSkuCopy} from './sku-copy.js?v=0.2.384';
+import {installImagePreview} from './image-preview.js?v=0.2.384';
+import {catalogueStatusMatches,catalogueCardPresence,rememberCatalogueCards,refreshCatalogueCards} from './catalogue-status.js?v=0.2.384';
+import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.384';
+import {openCostReport} from './cost-report.js?v=0.2.384';
+import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.384';
+import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.384';
+import {mountReleaseHistory} from './release-history.js?v=0.2.384';
+import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.384';
+import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.384';
+import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.384';
+import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.384';
+import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.384';
+import {draftFromListingTemplate} from './listing-templates.js?v=0.2.384';
+import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.384';
+import {mountSales} from './sales.js?v=0.2.384';
+import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.384';
+import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.384';
+import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.384';
+import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.384';
+import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.384';
+import {installNumberControls} from './number-controls.js?v=0.2.384';
+const APP_VERSION='0.2.384';
 installImagePreview(document);installSkuCopy(document);
-import {disposeListingEditor} from './listing-editor.js?v=0.2.383';
-import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.383';
-import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.383';
-import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.383';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.383';
+import {disposeListingEditor} from './listing-editor.js?v=0.2.384';
+import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.384';
+import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.384';
+import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.384';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.384';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#finance'?'finance':globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -103,9 +103,14 @@ function selectedBackupMode(){
 }
 const backupFormatHint='ZIP сохраняет фото и модели. JSON удобен для копии расчётов и PDF-этикеток.';
 const backupModeDescriptions={
- full:'Товары, расчёты, затраты и нормы WB/Ozon. Очередь печати и остатки филамента остаются на устройстве.',
- costs:'В ZIP можно выбрать товары, расчёты, этикетки и модели. При загрузке товары добавляются или обновляются по артикулу.',
- [newSkuBackupMode]:'В ZIP попадут все расчёты и модели. При загрузке расчёты добавятся или обновятся, а модели добавятся только для новых артикулов.'
+ full:'Товары, расчёты, фотографии, этикетки, модели, затраты и нормы WB/Ozon.',
+ costs:'Выбранные товары, их расчёты, этикетки и модели. Состав можно уточнить перед выгрузкой.',
+ [newSkuBackupMode]:'Расчёты и модели всех товаров.'
+};
+const backupModeRestoreDescriptions={
+ full:'Заменяет данные из копии. Очередь печати и остатки филамента сохраняются на устройстве.',
+ costs:'Добавляет или обновляет выбранные данные товаров по артикулу.',
+ [newSkuBackupMode]:'Обновляет расчёты. Модели добавляет только для новых артикулов.'
 };
 function renderBackupContent(){
  const mode=selectedBackupMode();
@@ -133,13 +138,22 @@ function renderBackupContent(){
    <h2 id="backup-download-title">Сохранить копию данных</h2>
    <p>Выберите состав копии, затем место сохранения.</p>
   </header>
-  <div class="backup-common-mode">
-   <label>Что сохранить<select class="ui-select" data-backup-mode aria-describedby="backup-mode-description backup-mode-destinations">
-    ${Object.entries(backupModes).map(([key,label])=>`<option value="${key}" ${mode===key?'selected':''}>${key===newSkuBackupMode?'Себестоимость и модели':label}</option>`).join('')}
-   </select></label>
-   <p id="backup-mode-description" aria-live="polite">${backupModeDescriptions[mode]}</p>
-   <small id="backup-mode-destinations">Этот состав используется для обеих кнопок ниже.</small>
-  </div>
+  <fieldset class="backup-common-mode">
+   <legend>Что сохранить</legend>
+   <div class="backup-mode-options">
+    ${Object.entries(backupModes).map(([key,label])=>`<label class="backup-mode-option">
+     <input type="radio" name="backup-mode" data-backup-mode value="${key}" ${mode===key?'checked':''}>
+     <span class="backup-mode-content">
+      <strong>${key===newSkuBackupMode?'Себестоимость и модели':label}</strong>
+      <span>${backupModeDescriptions[key]}</span>
+      <span class="backup-mode-restore"><b>При загрузке</b>${backupModeRestoreDescriptions[key]}</span>
+      <span class="backup-mode-tick" aria-hidden="true">✓</span>
+     </span>
+    </label>`).join('')}
+   </div>
+   <p id="backup-mode-description" class="backup-mode-status" aria-live="polite"></p>
+   <small id="backup-mode-destinations">Выбранный режим применяется к ZIP на компьютере и в Google Drive.</small>
+  </fieldset>
   <div class="backup-methods">
    <div class="backup-method">
     <h3>Файл на компьютере</h3>
@@ -151,13 +165,13 @@ function renderBackupContent(){
     <p>Архив ZIP сохранится в облаке. Следующая выгрузка обновит этот файл.</p>
     <p class="backup-connection-status" data-drive-action-status role="status"></p>
     <button type="button" class="backup-settings-link" data-open-backup-settings>Подключить Google Drive</button>
-    <div class="sync-actions"><button type="button" id="drive-create" class="backup-primary" disabled>Выгрузить ZIP в Google Drive</button></div>
     <a id="drive-link" ${driveId?`href="https://drive.google.com/file/d/${encodeURIComponent(driveId)}/view"`:'hidden'} target="_blank" rel="noreferrer">Открыть сохранённый файл ↗</a>
+    <div class="sync-actions"><button type="button" id="drive-create" class="backup-primary" disabled>Выгрузить ZIP в Google Drive</button></div>
    </div>
   </div>
   <details class="backup-mode-guide">
    <summary>Подробнее о составе копии</summary>
-   <dl>${Object.entries(backupModes).map(([key,label])=>`<div><dt>${label}</dt><dd>${backupModeDescriptions[key]}</dd></div>`).join('')}</dl>
+
    <p>Размеры, вес и категории товаров входят во все режимы. Очередь печати и остатки филамента входят в архив для переезда, доступный в дополнительных действиях. Доступы к площадкам настраиваются на каждом устройстве.</p>
   </details>
  </section>
@@ -247,7 +261,7 @@ function renderBackupContent(){
 }
 function updateBackupModeLabels(){
  const mode=selectedBackupMode();
- $('#backup-mode-description').textContent=backupModeDescriptions[mode];
+ $('#backup-mode-description').textContent=backupModes[mode]+'. '+backupModeDescriptions[mode]+' '+backupModeRestoreDescriptions[mode];document.querySelectorAll('[data-backup-mode]').forEach(input=>input.checked=input.value===mode);
  $('[data-json-backup-mode]').value=jsonBackupMode;
  $('[data-backup-format-hint]').textContent=jsonBackupMode==='full'?'Данные товаров, расчёты, затраты, нормы WB/Ozon и PDF-этикетки.':'Данные товаров, расчёты, шаблоны и PDF-этикетки.';
  $('#read-file').disabled=!fileHandle;
@@ -1639,7 +1653,7 @@ function bind(){
  }
  const spreadGroup=$('#spread-marketplace-profit');
  spreadGroup.onclick=()=>spreadMarketplaceProfitToGroup(spreadGroup,profitProduct);
- const backupModeInput=document.querySelector('[data-backup-mode]');if(backupModeInput)backupModeInput.onchange=()=>{try{localStorage.setItem('workshop-backup-mode',backupModeInput.value);updateBackupModeLabels();}catch{toast('Не удалось запомнить режим');}};updateBackupModeLabels();bindWorkingFolderControls(document,{notify:toast});$('#app-zoom-out').onclick=()=>{appZoom=Math.max(60,appZoom-10);applyAppZoom();};$('#app-zoom-in').onclick=()=>{appZoom=Math.min(160,appZoom+10);applyAppZoom();};$('#app-zoom-reset').onclick=()=>{appZoom=100;applyAppZoom();};applyAppZoom();const p=product();
+ document.querySelectorAll('[data-backup-mode]').forEach(input=>input.onchange=()=>{if(!input.checked)return;try{localStorage.setItem('workshop-backup-mode',input.value);updateBackupModeLabels();}catch{toast('Не удалось запомнить режим');}});updateBackupModeLabels();bindWorkingFolderControls(document,{notify:toast});$('#app-zoom-out').onclick=()=>{appZoom=Math.max(60,appZoom-10);applyAppZoom();};$('#app-zoom-in').onclick=()=>{appZoom=Math.min(160,appZoom+10);applyAppZoom();};$('#app-zoom-reset').onclick=()=>{appZoom=100;applyAppZoom();};applyAppZoom();const p=product();
  $('[data-barcode-pull]').onclick=safe(pullBarcodeIntoProduct);$('#variant-color-pick').onclick=openVariantColorPicker;$('#label-design-prompt').onclick=()=>openLabelPrompt(true);$('#label-group-prompt').onclick=safe(async()=>{const folder=await workingDownloads.status();let outputDirectory=folder.name||'';try{outputDirectory=localStorage.getItem('workshop-label-output-folder')||outputDirectory;}catch{}openGroupLabelPicker({database:db,product:product(),outputDirectory,onGenerate:(members,options)=>{try{localStorage.setItem('workshop-label-output-folder',options.outputDirectory);}catch{}openLabelPrompt('group',members,options);},onClose:()=>$('#label-group-prompt')?.focus({preventScroll:true})});});
  bindProductList();$('#catalogue-refresh').onclick=async()=>{if(catalogueRefreshBusy)return;catalogueRefreshBusy=true;const button=$('#catalogue-refresh'),status=$('#catalogue-refresh-status');button.disabled=true;status.textContent='Обновляю карточки всех товаров…';try{const result=await refreshCatalogueCards(db,getMarketplaceCredentials(),{onSaved:()=>save()});status.textContent=result.map(r=>(r.market==='wb'?'WB':'Ozon')+': '+(r.error||('карточек '+r.count+' · параметры товаров: '+r.metadataCount+(r.warning?' · '+r.warning:'')))).join(' · ');for(const input of document.querySelectorAll('[data-catalogue-category]'))input.innerHTML=catalogueCategoryOptions(input.dataset.catalogueCategory);$('#product-list').innerHTML=productList(product());bindProductList();renderFields();for(const input of document.querySelectorAll('[data-product-description]'))input.value=product().description||'';for(const count of document.querySelectorAll('[data-description-count]'))count.textContent=Array.from(product().description||'').length.toLocaleString('ru-RU')+' символов · с пробелами и переносами строк';}catch(error){status.textContent=error.message;}finally{catalogueRefreshBusy=false;button.disabled=false;const current=$('#catalogue-refresh');if(current)current.disabled=false;}};const refreshCatalogue=()=>{productPage=0;$('#product-list').innerHTML=productList(product());bindProductList();};document.querySelector('[data-catalogue-group-picker]').onclick=openCatalogueGroupPicker;for(const input of document.querySelectorAll('[data-catalogue-presence]'))input.onchange=async()=>{const key=input.dataset.cataloguePresence;cataloguePresenceFilters[key]=input.value;const status=document.querySelector('.catalogue-file-filter-status');if(key==='model'&&input.value){status.textContent='Проверяю сохранённые модели…';await loadCatalogueModelStates();if(status.isConnected)status.textContent='';}refreshCatalogue();};$('#product-search').oninput=e=>{productQuery=e.target.value;refreshCatalogue();};$('#catalogue-group-filter').onchange=e=>{productGroupFilter=e.target.value;document.querySelector('[data-catalogue-group-picker] span').textContent=productGroupFilter==='__ungrouped__'?'Без группы':productGroupFilter||'Все группы';productCategoryFilters={wb:'',ozon:''};for(const input of document.querySelectorAll('[data-catalogue-category]'))input.innerHTML=catalogueCategoryOptions(input.dataset.catalogueCategory);refreshCatalogue();};for(const input of document.querySelectorAll('[data-catalogue-category]'))input.onchange=e=>{productCategoryFilters[e.target.dataset.catalogueCategory]=e.target.value;refreshCatalogue();};document.querySelector('[data-catalogue-reset]').onclick=()=>{productQuery='';productGroupFilter='';productCategoryFilters={wb:'',ozon:''};for(const key of Object.keys(cataloguePresenceFilters))cataloguePresenceFilters[key]='';$('#product-search').value='';$('#catalogue-group-filter').value='';document.querySelector('[data-catalogue-group-picker] span').textContent='Все группы';document.querySelectorAll('[data-catalogue-presence]').forEach(input=>input.value='');for(const input of document.querySelectorAll('[data-catalogue-category]'))input.innerHTML=catalogueCategoryOptions(input.dataset.catalogueCategory);refreshCatalogue();};for(const [selector,open] of [['[data-catalogue-collapse]',false],['[data-catalogue-expand]',true]])document.querySelector(selector).onclick=()=>{for(const p of db.products)productGroupOpen.set(p.productGroup||'',open);$('#product-list').querySelectorAll('details[data-group]').forEach(group=>group.open=open);};
  const restoreWorkspace=state=>{if(!state)return;space=state.space;selected=db.products.some(p=>p.id===state.selected)?state.selected:db.products[0].id;history.replaceState(null,'','#'+space);render();};$('#workspace-back').onclick=()=>restoreWorkspace(workspaceHistory.back());$('#workspace-forward').onclick=()=>restoreWorkspace(workspaceHistory.forward());

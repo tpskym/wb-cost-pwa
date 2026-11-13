@@ -946,7 +946,7 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .backup-workspace .sync-actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}
 .backup-method .sync-actions{margin-top:auto;padding-top:16px;width:100%}
 .backup-method .sync-actions button{width:100%}
-.backup-method #drive-link{margin-top:12px;font-size:13px}
+.backup-method #drive-link{margin:0 0 12px;font-size:13px}
 .backup-workspace :is(.sync-actions button,#google-connect,#google-out,#client-id,#restore,[data-working-folder],[data-copy-app-address],[data-storage-refresh],.backup-settings-link){min-height:44px;padding:10px 14px;font-size:14px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .backup-workspace .backup-primary{background:#34583e;border-color:#34583e;color:#fff}
 .backup-workspace .backup-primary:hover{background:#254a33;border-color:#254a33}
@@ -1000,3 +1000,22 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .catalogue-filter-panel :is(select,[data-catalogue-group-picker]):active:not(:disabled){background-color:#294235;color:#fff}
 .catalogue-filter-panel select option{background:#344f40;color:#f0f5e9}
 .catalogue-filter-panel select:disabled{background-color:#2b4036;color:#b8c7b2;opacity:.7}
+
+.backup-common-mode{min-width:0;padding:0;margin:0 0 24px;border:0;background:none}
+.backup-common-mode legend{padding:0;margin-bottom:12px;font-size:15px;font-weight:650;color:#34583e}
+.backup-mode-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.backup-common-mode .backup-mode-option{position:relative;display:flex;max-width:none;min-width:0;margin:0;cursor:pointer}
+.backup-mode-option input{position:absolute;width:1px;height:1px;opacity:0;margin:0}
+.backup-mode-content{position:relative;display:flex;flex:1;flex-direction:column;gap:12px;min-width:0;padding:20px;border:1px solid #d6dfce;border-radius:14px;background:#fff;color:#526456;font-size:14px;line-height:1.55;transition:background .15s,border-color .15s,box-shadow .15s}
+.backup-mode-content>strong{padding-right:28px;font-size:17px;line-height:1.35;color:#2c3f37}
+.backup-mode-restore{margin-top:auto;padding-top:14px;border-top:1px solid #dce5d4}
+.backup-mode-restore b{display:block;margin-bottom:5px;font-size:12px;color:#34583e}
+.backup-mode-tick{position:absolute;right:16px;top:19px;display:grid;place-items:center;width:22px;height:22px;border:1px solid #b3c2a7;border-radius:50%;font-size:14px;color:transparent}
+.backup-mode-option:hover .backup-mode-content{background:#f8faf4;border-color:#91a77e}
+.backup-mode-option input:checked+.backup-mode-content{background:#edf4e3;border-color:#6f8b55;box-shadow:inset 0 0 0 1px #6f8b55}
+.backup-mode-option input:checked+.backup-mode-content .backup-mode-tick{background:#34583e;border-color:#34583e;color:#fff}
+.backup-mode-option input:focus-visible+.backup-mode-content{outline:3px solid #718e56;outline-offset:3px}
+.backup-mode-option input:disabled+.backup-mode-content{opacity:.55;cursor:wait}
+.backup-common-mode #backup-mode-destinations{margin-top:14px;font-size:12px}
+.backup-common-mode .backup-mode-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:1050px){.backup-mode-options{grid-template-columns:minmax(0,1fr)}.backup-mode-content{padding:18px}.backup-mode-restore{margin-top:0}}

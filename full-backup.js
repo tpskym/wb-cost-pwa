@@ -1,7 +1,7 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.383';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.383';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.383';
-import {validateDB} from './calc.js?v=0.2.383';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.384';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.384';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.384';
+import {validateDB} from './calc.js?v=0.2.384';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 const accessFilename='workshop-access.json';
 const modelKey=(ownerId,fileId)=>JSON.stringify([ownerId,fileId]);
