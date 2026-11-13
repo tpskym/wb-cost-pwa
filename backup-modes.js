@@ -1,5 +1,5 @@
-import {databaseForCloud,preserveLocalPrintQueue,stripBackupSecrets} from './google-drive-backup.js?v=0.2.378';
-import {configuredCostPrices} from './expenses.js?v=0.2.378';
+import {databaseForCloud,preserveLocalPrintQueue,stripBackupSecrets} from './google-drive-backup.js?v=0.2.379';
+import {configuredCostPrices} from './expenses.js?v=0.2.379';
 export const newSkuBackupMode='new-skus';
 export const backupModes={full:'Полный бэкап',costs:'Только себестоимость',[newSkuBackupMode]:'Себестоимость и модели для новых артикулов'};
 export function backupMode(database){const mode=database.backupMode??'full';if(!Object.hasOwn(backupModes,mode))throw Error('Неизвестный режим бэкапа');return mode;}
@@ -9,13 +9,11 @@ export function createBackupSnapshot(database,mode=database.backupMode??'full'){
  if(mode==='full')return {...clean,backupMode:'full'};
  const {schema,id,revision=0,updatedAt,products,templates=[]}=clean;
  if(mode===newSkuBackupMode){
-  const articles=products.filter(product=>articleKey(product));
-  if(!articles.length)throw Error('Для выгрузки нужен хотя бы один товар с артикулом.');
-  const copied=articles.map(product=>({
+  const copied=products.map(product=>({
    ...newSkuProductData(product),
    values:{...product.values,...configuredCostPrices(clean,product)}
   }));
-  return {schema,id,revision,updatedAt,backupMode:mode,products:copied,templates:[]};
+  return {...createCostsDataSnapshot(clean),format:undefined,backupMode:mode,products:copied};
  }
  return {schema,id,revision,updatedAt,backupMode:mode,products:products.map(product=>{
   const copy={...product};
@@ -40,7 +38,7 @@ function costProductData(source,{includeLabel=false}={}){
 const articleKey=product=>product.sku?.trim().toLowerCase()||'';
 
 export function newSkuProductData(source){
- const product=costProductData(source);
+ const product=costProductData(source,{includeLabel:true});
  delete product.marketplaceCardPrices;
  delete product.marketplaceImageUrl;
  delete product.marketplaceProfit;
@@ -50,15 +48,32 @@ export function newSkuProductData(source){
 }
 
 export function planNewSkuImport(incoming,local){
- const existing=new Set(local.products.map(articleKey));
+ const existing=new Map();
+ const byId=new Map(local.products.map(product=>[product.id,product]));
+ for(const product of local.products){
+  const key=articleKey(product);
+  if(!key)continue;
+  if(!existing.has(key))existing.set(key,[]);
+  existing.get(key).push(product);
+ }
  const counts=new Map();
  for(const product of incoming.products){
   const key=articleKey(product);
   counts.set(key,(counts.get(key)??0)+1);
  }
- return incoming.products.filter(product=>{
-  const key=articleKey(product);
-  return key&&!existing.has(key)&&counts.get(key)===1;
+ return incoming.products.flatMap(source=>{
+  const key=articleKey(source);
+  const sameId=byId.get(source.id);
+  if(!key){
+   if(sameId&&articleKey(sameId))return [];
+   return [{source,current:sameId??null,importModels:false}];
+  }
+  const matches=existing.get(key)??[];
+  const sameArticle=matches.find(product=>product.id===source.id);
+  if(sameArticle)return [{source,current:sameArticle,importModels:false}];
+  if(counts.get(key)!==1||matches.length>1)return [];
+  const current=matches[0]??null;
+  return [{source,current,importModels:!current}];
  });
 }
 
@@ -94,9 +109,19 @@ function costsDataProductIds(incoming,local){
  }));
 }
 
-function mergeCostPrices(local,incoming){
+export function mergeCostPrices(local,incoming){
  const merge=(kind,key)=>[...new Map([...(local?.[kind]??[]),...incoming[kind]].map(row=>[row[key],row])).values()];
  return {printers:merge('printers','model'),filaments:merge('filaments','key')};
+}
+
+export function mergeCostTemplates(local,incoming){
+ const merged=[...local];
+ for(const template of incoming){
+  const index=merged.findIndex(row=>row.id===template.id||row.name===template.name);
+  if(index<0)merged.push(structuredClone(template));
+  else merged[index]=structuredClone(template);
+ }
+ return merged;
 }
 
 export function costProductIds(incoming,local){return new Map(incoming.products.map(product=>{const current=local.products?.find(row=>row.id===product.id)||local.products?.find(row=>product.sku?.trim()&&row.sku?.trim()===product.sku.trim());return [product.id,current?.id||product.id];}));}
@@ -117,6 +142,6 @@ if(parts?.label===false){
  if(current?.labelPdf)product.labelPdf=structuredClone(current.labelPdf);
  else delete product.labelPdf;
 }else if(copy.labelPdf)product.labelPdf=structuredClone(copy.labelPdf);if(!copy.labelPdf&&current?.labelPdf)product.labelPdf=structuredClone(current.labelPdf);if(modelReferences&&copy.printModel)product.printModel={...copy.printModel,ownerId:ids.get(copy.printModel.ownerId)||copy.printModel.ownerId};else if(current?.printModel)product.printModel=structuredClone(current.printModel);else delete product.printModel;if(index<0)result.products.push(product);else result.products[index]=product;}
-result.templates??=[];for(const template of incoming.templates||[]){const index=result.templates.findIndex(row=>row.id===template.id||row.name===template.name);if(index<0)result.templates.push(structuredClone(template));else result.templates[index]=structuredClone(template);}
+result.templates=mergeCostTemplates(result.templates??[],incoming.templates??[]);
 if(costsData&&incoming.costPrices)result.costPrices=mergeCostPrices(result.costPrices,incoming.costPrices);
 return result;}

@@ -1,7 +1,7 @@
-import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport} from './backup-modes.js?v=0.2.378';
-import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.378';
-import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.378';
-import {validateDB} from './calc.js?v=0.2.378';
+import {createBackupSnapshot,backupMode,costProductIds,applyBackupSnapshot,newSkuBackupMode,newSkuProductData,planNewSkuImport,mergeCostTemplates,mergeCostPrices} from './backup-modes.js?v=0.2.379';
+import {databaseForCloud,stripBackupSecrets} from './google-drive-backup.js?v=0.2.379';
+import {makeZip,readZip,safeFilename} from './attachments.js?v=0.2.379';
+import {validateDB} from './calc.js?v=0.2.379';
 const categories=['card-design','product-image','model','source-wb','source-ozon','source','ready','marketplace-image'];
 const accessFilename='workshop-access.json';
 const modelKey=(ownerId,fileId)=>JSON.stringify([ownerId,fileId]);
@@ -13,30 +13,7 @@ export function validateBackupAccess(value){
 }
 export async function createFullBackup(database,records,{mode=database.backupMode??'full',replaceAll=false,accessEnvelope,onProgress=()=>{}}={}){
  if(replaceAll)mode='full';
- if(mode===newSkuBackupMode){
-  const articles=database.products.filter(product=>product.sku?.trim());
-  const byOwner=new Map(articles.map(product=>[database.id+':'+product.id,product]));
-  const byModel=new Map();
-  for(const product of articles){
-   const ref=product.printModel;
-   if(ref)byModel.set(modelKey(database.id+':'+ref.ownerId,ref.fileId),product);
-  }
-  // A model may belong to a product without a SKU. Carry it under a referencing article.
-  const rehomed=new Map();
-  records=records.filter(file=>file.category==='model').flatMap(file=>{
-   if(byOwner.has(file.owner))return [file];
-   const key=modelKey(file.owner,file.id);
-   const target=byModel.get(key);
-   if(!target||file.plateQuantity)return [];
-   rehomed.set(key,target.id);
-   return [{...file,owner:database.id+':'+target.id}];
-  });
-  database={...database,products:articles.map(product=>{
-   const ref=product.printModel;
-   const ownerId=ref&&rehomed.get(modelKey(database.id+':'+ref.ownerId,ref.fileId));
-   return ownerId?{...product,printModel:{...ref,ownerId}}:product;
-  })};
- }
+ if(mode===newSkuBackupMode)records=records.filter(file=>file.category==='model');
  const db=validateDB(replaceAll?{...stripBackupSecrets(database),backupMode:"full"}:createBackupSnapshot(database,mode)),owners=new Map(db.products.map(p=>[db.id+':'+p.id,p.id]));
  const files=[],entries=[];
  for(const record of records){if(mode==='costs'&&!['product-image','model','card-design'].includes(record.category))continue;const cache=record.category==='marketplace-image'&&record.owner===db.id+':marketplace-photos'&&typeof record.sku==='string'&&record.sku.trim();if(record.category==='marketplace-image'?!cache:!owners.has(record.owner))throw Error('Файл не принадлежит базе');const path='files/'+String(files.length+1).padStart(6,'0')+'/'+safeFilename(record.name);files.push({path,fileId:record.id,productId:cache?null:owners.get(record.owner),...(cache?{sku:record.sku}:{}),...(record.plateQuantity?{plateQuantity:record.plateQuantity}:{}),name:record.name,category:record.category,createdAt:record.createdAt,type:record.blob.type,size:record.blob.size});entries.push({name:path,blob:record.blob});}
@@ -121,26 +98,35 @@ export function stageFullRestore(parsed,{localDatabase}={}){
 }
 
 function stageNewSkuRestore(parsed,local){
- const sources=planNewSkuImport(parsed.database,local);
- if(!sources.length)throw Error('В архиве нет новых уникальных артикулов.');
+ const plan=planNewSkuImport(parsed.database,local);
+ if(!plan.length)throw Error('В архиве нет товаров, которые можно сопоставить или добавить.');
  const database=structuredClone(local);
+ const indexes=new Map(database.products.map((product,index)=>[product.id,index]));
  const reserved=new Set([...local.products,...parsed.database.products].map(product=>product.id));
- const localIds=new Set(local.products.map(product=>product.id));
  const added=new Map();
- for(const source of sources){
+ for(const {source,current,importModels} of plan){
   const product=newSkuProductData(source);
-  if(localIds.has(product.id)){
+  delete product.printModel;
+  if(current){
+   delete product.plateCapacity;
+   const index=indexes.get(current.id);
+   database.products[index]={...database.products[index],...product,id:current.id,sku:current.sku};
+   continue;
+  }
+  if(indexes.has(product.id)){
    do{product.id=crypto.randomUUID();}while(reserved.has(product.id));
    reserved.add(product.id);
   }
-  delete product.printModel;
   product.stockTargets={};
-  added.set(source.id,product);
   database.products.push(product);
+  if(importModels)added.set(source.id,product);
  }
+ database.templates=mergeCostTemplates(database.templates??[],parsed.database.templates??[]);
+ if(parsed.database.costPrices)database.costPrices=mergeCostPrices(database.costPrices,parsed.database.costPrices);
 
  const sharedOwners=new Map();
- for(const source of sources){
+ for(const {source,importModels} of plan){
+  if(!importModels)continue;
   const ref=source.printModel;
   if(ref&&!added.has(ref.ownerId))sharedOwners.set(modelKey(ref.ownerId,ref.fileId),added.get(source.id));
  }
@@ -162,7 +148,8 @@ function stageNewSkuRestore(parsed,local){
    if(added.has(file.productId))owner.printModel=ref;
   }
  }
- for(const source of sources){
+ for(const {source,importModels} of plan){
+  if(!importModels)continue;
   const ref=source.printModel;
   const mapped=ref&&references.get(modelKey(ref.ownerId,ref.fileId));
   if(mapped)added.get(source.id).printModel={...mapped};
