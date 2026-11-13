@@ -992,3 +992,11 @@ main[data-workspace="finance"] :is(.cost-only,.cards-only,.product-files,.mobile
 .sidebar::-webkit-scrollbar-thumb,.sidebar>.workspace-nav::-webkit-scrollbar-thumb{background:#526e60;border:1px solid #172c29;border-radius:8px}
 .sidebar::-webkit-scrollbar-thumb:hover,.sidebar>.workspace-nav::-webkit-scrollbar-thumb:hover{background:#75947e}
 .sidebar::-webkit-scrollbar-button,.sidebar>.workspace-nav::-webkit-scrollbar-button{display:none;width:0;height:0;background:#172c29}
+/* Keep catalogue controls legible against the dark panel in every state. */
+.catalogue-filter-panel :is(select,[data-catalogue-group-picker]){background-color:#344f40;color:#f0f5e9}
+.catalogue-filter-panel .ui-select{padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23f0f5e9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.catalogue-filter-panel :is(select,[data-catalogue-group-picker]):hover:not(:disabled){background-color:#405e4b;color:#fff;border-color:#9bb58b}
+.catalogue-filter-panel :is(select,[data-catalogue-group-picker]):focus{background-color:#344f40;color:#f0f5e9;border-color:#bdd499;box-shadow:0 0 0 2px #92aa7d66}
+.catalogue-filter-panel :is(select,[data-catalogue-group-picker]):active:not(:disabled){background-color:#294235;color:#fff}
+.catalogue-filter-panel select option{background:#344f40;color:#f0f5e9}
+.catalogue-filter-panel select:disabled{background-color:#2b4036;color:#b8c7b2;opacity:.7}
