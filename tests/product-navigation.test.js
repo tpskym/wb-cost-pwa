@@ -7,6 +7,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  const dom=new JSDOM('<div id="app"></div><div id="toast"></div>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
  Object.assign(globalThis,{document:dom.window.document,window:dom.window,localStorage:dom.window.localStorage,location:dom.window.location,history:dom.window.history,indexedDB,confirm:()=>true});dom.window.scrollTo=()=>{};
  const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,marketplaceCategories:i%2?{}:{wb:{id:12,label:'Дом'},ozon:{id:22,typeId:23,label:'Аксессуары'}},productGroup:'Каталог '+Math.floor(i/5)}));
+ for(const [index,color] of [[32,'black'],[33,'green'],[34,'white']])products[index].sku='SKU-32_'+color;
  products[0].marketplaceLogistics={ozon:{commission:23}};
  localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products,templates:[],costPrices:{printers:[{model:"Bambu Lab A1",price:45000}],filaments:[]}}));
  await import('../app.js');
@@ -39,6 +40,45 @@ test('colour pencil opens choices and selection updates the article',async()=>{
  assert.equal(document.querySelector('#variantNote').value,'Черный');
  assert.equal(document.querySelector('#sku').value,'SKU-204_black');
  assert.equal(document.querySelector('.variant-color-dialog'),null);
+});
+test('editing a variant updates the selected row without moving it or scrolling the catalogue',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const search=$('#product-search');
+ search.value='SKU-32';
+ search.dispatchEvent(new window.Event('input'));
+ const catalogue=$('.product-catalogue'),list=$('#product-list');
+ const rows=[...list.querySelectorAll('[data-product]')],edited=rows[2];
+ assert.equal(edited.querySelector('.product-sku').textContent,'SKU-32_white');
+ edited.click();
+ catalogue.scrollTop=635;
+
+ const input=$('#variantNote');
+ input.value='Высокое основание';
+ input.dispatchEvent(new window.Event('change'));
+ assert.match(edited.querySelector('.product-label').textContent,/Высокое основание/);
+ assert.equal(catalogue.scrollTop,635);
+
+ const thumbnail=edited.querySelector('[data-product-image]');
+ $('#variant-color-pick').click();
+ $('[data-variant-color="Серый"]').click();
+ const db=await readDatabase();
+
+ assert.equal($('#product-list'),list);
+ assert.deepEqual([...list.querySelectorAll('[data-product]')],rows);
+ assert.equal(edited.querySelector('[data-product-image]'),thumbnail);
+ assert.equal(edited.getAttribute('aria-current'),'true');
+ assert.equal(edited.querySelector('.product-sku').textContent,'SKU-32_gray');
+ assert.equal(edited.querySelector('[data-copy-sku]').dataset.copySku,'SKU-32_gray');
+ assert.match(edited.title,/Серый/);
+ assert.equal(catalogue.scrollTop,635);
+ assert.equal($('#product-search').value,'SKU-32');
+ const saved=db.products.find(p=>p.id===edited.dataset.product);
+ assert.equal(saved.variantNote,'Серый');
+ assert.equal(saved.sku,'SKU-32_gray');
+
+ search.value='SKU-32_';
+ search.dispatchEvent(new window.Event('input'));
+ assert.deepEqual([...list.querySelectorAll('.product-sku')].map(node=>node.textContent),['SKU-32_black','SKU-32_gray','SKU-32_green']);
 });
 test('selecting a sidebar product preserves list scroll and keyboard focus',async()=>{
  const search=document.querySelector('#product-search');search.value='';search.dispatchEvent(new window.Event('input'));
