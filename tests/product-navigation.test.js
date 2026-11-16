@@ -8,6 +8,7 @@ test('large catalogue appends products on scroll, preserves rows, and searches t
  Object.assign(globalThis,{document:dom.window.document,window:dom.window,localStorage:dom.window.localStorage,location:dom.window.location,history:dom.window.history,indexedDB,confirm:()=>true});dom.window.scrollTo=()=>{};
  const products=Array.from({length:205},(_,i)=>({...blankProduct(),name:'Товар '+i,sku:'SKU-'+i,marketplaceCategories:i%2?{}:{wb:{id:12,label:'Дом'},ozon:{id:22,typeId:23,label:'Аксессуары'}},productGroup:'Каталог '+Math.floor(i/5)}));
  for(const [index,color] of [[32,'black'],[33,'green'],[34,'white']])products[index].sku='SKU-32_'+color;
+ Object.assign(products[190],{productGroup:'',sku:'SKU-190_white',variantNote:'Белый'});
  products[0].marketplaceLogistics={ozon:{commission:23}};
  localStorage.setItem('workshop-db-v1',JSON.stringify({schema:1,id:crypto.randomUUID(),revision:0,updatedAt:new Date().toISOString(),products,templates:[],costPrices:{printers:[{model:"Bambu Lab A1",price:45000}],filaments:[]}}));
  await import('../app.js');
@@ -79,6 +80,54 @@ test('editing a variant updates the selected row without moving it or scrolling 
  search.value='SKU-32_';
  search.dispatchEvent(new window.Event('input'));
  assert.deepEqual([...list.querySelectorAll('.product-sku')].map(node=>node.textContent),['SKU-32_black','SKU-32_gray','SKU-32_green']);
+});
+test('creating a variant inserts it below the source without rebuilding the scrolled catalogue',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const search=$('#product-search');
+ search.value='SKU-32_';
+ search.dispatchEvent(new window.Event('input'));
+ const catalogue=$('.product-catalogue'),list=$('#product-list'),rows=[...list.querySelectorAll('[data-product]')];
+ const source=rows[1],sourceRow=source.closest('.catalogue-product-row');
+ source.click();
+ catalogue.scrollTop=635;
+ const thumbnail=source.querySelector('img');
+ $('#duplicate').click();
+ const db=await readDatabase();
+
+ const created=list.querySelector('[aria-current="true"]');
+ assert.equal($('.product-catalogue'),catalogue);
+ assert.equal($('#product-list'),list);
+ assert.equal(created.closest('.catalogue-product-row'),sourceRow.nextElementSibling);
+ assert.deepEqual([...list.querySelectorAll('[data-product]')].filter(row=>row!==created),rows);
+ assert.equal(source.querySelector('img'),thumbnail);
+ assert.equal(catalogue.scrollTop,635);
+ assert.equal(search.value,'SKU-32_');
+ assert.equal(list.querySelector('.product-list-count').textContent,'Показано 1–4 · всего 4');
+ assert.equal(created.closest('details').querySelector('summary small').textContent,'4');
+ const mobile=$('#mobile-product');
+ assert.equal(mobile.value,created.dataset.product);
+ assert.equal(mobile.selectedOptions[0].previousElementSibling.value,source.dataset.product);
+ assert.equal(db.products.find(p=>p.id===created.dataset.product).sku,'SKU-32_');
+});
+test('the first variant brings its source into the new group even with the original SKU search',async()=>{
+ const $=selector=>document.querySelector(selector);
+ const search=$('#product-search');
+ search.value='SKU-190_white';
+ search.dispatchEvent(new window.Event('input'));
+ const source=$('#product-list [data-product]');
+ source.click();
+ const previousGroup=source.closest('details');
+ assert.equal(previousGroup.dataset.group,'');
+ $('#duplicate').click();
+ const db=await readDatabase();
+ const created=$('#product-list [aria-current="true"]');
+ const group=source.closest('details');
+ assert.equal(previousGroup.isConnected,false);
+ assert.equal(group.dataset.group,'Товар 190');
+ assert.equal(group.open,true);
+ assert.deepEqual([...group.querySelectorAll('[data-product]')],[source,created]);
+ assert.equal($('#product-search').value,'SKU-190_white');
+ assert.equal(db.products.find(p=>p.id===created.dataset.product).productGroup,'Товар 190');
 });
 test('selecting a sidebar product preserves list scroll and keyboard focus',async()=>{
  const search=document.querySelector('#product-search');search.value='';search.dispatchEvent(new window.Event('input'));

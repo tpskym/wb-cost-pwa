@@ -22,7 +22,7 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.393';
+import {mountReleaseHistory} from './release-history.js?v=0.2.394';
 import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.392';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
@@ -37,7 +37,7 @@ import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.393';
+const APP_VERSION='0.2.394';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
@@ -628,8 +628,11 @@ function catalogueProductLabel(p){
  const variant=[p.variantNote,p.colorCode].filter(Boolean).join(' · ');
  return `<span class="sku-with-copy"><strong class="product-sku">${esc(p.sku||'Без артикула')}</strong>${skuCopyButton(p.sku)}</span><small class="product-name">${esc(p.name)}</small>${variant?`<small>${esc(variant)}</small>`:''}${catalogueStatusBadges(p)}`;
 }
+function catalogueProductButton(id){
+ return [...$('#product-list').querySelectorAll('[data-product]')].find(button=>button.dataset.product===id);
+}
 function updateCatalogueVariant(p){
- const row=[...$('#product-list').querySelectorAll('[data-product]')].find(button=>button.dataset.product===p.id);
+ const row=catalogueProductButton(p.id);
  if(!row)return;
  const label=row.querySelector('.product-label'),modelBadge=label.querySelector('[data-catalogue-model]');
  row.title=catalogueProductTitle(p);
@@ -646,19 +649,60 @@ function openCatalogueGroupPicker(){const dialog=document.createElement('dialog'
 function catalogueCategoryOptions(market){const categories=new Map();for(const p of db.products){if(productGroupFilter&&(p.productGroup||'__ungrouped__')!==productGroupFilter)continue;const category=categoriesFromProduct(p)[market];if(category)categories.set(category.id+':'+(category.typeId||''),category.label);}return `<option value="">Все категории</option><option value="__none__" ${productCategoryFilters[market]==='__none__'?'selected':''}>Без категории</option>${[...categories].sort((a,b)=>a[1].localeCompare(b[1],'ru')).map(([key,label])=>`<option value="${esc(key)}" ${productCategoryFilters[market]===key?'selected':''}>${esc(label)}</option>`).join('')}`;}
 function catalogueCategoryMatches(p){const categories=categoriesFromProduct(p);return ['wb','ozon'].every(market=>{const filter=productCategoryFilters[market],category=categories[market];return !filter||(filter==='__none__'?!category:category&&category.id+':'+(category.typeId||'')===filter);});}
 function catalogueFilterControls(){return `<button type="button" id="catalogue-refresh" class="catalogue-refresh" ${catalogueRefreshBusy?'disabled':''}>↻ Обновить карточки WB / Ozon</button><small id="catalogue-refresh-status" class="catalogue-refresh-status" role="status">По сохранённым данным · ? — ещё не проверено</small><div class="catalogue-filter-panel"><div class="catalogue-filters"><label>Группа<input type="hidden" id="catalogue-group-filter" value="${esc(productGroupFilter)}"><button type="button" data-catalogue-group-picker aria-haspopup="dialog"><span>${esc(productGroupFilter==='__ungrouped__'?'Без группы':productGroupFilter||'Все группы')}</span><b aria-hidden="true">⌄</b></button></label>${['ozon','wb'].map(market=>`<label>Категория ${market==='wb'?'WB':'Ozon'}<select class="ui-select" data-catalogue-category="${market}">${catalogueCategoryOptions(market)}</select></label>`).join('')}</div>${cataloguePresenceControls()}<div class="catalogue-group-actions"><button type="button" data-catalogue-collapse>Свернуть все</button><button type="button" data-catalogue-expand>Развернуть все</button><button type="button" data-catalogue-reset>Сбросить фильтры</button></div></div>`;}
-function productList(p){
- const query=productQuery.trim().toLocaleLowerCase('ru'),matches=db.products.filter(q=>(!productGroupFilter||(productGroupFilter==='__ungrouped__'?!q.productGroup:q.productGroup===productGroupFilter))&&catalogueCategoryMatches(q)&&catalogueStatusMatches(db,q,cataloguePresenceFilters,catalogueModelStates.get(db.id+':'+q.id)??null)&&[q.name,q.sku,q.productGroup,q.variantNote,q.colorCode].filter(Boolean).join(' ').toLocaleLowerCase('ru').includes(query));
- const groupedPages=catalogueProductBatches(matches,productPageSize),pages=groupedPages.length;productPage=Math.min(productPage,pages-1);
- const visible=groupedPages.slice(0,productPage+1).flat(),offset=0,names=[...new Set(visible.map(q=>q.productGroup||''))];
- return `<div class="product-list-count">${matches.length?'Показано '+(offset+1)+'–'+(offset+visible.length):'Ничего не найдено'} · всего ${matches.length}</div>`+names.map(name=>`<details class="product-group" data-group="${esc(name)}" ${query||productGroupOpen.get(name)!==false?'open':''}><summary>${esc(name||'Без группы')} <small>${matches.filter(q=>(q.productGroup||'')===name).length}</small></summary>${visible.filter(q=>(q.productGroup||'')===name).map(q=>`<div class="catalogue-product-row"><button type="button" class="product ${q.id===p.id?'chosen':''}" data-product="${esc(q.id)}" title="${esc(catalogueProductTitle(q))}" ${q.id===p.id?'aria-current="true"':''}><img class="product-list-image" data-product-image="${esc(q.id)}" alt="" hidden><span class="product-label">${catalogueProductLabel(q)}</span></button>${catalogueFileActions(q)}</div>`).join('')}</details>`).join('')+`<div class="catalogue-scroll-status" ${productPage<pages-1?'data-catalogue-more':''}>${productPage<pages-1?'Прокрутите ниже — подгрузятся следующие товары':matches.length?'Все товары загружены':''}</div>`;
+function catalogueMatches(){
+ const query=productQuery.trim().toLocaleLowerCase('ru');
+ return db.products.filter(p=>{
+  const groupMatches=productGroupFilter==='__ungrouped__'?!p.productGroup:!productGroupFilter||p.productGroup===productGroupFilter;
+  const text=[p.name,p.sku,p.productGroup,p.variantNote,p.colorCode].filter(Boolean).join(' ').toLocaleLowerCase('ru');
+  return groupMatches&&text.includes(query)&&catalogueCategoryMatches(p)
+   &&catalogueStatusMatches(db,p,cataloguePresenceFilters,catalogueModelStates.get(db.id+':'+p.id)??null);
+ });
+}
+function catalogueCount(shown,total){
+ return `${total?'Показано 1–'+shown:'Ничего не найдено'} · всего ${total}`;
+}
+function catalogueProductRow(p,selectedId){
+ const active=p.id===selectedId;
+ return `<div class="catalogue-product-row"><button type="button" class="product ${active?'chosen':''}" data-product="${esc(p.id)}" title="${esc(catalogueProductTitle(p))}" ${active?'aria-current="true"':''}><img class="product-list-image" data-product-image="${esc(p.id)}" alt="" hidden><span class="product-label">${catalogueProductLabel(p)}</span></button>${catalogueFileActions(p)}</div>`;
+}
+function catalogueGroup(name,count,rows){
+ const open=productQuery.trim()||productGroupOpen.get(name)!==false;
+ return `<details class="product-group" data-group="${esc(name)}" ${open?'open':''}><summary>${esc(name||'Без группы')} <small>${count}</small></summary>${rows}</details>`;
+}
+function productList(p,matches=catalogueMatches()){
+ const groupedPages=catalogueProductBatches(matches,productPageSize),pages=groupedPages.length;
+ productPage=Math.min(productPage,pages-1);
+ const visible=groupedPages.slice(0,productPage+1).flat(),names=[...new Set(visible.map(q=>q.productGroup||''))];
+ const groups=names.map(name=>catalogueGroup(name,matches.filter(q=>(q.productGroup||'')===name).length,
+  visible.filter(q=>(q.productGroup||'')===name).map(q=>catalogueProductRow(q,p.id)).join(''))).join('');
+ return `<div class="product-list-count">${catalogueCount(visible.length,matches.length)}</div>${groups}<div class="catalogue-scroll-status" ${productPage<pages-1?'data-catalogue-more':''}>${productPage<pages-1?'Прокрутите ниже — подгрузятся следующие товары':matches.length?'Все товары загружены':''}</div>`;
+}
+function updateCatalogueCounts(list,matches){
+ const products=new Map(matches.map(p=>[p.id,p.productGroup||'']));
+ const rows=list.querySelectorAll('[data-product]');
+ for(const row of rows)products.set(row.dataset.product,row.closest('[data-group]').dataset.group);
+ const counts=new Map();
+ for(const name of products.values())counts.set(name,(counts.get(name)||0)+1);
+ for(const group of list.querySelectorAll('[data-group]'))group.querySelector('summary small').textContent=counts.get(group.dataset.group);
+ list.querySelector('.product-list-count').textContent=catalogueCount(rows.length,products.size);
 }
 function appendCatalogueBatch(list){
  if(!list.isConnected||!list.querySelector('[data-catalogue-more]'))return;
- const scroller=list.closest('.product-catalogue');const top=scroller.scrollTop;productPage++;const staging=document.createElement('div');staging.innerHTML=productList(product());
- list.querySelector('.product-list-count').textContent=staging.querySelector('.product-list-count').textContent;
+ const scroller=list.closest('.product-catalogue'),top=scroller.scrollTop,matches=catalogueMatches();
+ productPage++;
+ const staging=document.createElement('div');
+ staging.innerHTML=productList(product(),matches);
  const marker=list.querySelector('.catalogue-scroll-status');
- for(const group of staging.querySelectorAll('details[data-group]')){const existing=[...list.querySelectorAll('details[data-group]')].find(node=>node.dataset.group===group.dataset.group);if(!existing)marker.before(group);else{const ids=new Set([...existing.querySelectorAll('[data-product]')].map(node=>node.dataset.product));for(const row of group.querySelectorAll('[data-product]'))if(!ids.has(row.dataset.product))existing.append(row.closest('.catalogue-product-row')||row);}}
- marker.replaceWith(staging.querySelector('.catalogue-scroll-status'));scroller.scrollTop=top;bindProductList();
+ for(const group of staging.querySelectorAll('details[data-group]')){
+  const existing=[...list.querySelectorAll('details[data-group]')].find(node=>node.dataset.group===group.dataset.group);
+  if(!existing){marker.before(group);continue;}
+  const ids=new Set([...existing.querySelectorAll('[data-product]')].map(node=>node.dataset.product));
+  for(const row of group.querySelectorAll('[data-product]'))if(!ids.has(row.dataset.product))existing.append(row.closest('.catalogue-product-row'));
+ }
+ marker.replaceWith(staging.querySelector('.catalogue-scroll-status'));
+ updateCatalogueCounts(list,matches);
+ scroller.scrollTop=top;
+ bindProductList();
 }
 function bindProductList(){
  const list=$('#product-list');hydrateProductImages(list);hydrateCatalogueModels(list);
@@ -679,7 +723,7 @@ function revealCatalogueProduct(id){
   select.scrollIntoView?.({block:'nearest'});
   return;
  }
- const find=()=>list.querySelector(`[data-product="${CSS.escape(id)}"]`);
+ const find=()=>catalogueProductButton(id);
  const load=()=>{
   let row=find();
   while(!row&&list.querySelector('[data-catalogue-more]')){
@@ -698,7 +742,69 @@ function revealCatalogueProduct(id){
  row.focus({preventScroll:true});
  scroller.scrollTop+=row.getBoundingClientRect().top-scroller.getBoundingClientRect().top;
 }
-function selectSidebarProduct(id){const sidebarTop=$('.product-catalogue')?.scrollTop||0,pageTop=window.scrollY||0,pageLeft=window.scrollX||0,height=$('main')?.getBoundingClientRect().height||0;selected=id;render({preserveCatalogue:true});const main=$('main');main.style.minHeight=height+'px';const restore=()=>{if(main!==$('main'))return;$('.product-catalogue').scrollTop=sidebarTop;window.scrollTo?.({top:pageTop,left:pageLeft,behavior:'instant'});};const item=[...document.querySelectorAll('[data-product]')].find(button=>button.dataset.product===id);item?.focus({preventScroll:true});restore();window.requestAnimationFrame?.(restore);}
+function selectSidebarProduct(id,{preserveCatalogue=true,reveal=false}={}){
+ const sidebarTop=$('.product-catalogue').scrollTop;
+ const pageTop=window.scrollY||0,pageLeft=window.scrollX||0,height=$('main').getBoundingClientRect().height;
+ selected=id;
+ render({preserveCatalogue});
+ const main=$('main'),item=catalogueProductButton(id),row=item?.closest('.catalogue-product-row');
+ main.style.minHeight=height+'px';
+ const restore=()=>{
+  if(main!==$('main'))return;
+  $('.product-catalogue').scrollTop=sidebarTop;
+  if(reveal&&row?.getClientRects().length)row.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
+  window.scrollTo?.({top:pageTop,left:pageLeft,behavior:'instant'});
+ };
+ item?.focus({preventScroll:true});
+ restore();
+ window.requestAnimationFrame?.(restore);
+}
+
+function insertCatalogueVariant(source,variant){
+ const list=$('#product-list'),row=catalogueProductButton(source.id)?.closest('.catalogue-product-row');
+ if(!row)return false;
+ const previousGroup=row.closest('[data-group]'),name=variant.productGroup||'';
+ let group=previousGroup;
+ if(group.dataset.group!==name){
+  group=[...list.querySelectorAll('[data-group]')].find(element=>element.dataset.group===name);
+  if(!group){
+   const previous=previousGroup.getBoundingClientRect(),position=row.getBoundingClientRect();
+   const before=position.top-previous.top<=previous.bottom-position.bottom;
+   previousGroup.insertAdjacentHTML(before?'beforebegin':'afterend',catalogueGroup(name,0,''));
+   group=before?previousGroup.previousElementSibling:previousGroup.nextElementSibling;
+  }
+  group.append(row);
+  if(!previousGroup.querySelector('[data-product]'))previousGroup.remove();
+ }
+ row.insertAdjacentHTML('afterend',catalogueProductRow(variant,variant.id));
+ group.open=true;
+ productGroupOpen.set(name,true);
+ updateCatalogueCounts(list,catalogueMatches());
+ return true;
+}
+
+function createProductVariant(source){
+ const variant={...structuredClone(source),id:crypto.randomUUID(),history:[],sku:variantSkuPrefix(source.sku),
+  variantNote:'',colorCode:'',barcode:'',labelPdf:null,listingDrafts:{}};
+ delete variant.printModel;
+ delete variant.sharedListingChanges;
+ if(!source.productGroup)source.productGroup=source.name;
+ variant.productGroup=source.productGroup;
+ db.products.splice(db.products.indexOf(source)+1,0,variant);
+
+ let preserveCatalogue=insertCatalogueVariant(source,variant);
+ if(!preserveCatalogue){
+  const pages=catalogueProductBatches(catalogueMatches(),productPageSize);
+  const page=pages.findIndex(products=>products.includes(variant));
+  preserveCatalogue=page<0;
+  if(page>=0){
+   productPage=Math.max(productPage,page);
+   productGroupOpen.set(variant.productGroup||'',true);
+  }
+ }
+ save();
+ selectSidebarProduct(variant.id,{preserveCatalogue,reveal:true});
+}
 
 let appZoom=100;try{const savedZoom=Number(localStorage.getItem('workshop-ui-zoom'));if(savedZoom>=60&&savedZoom<=160)appZoom=savedZoom;}catch{}
 function applyAppZoom(){document.documentElement.style.zoom=String(appZoom/100);try{localStorage.setItem('workshop-ui-zoom',String(appZoom));}catch{}const value=document.querySelector('#app-zoom-reset');if(value)value.textContent=appZoom+'%';window.dispatchEvent(new window.Event('workshop:zoom'));}
@@ -1795,7 +1901,7 @@ function bind(){
   updateCatalogueVariant(p);
   render({preserveCatalogue:true});
  };
- $('#duplicate').onclick=()=>{const q=structuredClone(p);q.id=crypto.randomUUID();q.history=[];q.sku=variantSkuPrefix(p.sku);q.variantNote='';q.colorCode='';q.barcode='';q.labelPdf=null;delete q.printModel;q.listingDrafts={};delete q.sharedListingChanges;if(!p.productGroup){p.productGroup=p.name;q.productGroup=p.name;}db.products.push(q);selected=q.id;save();render();};$('#delete-product').onclick=safe(async()=>{const queued=(db.printQueue||[]).filter(j=>j.productId===p.id&&!j.archivedAt).length;if(!await confirm('Удалить из приложения только вариант «'+(p.sku||p.name)+'»? Остальные варианты группы сохранятся. Карточка на площадке останется.'+(queued?' В очереди печати останутся задания этого варианта: '+queued+'.':'')))return;await backup();const before=structuredClone(db.products),previousSelected=selected,files=(await listFiles(db.id+':'+p.id)).filter(f=>f.category==='model');try{await rehomePrintModels(db,p);db.products=db.products.filter(q=>q.id!==p.id);if(!db.products.length)db.products.push(blankProduct());selected=db.products[0].id;var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false))throw Error('Не удалось сохранить удаление варианта');}catch(error){await putFiles(files);db.products=before;selected=previousSelected;render();throw error;}render();toast('Вариант удалён. При необходимости используйте «Бэкап → Восстановить резервную базу».');});$('#add-custom').onclick=()=>{p.custom.push({id:crypto.randomUUID(),name:'Новый расход',mode:'unit',amount:null});save();renderCustom();renderResults();};$('#cost-report-pdf').onclick=safe(()=>openCostReport(db.products.map(productWithConfiguredPrices)));$('#snapshot').onclick=()=>{const r=calculate(p);p.history.push({date:new Date().toLocaleString('ru-RU'),platform:p.platform,price:r.price,profit:r.profit,markets:structuredClone(r.markets),partial:!!(r.missing.length||r.invalid.length),inputs:structuredClone({...p,history:[]}),results:r});save();renderHistory();toast('Снимок расчёта сохранён');};$('#full-export').onclick=safe(exportFullArchive);$('#transfer-export').onclick=safe(()=>exportFullArchive({replaceAll:true}));$('[data-json-backup-mode]').onchange=event=>{jsonBackupMode=event.target.value;updateBackupModeLabels();};$('[data-shared-backup-mode]').onchange=event=>{sharedBackupMode=event.target.value;};for(const button of document.querySelectorAll('[data-open-backup-settings]'))button.onclick=()=>{const settings=$('#backup-settings');settings.open=true;$('#client-id').scrollIntoView({block:'center'});$('#client-id').focus({preventScroll:true});};for(const button of document.querySelectorAll('[data-backup-file]'))button.onclick=()=>document.getElementById(button.dataset.backupFile).click();$('#full-import').onchange=safe(event=>{const file=event.target.files[0];event.target.value='';return restoreFullArchive(file);});$('#export').onclick=()=>exportDB();$('#import').onchange=safe(event=>importBackupJson(event.target));$('#costs-data-export').onclick=safe(exportCostsData);$('#costs-data-import').onclick=()=>$('#costs-data-file').click();$('#costs-data-file').onchange=safe(event=>importBackupJson(event.target,{costsOnly:true}));$('#restore').onclick=safe(async()=>{const x=validateDB(await readDatabaseBackup({key:KEY}));if(await confirm('Восстановить резервную базу?'))await changeDB(x);});$('#pick-file').onclick=()=>fileAction('pick');$('#read-file').onclick=()=>fileAction('read');$('#write-file').onclick=()=>fileAction('write');$('#google-connect').onclick=safe(()=>connectGoogle(true));if(space==='backup')loadGoogleIdentity().catch(()=>{});$('#client-id').oninput=updateDriveControls;document.querySelector('[data-copy-app-address]').onclick=safe(async()=>{await navigator.clipboard.writeText('https://tpskym.github.io/wb-cost-pwa/');const button=document.querySelector('[data-copy-app-address]');if(button){button.textContent='✓ Адрес скопирован';button.setAttribute('aria-label','Адрес приложения скопирован');}toast('Адрес приложения скопирован');});updateDriveControls();$('#drive-load').onclick=safe(driveLoad);$('#drive-create').onclick=safe(driveCreate);$('#google-out').onclick=()=>{if(token&&window.google)window.google.accounts.oauth2.revoke(token);token=null;googleTokenExpires=0;delete config.googleAccount;delete config.driveFileId;localStorage.setItem(CONFIG,JSON.stringify(config));driveId=null;googleError=null;googleStatus='Не подключено';updateDriveControls();$('#drive-link').hidden=true;};$('#install').onclick=async()=>{await installPrompt?.prompt();installPrompt=null;$('#install').hidden=true;};}
+ $('#duplicate').onclick=()=>createProductVariant(p);$('#delete-product').onclick=safe(async()=>{const queued=(db.printQueue||[]).filter(j=>j.productId===p.id&&!j.archivedAt).length;if(!await confirm('Удалить из приложения только вариант «'+(p.sku||p.name)+'»? Остальные варианты группы сохранятся. Карточка на площадке останется.'+(queued?' В очереди печати останутся задания этого варианта: '+queued+'.':'')))return;await backup();const before=structuredClone(db.products),previousSelected=selected,files=(await listFiles(db.id+':'+p.id)).filter(f=>f.category==='model');try{await rehomePrintModels(db,p);db.products=db.products.filter(q=>q.id!==p.id);if(!db.products.length)db.products.push(blankProduct());selected=db.products[0].id;var saveResult=save();if(saveResult===false||(saveResult?.then&&await saveResult===false))throw Error('Не удалось сохранить удаление варианта');}catch(error){await putFiles(files);db.products=before;selected=previousSelected;render();throw error;}render();toast('Вариант удалён. При необходимости используйте «Бэкап → Восстановить резервную базу».');});$('#add-custom').onclick=()=>{p.custom.push({id:crypto.randomUUID(),name:'Новый расход',mode:'unit',amount:null});save();renderCustom();renderResults();};$('#cost-report-pdf').onclick=safe(()=>openCostReport(db.products.map(productWithConfiguredPrices)));$('#snapshot').onclick=()=>{const r=calculate(p);p.history.push({date:new Date().toLocaleString('ru-RU'),platform:p.platform,price:r.price,profit:r.profit,markets:structuredClone(r.markets),partial:!!(r.missing.length||r.invalid.length),inputs:structuredClone({...p,history:[]}),results:r});save();renderHistory();toast('Снимок расчёта сохранён');};$('#full-export').onclick=safe(exportFullArchive);$('#transfer-export').onclick=safe(()=>exportFullArchive({replaceAll:true}));$('[data-json-backup-mode]').onchange=event=>{jsonBackupMode=event.target.value;updateBackupModeLabels();};$('[data-shared-backup-mode]').onchange=event=>{sharedBackupMode=event.target.value;};for(const button of document.querySelectorAll('[data-open-backup-settings]'))button.onclick=()=>{const settings=$('#backup-settings');settings.open=true;$('#client-id').scrollIntoView({block:'center'});$('#client-id').focus({preventScroll:true});};for(const button of document.querySelectorAll('[data-backup-file]'))button.onclick=()=>document.getElementById(button.dataset.backupFile).click();$('#full-import').onchange=safe(event=>{const file=event.target.files[0];event.target.value='';return restoreFullArchive(file);});$('#export').onclick=()=>exportDB();$('#import').onchange=safe(event=>importBackupJson(event.target));$('#costs-data-export').onclick=safe(exportCostsData);$('#costs-data-import').onclick=()=>$('#costs-data-file').click();$('#costs-data-file').onchange=safe(event=>importBackupJson(event.target,{costsOnly:true}));$('#restore').onclick=safe(async()=>{const x=validateDB(await readDatabaseBackup({key:KEY}));if(await confirm('Восстановить резервную базу?'))await changeDB(x);});$('#pick-file').onclick=()=>fileAction('pick');$('#read-file').onclick=()=>fileAction('read');$('#write-file').onclick=()=>fileAction('write');$('#google-connect').onclick=safe(()=>connectGoogle(true));if(space==='backup')loadGoogleIdentity().catch(()=>{});$('#client-id').oninput=updateDriveControls;document.querySelector('[data-copy-app-address]').onclick=safe(async()=>{await navigator.clipboard.writeText('https://tpskym.github.io/wb-cost-pwa/');const button=document.querySelector('[data-copy-app-address]');if(button){button.textContent='✓ Адрес скопирован';button.setAttribute('aria-label','Адрес приложения скопирован');}toast('Адрес приложения скопирован');});updateDriveControls();$('#drive-load').onclick=safe(driveLoad);$('#drive-create').onclick=safe(driveCreate);$('#google-out').onclick=()=>{if(token&&window.google)window.google.accounts.oauth2.revoke(token);token=null;googleTokenExpires=0;delete config.googleAccount;delete config.driveFileId;localStorage.setItem(CONFIG,JSON.stringify(config));driveId=null;googleError=null;googleStatus='Не подключено';updateDriveControls();$('#drive-link').hidden=true;};$('#install').onclick=async()=>{await installPrompt?.prompt();installPrompt=null;$('#install').hidden=true;};}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;if($('#install'))$('#install').hidden=false;});window.addEventListener('online',()=>{$('#network').textContent='Онлайн';});window.addEventListener('offline',()=>{$('#network').textContent='Офлайн';});window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==JSON.stringify(db)){toast('База изменена в другой вкладке. Перезагрузите страницу перед редактированием.');document.querySelectorAll('input,select,button').forEach(x=>x.disabled=true);}});
 installNumberControls();installPrintActionControls();modelMigration=migrateProductModels(db);render();modelMigration.then(changed=>{if(changed){save();if(['cost','cards'].includes(space))renderFiles();}}).catch(()=>toast('Не удалось проверить старые модели. Файлы сохранены, попробуйте открыть себестоимость снова.'));if(initialStorageError)toast('Не удалось создать базу в IndexedDB. Сохранение на устройстве недоступно.');if(backupMigrationError)toast('Не удалось перенести старую резервную копию. Она сохранена в прежнем хранилище.');if(databaseStorage.migrationError)toast('Не удалось перенести базу в IndexedDB. Исходная база сохранена. Скачайте полный ZIP.');if(recoveryRaw)toast('Повреждённая база сохранена. Используйте экспорт для восстановления.');if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>toast('Офлайн-режим недоступен в этом браузере'));
 
