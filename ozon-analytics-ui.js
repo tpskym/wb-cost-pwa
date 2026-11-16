@@ -1,5 +1,5 @@
-import {marketRequest} from './marketplace-api.js?v=0.2.388';
-import {analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.388';
+import {marketRequest} from './marketplace-api.js?v=0.2.389';
+import {analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.389';
 
 const money=value=>new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'}).format(value/100);
 const dateLabel=value=>new Date(value+'T00:00:00Z').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
@@ -31,7 +31,7 @@ function analyticsTable(periods,sum,mode,loaded,expected,collapsed) {
   return `<tr class="analytics-group-row ${group==='unclassified'?'analytics-warning':''}"><th scope="row">${labels.length?`<button type="button" data-analytics-group="${group}" aria-expanded="${!collapsed.has(group)}"><span aria-hidden="true">${collapsed.has(group)?'›':'⌄'}</span>${title}</button>`:title}</th>${columns.map(column=>cell(column,groupValue(column))).join('')}</tr>`+
    labels.map(label=>`<tr class="analytics-detail-row" data-analytics-detail="${group}" ${collapsed.has(group)?'hidden':''}><th scope="row">${esc(label)}</th>${columns.map(column=>cell(column,column.rows.filter(row=>row.group===group&&row.label===label).reduce((n,row)=>n+row.amount,0))).join('')}</tr>`).join('');
  }).join('');
- return `<p class="analytics-table-hint">${mode==='days'?'Каждый столбец — один день.':mode==='weeks'?'Каждый столбец — одна неделя.':'Каждый столбец — один месяц.'} Прокручивайте таблицу вправо. Названия строк закреплены.</p><div class="analytics-table-scroll" role="region" aria-label="Таблица начислений Ozon" tabindex="0"><table class="analytics-table"><caption class="analytics-table-caption">Начисления Ozon в рублях. «—» означает, что данные не загружены.</caption><thead><tr><th scope="col">Статья доходов / расходов</th>${headers}</tr></thead><tbody>${body}<tr class="analytics-net-row"><th scope="row">Итого начислено</th>${columns.map(column=>cell(column,column.total)).join('')}</tr></tbody></table></div>`;
+ return `<caption class="analytics-table-caption">Начисления Ozon в рублях. «—» означает, что данные не загружены.</caption><thead><tr><th scope="col">Статья доходов / расходов</th>${headers}</tr></thead><tbody>${body}<tr class="analytics-net-row"><th scope="row">Итого начислено</th>${columns.map(column=>cell(column,column.total)).join('')}</tr></tbody>`;
 }
 export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpenApi,request=marketRequest,now=()=>new Date()}) {
  let disposed=false,controller=null,mode='days';const collapsed=new Set();
@@ -41,32 +41,79 @@ export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpe
  <p class="analytics-status" role="status" aria-live="polite"></p>
  <div class="analytics-view" role="group" aria-label="Период аналитики"><button type="button" data-analytics-mode="days" aria-pressed="true">По дням</button><button type="button" data-analytics-mode="weeks" aria-pressed="false">Итоги по неделям</button><button type="button" data-analytics-mode="months" aria-pressed="false">Итоги по месяцам</button></div>
  <div data-analytics-results></div>
+ <div class="analytics-table-layout" hidden>
+  <div class="analytics-table-scrollbar" role="region" aria-label="Горизонтальная прокрутка таблицы" tabindex="0" hidden><div aria-hidden="true"></div></div>
+  <div class="analytics-table-scroll" role="region" aria-label="Таблица начислений Ozon" tabindex="0"><table class="analytics-table"></table></div>
+ </div>
  <details class="analytics-help"><summary>Как считаются данные</summary><p>Используются фактические начисления Seller API Ozon по дате начисления, а не по дате заказа. Недели начинаются в понедельник, месяцы — календарные. Итоги включают только выбранные и загруженные дни; неполный период отмечается.</p><p>Итого начислено — сумма операций Ozon до вашей себестоимости и налогов. Это не чистая прибыль и не банковская выплата. Баллы за скидки показаны в денежном эквиваленте, полученном из API.</p><p>Названия услуг берутся из справочника Ozon и объединяются по смыслу. Нераспределённая разница сохраняется отдельно. Данные API могут отличаться от кабинета продавца. Ozon может пересчитать прошлые дни — для обновления снова загрузите период.</p><p>Сохраняем каждый полностью загруженный день на этом устройстве. При остановке уже сохранённые дни остаются. Архив «Полный бэкап» включает аналитику.</p><a href="https://docs.ozon.ru/api/seller/#operation/GetFinanceAccrualByDay" target="_blank" rel="noopener noreferrer">Описание начислений в API Ozon ↗</a></details></section>`;
  const form=root.querySelector('form'),from=form.elements.from,to=form.elements.to,status=root.querySelector('.analytics-status'),results=root.querySelector('[data-analytics-results]'),stop=root.querySelector('[data-analytics-stop]');
+ const tableLayout=root.querySelector('.analytics-table-layout');
+ const tableScroll=tableLayout.querySelector('.analytics-table-scroll');
+ const table=tableScroll.querySelector('table');
+ const scrollbar=tableLayout.querySelector('.analytics-table-scrollbar');
+ const scrollbarSpacer=scrollbar.firstElementChild;
+ const view=root.ownerDocument.defaultView;
+
+ function updateScrollbar(){
+  const {clientWidth,scrollWidth}=tableScroll;
+  scrollbar.hidden=!clientWidth||scrollWidth<=clientWidth;
+  if(scrollbar.hidden)return;
+  // Use the inner width so both tracks have the same horizontal range, even with a vertical scrollbar.
+  scrollbar.style.width=`${clientWidth}px`;
+  scrollbarSpacer.style.width=`${scrollWidth}px`;
+  scrollbar.scrollLeft=tableScroll.scrollLeft;
+ }
+ scrollbar.onscroll=()=>{
+  if(!scrollbar.hidden&&tableScroll.scrollLeft!==scrollbar.scrollLeft)tableScroll.scrollLeft=scrollbar.scrollLeft;
+ };
+ tableScroll.onscroll=()=>{
+  if(!scrollbar.hidden&&scrollbar.scrollLeft!==tableScroll.scrollLeft)scrollbar.scrollLeft=tableScroll.scrollLeft;
+ };
+ const resizeObserver=view?.ResizeObserver?new view.ResizeObserver(updateScrollbar):null;
+ resizeObserver?.observe(tableScroll);
+ resizeObserver?.observe(table);
+ view?.addEventListener('resize',updateScrollbar);
+ view?.addEventListener('workshop:zoom',updateScrollbar);
+
  const stateDays=()=>getState()?.accounts?.find(account=>account.clientId===String(getCredentials().ozonClient||''))?.days||[];
  const selectedDates=()=>{const dates=dateRange(from.value,to.value);if(to.value>dayKey(now()))throw Error('Будущие дни ещё нельзя загрузить.');return dates;};
  function draw(){
   if(disposed)return;
-  let dates;try{dates=selectedDates();}catch(error){results.innerHTML=`<p class="analytics-empty">${esc(error.message)}</p>`;return;}
+  let dates;
+  try{dates=selectedDates();}catch(error){
+   tableLayout.hidden=true;
+   results.innerHTML=`<p class="analytics-empty">${esc(error.message)}</p>`;
+   return;
+  }
   const cached=stateDays(),selected=cached.filter(day=>dates.includes(day.date)),sum=aggregateDays(selected);
   const sales=sum.rows.filter(row=>row.group==='sales').reduce((n,row)=>n+row.amount,0),returns=sum.rows.filter(row=>row.group==='returns').reduce((n,row)=>n+row.amount,0);
   const periods=analyticsPeriods(dates,cached,mode).reverse();
-  const previousScroll=results.querySelector('.analytics-table-scroll'),scrollLeft=previousScroll?.scrollLeft||0,scrollTop=previousScroll?.scrollTop||0;
+  const {scrollLeft,scrollTop}=tableScroll;
   results.innerHTML=`<div class="analytics-summary"><div><span>Продажи</span><strong>${selected.length?money(sales):'—'}</strong></div><div><span>Возвраты</span><strong>${selected.length?money(returns):'—'}</strong></div><div><span>Услуги и прочие начисления</span><strong>${selected.length?money(sum.total-sales-returns):'—'}</strong></div><div class="analytics-net"><span>Итого начислено</span><strong>${selected.length?money(sum.total):'—'}</strong></div></div>
   <p class="analytics-coverage">${dateLabel(from.value)} — ${dateLabel(to.value)} · загружено ${selected.length} из ${dates.length} дней${selected.length<dates.length?' · итоги неполные':''}</p>
-  ${selected.length?'':'<p class="analytics-empty">За этот период нет сохранённых данных. Нажмите «Загрузить из Ozon». Используется ключ из раздела «API и доступы».</p>'}
-  ${analyticsTable(periods,sum,mode,selected.length,dates.length,collapsed)}`;
-  const scroll=results.querySelector('.analytics-table-scroll');scroll.scrollLeft=scrollLeft;scroll.scrollTop=scrollTop;
-  results.querySelectorAll('[data-analytics-group]').forEach(button=>button.onclick=()=>{
+  ${selected.length?'':'<p class="analytics-empty">За этот период нет сохранённых данных. Нажмите «Загрузить из Ozon». Используется ключ из раздела «API и доступы».</p>'}`;
+  table.innerHTML=analyticsTable(periods,sum,mode,selected.length,dates.length,collapsed);
+  tableLayout.hidden=false;
+  tableScroll.scrollLeft=scrollLeft;
+  tableScroll.scrollTop=scrollTop;
+  updateScrollbar();
+  table.querySelectorAll('[data-analytics-group]').forEach(button=>button.onclick=()=>{
    const group=button.dataset.analyticsGroup,hide=!collapsed.has(group);
    if(hide)collapsed.add(group);else collapsed.delete(group);
    button.setAttribute('aria-expanded',String(!hide));button.querySelector('span').textContent=hide?'›':'⌄';
-   results.querySelectorAll(`[data-analytics-detail="${group}"]`).forEach(row=>row.hidden=hide);
+   table.querySelectorAll(`[data-analytics-detail="${group}"]`).forEach(row=>row.hidden=hide);
   });
  }
  root.querySelector('[data-analytics-api]').onclick=onOpenApi;
  from.onchange=to.onchange=draw;
- root.querySelectorAll('[data-analytics-mode]').forEach(button=>button.onclick=()=>{mode=button.dataset.analyticsMode;const scroll=results.querySelector('.analytics-table-scroll');if(scroll){scroll.scrollLeft=0;scroll.scrollTop=0;}root.querySelectorAll('[data-analytics-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));draw();});
+ const modeButtons=root.querySelectorAll('[data-analytics-mode]');
+ modeButtons.forEach(button=>button.onclick=()=>{
+  mode=button.dataset.analyticsMode;
+  tableScroll.scrollLeft=0;
+  tableScroll.scrollTop=0;
+  modeButtons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+  draw();
+ });
  stop.onclick=()=>{controller?.abort();status.textContent='Останавливаем загрузку… Сохранённые дни останутся.';};
  form.onsubmit=async event=>{
   event.preventDefault();if(controller)return;
@@ -108,5 +155,11 @@ export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpe
   finally{controller=null;if(!disposed){fields.forEach(field=>field.disabled=false);stop.hidden=true;draw();}}
  };
  draw();
- return ()=>{disposed=true;controller?.abort();};
+ return ()=>{
+  disposed=true;
+  controller?.abort();
+  resizeObserver?.disconnect();
+  view?.removeEventListener('resize',updateScrollbar);
+  view?.removeEventListener('workshop:zoom',updateScrollbar);
+ };
 }

@@ -101,3 +101,36 @@ test('days are chronological columns with aligned detail rows, missing markers a
  root.querySelector('[data-analytics-mode="months"]').click();assert.equal(root.querySelectorAll('thead th').length,3);assert.match(root.querySelector('thead').textContent,/ноябрь 2026/);
  dispose();dom.window.close();
 });
+
+test('the top scrollbar follows table scrolling in both directions and hides when all columns fit',()=>{
+ const dom=new JSDOM('<div id="root"></div>'),{window}=dom;
+ const root=window.document.querySelector('#root');
+ const dispose=mountOzonAnalytics({
+  root,getState:()=>null,getCredentials:()=>({}),now:()=>new Date('2026-11-10T12:00:00Z'),
+  onOpenApi:()=>{},commitDay:async()=>true
+ });
+ const tableScroll=root.querySelector('.analytics-table-scroll');
+ const scrollbar=root.querySelector('.analytics-table-scrollbar');
+ Object.defineProperties(tableScroll,{
+  clientWidth:{value:600},
+  scrollWidth:{get:()=>tableScroll.querySelectorAll('thead th').length>3?1800:600}
+ });
+ window.dispatchEvent(new window.Event('resize'));
+ assert.equal(scrollbar.hidden,false);
+ scrollbar.scrollLeft=440;
+ scrollbar.dispatchEvent(new window.Event('scroll'));
+ assert.equal(tableScroll.scrollLeft,440);
+ tableScroll.scrollLeft=900;
+ tableScroll.dispatchEvent(new window.Event('scroll'));
+ assert.equal(scrollbar.scrollLeft,900);
+
+ root.querySelector('[name="to"]').dispatchEvent(new window.Event('change'));
+ assert.equal(tableScroll.scrollLeft,900);
+ assert.equal(root.querySelector('.analytics-table-scrollbar'),scrollbar);
+ root.querySelector('[data-analytics-mode="months"]').click();
+ assert.equal(scrollbar.hidden,true);
+ root.querySelector('[data-analytics-mode="days"]').click();
+ assert.equal(scrollbar.hidden,false);
+ assert.equal(scrollbar.scrollLeft,0);
+ dispose();window.close();
+});
