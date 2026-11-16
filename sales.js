@@ -1,4 +1,4 @@
-import {mountMarketplaceOrders} from './marketplace-orders.js?v=0.2.392';
+import {mountMarketplaceOrders} from './marketplace-orders.js?v=0.2.395';
 import {calculateManual} from './calc.js?v=0.2.392';
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const rub=value=>value===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'}).format(value),round=value=>Math.round((value+Number.EPSILON)*100)/100;

@@ -1,5 +1,6 @@
 import {marketRequest} from './marketplace-api.js?v=0.2.392';
 import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
+import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.395';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
 const pointsFormat=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -18,6 +19,43 @@ const standardRows={
  returns:['Возврат выручки','Баллы за скидки','Программы партнёров'],
  commission:['Вознаграждение за продажу','Возврат вознаграждения']
 };
+const reports=[['accruals','Начисления Ozon'],['clusters','Заказы по кластерам Ozon']];
+
+export function mountAnalyticsWorkspace({root,state,getState,commitDay,getCredentials,getProducts,onOpenApi}){
+ root.innerHTML=`
+  <nav class="analytics-report-list" aria-labelledby="analytics-reports-label">
+   <h2 id="analytics-reports-label">Отчёты</h2>
+   ${reports.map(([id,label])=>`<button type="button" data-analytics-report="${id}" aria-pressed="false"><span>${label}</span></button>`).join('')}
+  </nav>
+  <label class="analytics-report-picker">Отчёт
+   <select class="ui-select" data-analytics-report-picker>${reports.map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select>
+  </label>
+  ${reports.map(([id])=>`<div data-analytics-report-panel="${id}" hidden></div>`).join('')}`;
+ const buttons=root.querySelectorAll('[data-analytics-report]');
+ const picker=root.querySelector('[data-analytics-report-picker]');
+ const panels=new Map([...root.querySelectorAll('[data-analytics-report-panel]')].map(panel=>[panel.dataset.analyticsReportPanel,panel]));
+ const mounted=new Map();
+ const mount={
+  accruals:root=>mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpenApi}),
+  clusters:root=>mountOzonClusterOrders({root,state:state.clusters,getCredentials,getProducts,onOpenApi})
+ };
+ function show(report){
+  state.report=report;
+  for(const [id,panel] of panels)panel.hidden=id!==report;
+  for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.analyticsReport===report));
+  picker.value=report;
+  if(!mounted.has(report))mounted.set(report,mount[report](panels.get(report)));
+ }
+ function select(report){
+  if(report===state.report)return;
+  show(report);
+  root.ownerDocument.defaultView?.scrollTo?.({top:0,behavior:'instant'});
+ }
+ for(const button of buttons)button.onclick=()=>select(button.dataset.analyticsReport);
+ picker.onchange=()=>select(picker.value);
+ show(panels.has(state.report)?state.report:'accruals');
+ return ()=>{for(const dispose of mounted.values())dispose();};
+}
 
 function analyticsSummary({rows,total},hasDays){
  const groupTotal=(...groups)=>rows.reduce((sum,row)=>sum+(groups.includes(row.group)?row.amount:0),0);
@@ -78,7 +116,7 @@ function analyticsTable(periods,sum,mode,loaded,expected,collapsed) {
 export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpenApi,request=marketRequest,now=()=>new Date()}) {
  let disposed=false,controller=null,mode='days';const collapsed=new Set();
  const today=dayKey(now()),monthStart=today.slice(0,8)+'01';
- root.innerHTML=`<section class="panel ozon-analytics"><div class="analytics-heading"><div><span class="analytics-badge">Ozon · начисления</span><h1>Аналитика</h1><p>Доходы и расходы в таблице: дни по столбцам, статьи по строкам.</p></div><button type="button" data-analytics-api>Настроить доступ Ozon</button></div>
+ root.innerHTML=`<section class="panel ozon-analytics"><div class="analytics-heading"><div><h1>Начисления Ozon</h1><p>Доходы и расходы по дням с итогами за недели и месяцы.</p></div><button type="button" data-analytics-api>Настроить доступ Ozon</button></div>
  <form class="analytics-controls"><label>С даты<input type="date" name="from" value="${monthStart}" min="2022-01-01" max="${today}" required></label><label>По дату<input type="date" name="to" value="${today}" min="2022-01-01" max="${today}" required></label><button class="primary" type="submit" id="analytics-refresh">Загрузить из Ozon</button><button type="button" data-analytics-stop hidden>Стоп</button></form>
  <p class="analytics-status" role="status" aria-live="polite"></p>
  <div class="analytics-view" role="group" aria-label="Период аналитики"><button type="button" data-analytics-mode="days" aria-pressed="true">По дням</button><button type="button" data-analytics-mode="weeks" aria-pressed="false">Итоги по неделям</button><button type="button" data-analytics-mode="months" aria-pressed="false">Итоги по месяцам</button></div>

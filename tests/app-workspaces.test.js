@@ -257,9 +257,28 @@ test('costs ZIP keeps the list photo when only a model is selected',async()=>{
  }finally{URL.createObjectURL=previousURL;window.HTMLAnchorElement.prototype.click=previousClick;globalThis.setTimeout=previousTimeout;}
 });
 
-test('Ozon analytics is reachable from sidebar and mobile selector and opens API settings',async()=>{
+test('Ozon analytics switches between reports from its menu and mobile selector and opens API settings',async()=>{
  document.querySelector('[data-space="analytics"]').click();await settle();
  assert.equal(document.querySelector('main').dataset.workspace,'analytics');assert.ok(document.querySelector('#analytics-refresh'));assert.match(document.querySelector('#analytics-workspace').textContent,/По дням/);
- document.querySelector('[data-analytics-api]').click();await settle();assert.equal(document.querySelector('main').dataset.workspace,'api');
+ const $=selector=>document.querySelector(selector);
+ const picker=$('[data-analytics-report-picker]'),accruals=$('[data-analytics-report-panel="accruals"]');
+ $('[data-analytics-mode="weeks"]').click();
+ $('[data-analytics-report="clusters"]').click();
+ assert.equal(accruals.hidden,true);
+ assert.equal(picker.value,'clusters');
+ assert.equal($('[data-analytics-report="clusters"]').getAttribute('aria-pressed'),'true');
+ const clusters=$('[data-analytics-report-panel="clusters"]');
+ assert.equal(clusters.hidden,false);
+ assert.ok(clusters.querySelector('#ozon-clusters-refresh'));
+ const article=clusters.querySelector('[name="sku"]');
+ article.value='stand-white';article.dispatchEvent(new window.Event('input'));
+ picker.value='accruals';picker.dispatchEvent(new window.Event('change'));
+ assert.equal(accruals.hidden,false);
+ assert.equal($('[data-analytics-mode="weeks"]').getAttribute('aria-pressed'),'true');
+ picker.value='clusters';picker.dispatchEvent(new window.Event('change'));
+ assert.equal(article.value,'stand-white');
+ $('[data-clusters-api]').click();await settle();assert.equal(document.querySelector('main').dataset.workspace,'api');
  const select=document.querySelector('#workspace-select');select.value='analytics';select.dispatchEvent(new window.Event('change'));await settle();assert.equal(document.querySelector('main').dataset.workspace,'analytics');
+ assert.equal($('[data-analytics-report-picker]').value,'clusters');
+ assert.equal($('[data-analytics-report-panel="clusters"] [name="sku"]').value,'stand-white');
 });
