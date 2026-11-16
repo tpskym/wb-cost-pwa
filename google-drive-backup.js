@@ -1,4 +1,4 @@
-import {waitForBackupTask} from './backup-cancel.js?v=0.2.386';
+import {waitForBackupTask} from './backup-cancel.js?v=0.2.387';
 const API='https://www.googleapis.com/drive/v3/files';
 const UPLOAD='https://www.googleapis.com/upload/drive/v3/files';
 const NAME='Мастерская — резервная копия.zip';

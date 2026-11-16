@@ -1,6 +1,7 @@
-import {filamentTypes} from './filament-stock.js?v=0.2.386';
-import {validateExpensesDatabase} from './expenses.js?v=0.2.386';
-import {validatePrintQueue} from './print-queue-state.js?v=0.2.386';
+import {validateAnalytics} from './ozon-analytics.js?v=0.2.387';
+import {filamentTypes} from './filament-stock.js?v=0.2.387';
+import {validateExpensesDatabase} from './expenses.js?v=0.2.387';
+import {validatePrintQueue} from './print-queue-state.js?v=0.2.387';
 export const groups = [
  ['production','Производство','Материалы, оборудование и время'],
  ['packaging','Упаковка','На изделие и на отправляемую партию'],
@@ -82,6 +83,7 @@ export function validateDB(x){
  if(!Array.isArray(x.stockSnapshots)||x.stockSnapshots.length>4)throw Error('Некорректные остатки складов');const stockSources=new Set();for(const snapshot of x.stockSnapshots){if(!snapshot||!['wb-fbs','wb-fbw','ozon-fbs','ozon-fbo'].includes(snapshot.source)||stockSources.has(snapshot.source)||typeof snapshot.updatedAt!=='string'||!Array.isArray(snapshot.rows)||snapshot.rows.length>100000)throw Error('Некорректный снимок остатков');stockSources.add(snapshot.source);for(const row of snapshot.rows)if(!row||!['sku','name','barcode','warehouse'].every(k=>typeof row[k]==='string')||!['available','reserved','toCustomer','fromCustomer'].every(k=>row[k]===null||Number.isFinite(row[k])))throw Error('Повреждён остаток склада');}
  if(!('listingTemplates' in x))x.listingTemplates=[];
  if(!Array.isArray(x.listingTemplates)||x.listingTemplates.length>1000)throw Error('Некорректные шаблоны карточек');const listingTemplateIds=new Set();for(const t of x.listingTemplates){if(!t||typeof t.id!=='string'||listingTemplateIds.has(t.id)||!['wb','ozon'].includes(t.market)||typeof t.name!=='string'||!t.name.trim()||t.name.length>150||!(t.categoryId>0)||!t.draft||t.draft.mode!=='create'||typeof t.draft.body!=='string'||t.draft.body.length>2000000||!Array.isArray(t.draft.templateFieldKeys)||t.draft.templateFieldKeys.length>50000||!t.draft.templateFieldKeys.every(k=>typeof k==='string')||(t.draft.attributeSchema!==undefined&&(!Array.isArray(t.draft.attributeSchema)||t.draft.attributeSchema.length>10000)))throw Error('Повреждён шаблон карточки');const b=JSON.parse(t.draft.body),item=t.market==='wb'?b?.[0]?.variants?.[0]:b?.items?.[0];if(!item||typeof item!=='object'||(t.market==='ozon'&&!(t.typeId>0)))throw Error('Повреждены поля шаблона карточки');listingTemplateIds.add(t.id);}
+ validateAnalytics(x.ozonAnalytics);
  if(!('orderSnapshots' in x))x.orderSnapshots=[];
  if(!Array.isArray(x.orderSnapshots)||x.orderSnapshots.length>4)throw Error('Некорректный кэш заказов');const orderSources=new Set();for(const snapshot of x.orderSnapshots){if(!snapshot||!['wb-fbs','wb-fbw','ozon-fbs','ozon-fbo'].includes(snapshot.source)||orderSources.has(snapshot.source)||!['from','to','updatedAt'].every(key=>typeof snapshot[key]==='string')||!Array.isArray(snapshot.rows)||snapshot.rows.length>100000)throw Error('Некорректный снимок заказов');orderSources.add(snapshot.source);const ids=new Set();for(const row of snapshot.rows){if(!row||row.source!==snapshot.source||!['id','orderId','sku','name','orderedAt','eventAt','shipmentAt','currency','status','substatus','rawStatus'].every(k=>typeof row[k]==='string'&&row[k].length<10000)||ids.has(row.id)||!Number.isSafeInteger(row.quantity)||row.quantity<1||row.quantity>1000000||(row.price!==null&&(!Number.isFinite(row.price)||row.price<0)))throw Error('Некорректная строка заказа');ids.add(row.id);}}
  if(!('filamentStock' in x))x.filamentStock=[];
