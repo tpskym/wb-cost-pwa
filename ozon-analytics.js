@@ -1,6 +1,6 @@
 // Ozon Seller API: GetFinanceAccrualByDay / GetFinanceAccrualTypes.
 // Amounts are already accrued totals: never multiply them by product quantity.
-export const accrualBreakdownVersion=2;
+export const accrualBreakdownVersion=3;
 // Ozon changes to the effective commission without separate discount points on this date.
 // https://seller.ozon.ru/media/news/obnovim-poryadok-nashih-raschyotov/
 const effectiveCommissionFrom='2026-12-01';
@@ -48,11 +48,11 @@ export function summarizeAccruals(date,accruals,types,updatedAt=new Date().toISO
   const key=group+'\0'+label;
   const row=rows.get(key)||{group,label,amount:0}; row.amount+=amount; rows.set(key,row);
  };
- const fee=entry=>{
+ const addFee=(fees,entry)=>{
   if(!entry)return;
   const type=types.get(String(entry.type_id));
   const label=type?.description||type?.name||`Начисление Ozon · тип ${entry.type_id}`;
-  add(feeGroup(label+' '+(type?.name||'')),label,cents(entry.accrued));
+  fees.push({group:feeGroup(label+' '+(type?.name||'')),label,amount:cents(entry.accrued)});
  };
  for(const accrual of accruals) {
   if(accrual.date!==date)throw Error('Ozon вернул начисление за другую дату. День не сохранён.');
@@ -63,32 +63,54 @@ export function summarizeAccruals(date,accruals,types,updatedAt=new Date().toISO
    continue;
   }
   seen.set(id,signature);
-  count++; total+=cents(accrual.total_amount);
+  const reportedTotal=cents(accrual.total_amount);
+  count++;
+  total+=reportedTotal;
+  const products=[];
+  const fees=[];
   for(const product of accrual.posting?.products||[]) {
    const c=product.commission;
    if(c) {
     const buyerPrice=cents(c.sale_price??c.sale_amount,true);
     // A return may carry the original buyer price alongside a negative realization amount.
-    const revenue=Number(c.sale_amount?.amount)<0?-Math.abs(buyerPrice):buyerPrice;
-    const bonus=cents(c.bonus,true),partner=cents(c.coinvestment,true);
-    const group=revenue+bonus+partner<0?'returns':'sales';
-    add(group,group==='returns'?'Возврат выручки':'Выручка',revenue);
-    add(group,'Баллы за скидки',bonus); add(group,'Программы партнёров',partner);
+    const price=Number(c.sale_amount?.amount)<0?-Math.abs(buyerPrice):buyerPrice;
+    const bonus=cents(c.bonus,true);
+    const partner=cents(c.coinvestment,true);
     // With separate discount points the seller dashboard shows the fee before those points are applied.
     const separatePoints=date<effectiveCommissionFrom||bonus!==0;
     const commission=cents(separatePoints?c.sale_commission??c.commission:c.commission??c.sale_commission,true);
-    add('commission',commission>0?'Возврат вознаграждения':'Вознаграждение за продажу',commission);
+    products.push({price,bonus,partner,commission});
    }
    const delivery=product.delivery;
    if(delivery?.services?.length){
-    for(const service of delivery.services)fee(service);
+    for(const service of delivery.services)addFee(fees,service);
    }else{
-    add('delivery','Доставка без детализации',cents(delivery?.total_accrued,true));
+    const amount=cents(delivery?.total_accrued,true);
+    if(amount)fees.push({group:'delivery',label:'Доставка без детализации',amount});
    }
   }
-  for(const item of accrual.item_fees?.fees||[])for(const entry of item.fees||[])fee(entry);
-  for(const entry of accrual.container_fees?.fees||[])fee(entry);
-  fee(accrual.non_item_fee);
+  for(const item of accrual.item_fees?.fees||[])for(const entry of item.fees||[])addFee(fees,entry);
+  for(const entry of accrual.container_fees?.fees||[])addFee(fees,entry);
+  addFee(fees,accrual.non_item_fee);
+
+  const feesTotal=fees.reduce((sum,fee)=>sum+fee.amount,0);
+  const totalBeforeAddingLoyalty=products.reduce((sum,product)=>sum+product.price+product.commission,feesTotal);
+  const loyaltyTotal=products.reduce((sum,product)=>sum+product.bonus+product.partner,0);
+  // Some accruals report a price that already includes the two loyalty amounts.
+  // Use this interpretation only when the individual accrual reconciles exactly.
+  const priceIncludesLoyalty=loyaltyTotal!==0&&reportedTotal===totalBeforeAddingLoyalty&&products.every(product=>{
+   const loyalty=product.bonus+product.partner;
+   return loyalty===0||(Math.sign(loyalty)===Math.sign(product.price)&&Math.abs(loyalty)<=Math.abs(product.price));
+  });
+  for(const {price,bonus,partner,commission} of products){
+   const revenue=priceIncludesLoyalty?price-bonus-partner:price;
+   const group=revenue+bonus+partner<0?'returns':'sales';
+   add(group,group==='returns'?'Возврат выручки':'Выручка',revenue);
+   add(group,'Баллы за скидки',bonus);
+   add(group,'Программы партнёров',partner);
+   add('commission',commission>0?'Возврат вознаграждения':'Вознаграждение за продажу',commission);
+  }
+  for(const {group,label,amount} of fees)add(group,label,amount);
  }
  const allocated=[...rows.values()].reduce((sum,row)=>sum+row.amount,0);
  // Preserve the API total even if Ozon adds a new field or an undisclosed adjustment.

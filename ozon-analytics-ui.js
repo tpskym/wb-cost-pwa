@@ -1,5 +1,5 @@
-import {marketRequest} from './marketplace-api.js?v=0.2.390';
-import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.390';
+import {marketRequest} from './marketplace-api.js?v=0.2.391';
+import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.391';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
 const pointsFormat=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -133,7 +133,7 @@ export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpe
   const needsRefresh=selected.some(day=>day.count>0&&day.breakdownVersion!==accrualBreakdownVersion);
   results.innerHTML=`${analyticsSummary(sum,selected.length>0)}
   <p class="analytics-coverage">${dateLabel(from.value)} — ${dateLabel(to.value)} · загружено ${selected.length} из ${dates.length} дней${selected.length<dates.length?' · итоги неполные':''}</p>
-  ${needsRefresh?'<p class="analytics-empty">Данные за часть периода загружены до исправления расчёта выручки. Нажмите «Загрузить из Ozon», чтобы обновить разбивку.</p>':''}
+  ${needsRefresh?'<p class="analytics-empty">В выбранном периоде есть дни со старой разбивкой. Нажмите «Загрузить из Ozon», чтобы обновить выручку, баллы и выплаты партнёров.</p>':''}
   ${selected.length?'':'<p class="analytics-empty">За этот период нет сохранённых данных. Нажмите «Загрузить из Ozon». Используется ключ из раздела «API и доступы».</p>'}`;
   table.innerHTML=analyticsTable(periods,sum,mode,selected.length,dates.length,collapsed);
   tableLayout.hidden=false;

@@ -26,6 +26,26 @@ test('Ozon keeps buyer revenue when sale_amount is zero and uses the tariff comm
  assert.equal(day.rows.find(r=>r.group==='commission').amount,-2000);assert.equal(day.rows.find(r=>r.group==='delivery').amount,-2000);assert.ok(!day.rows.some(r=>r.group==='unclassified'));
  validateAnalytics({schema:1,accounts:[{clientId:'123',days:[day]}]});
 });
+test('loyalty already included in the sale or refund amount is split out once per accrual',()=>{
+ const saleWithLoyalty=structuredClone(sale);
+ saleWithLoyalty.accrual_id=2;
+ saleWithLoyalty.posting.products[0].commission.sale_price=amount(100);
+
+ const refundWithLoyalty={
+  accrual_id:3,date:sale.date,total_amount:amount(-80),
+  posting:{products:[{commission:{
+   sale_price:amount(100),sale_amount:amount(-100),
+   bonus:amount(-15),coinvestment:amount(-5),sale_commission:amount(20)
+  }}]}
+ };
+ const day=summarizeAccruals(sale.date,[sale,saleWithLoyalty,refundWithLoyalty],types);
+ const amounts=group=>day.rows.filter(row=>row.group===group).map(row=>row.amount);
+ assert.deepEqual(amounts('sales'),[16000,3000,1000]);
+ assert.deepEqual(amounts('returns'),[-8000,-1500,-500]);
+ assert.deepEqual(amounts('unclassified'),[]);
+ assert.equal(day.total,4000);
+ validateAnalytics({schema:1,accounts:[{clientId:'123',days:[day]}]});
+});
 test('effective commission without points, older revenue fallback and item compensation reconcile to the API total',()=>{
  const posting=structuredClone(sale);
  posting.date='2026-12-01';
@@ -103,9 +123,9 @@ test('analytics UI loads days, replaces updates, shows periods and isolates Ozon
  assert.match(root.querySelector('.analytics-net').textContent,/К выплате за период60,00/);
  delete state.accounts[0].days[0].breakdownVersion;
  root.querySelector('[name="to"]').dispatchEvent(new dom.window.Event('change'));
- assert.match(root.textContent,/до исправления расчёта выручки/);
+ assert.match(root.textContent,/дни со старой разбивкой/);
  root.querySelector('#analytics-refresh').click();await tick();await tick();assert.equal(state.accounts[0].days.length,1);
- assert.doesNotMatch(root.textContent,/до исправления расчёта выручки/);
+ assert.doesNotMatch(root.textContent,/дни со старой разбивкой/);
  root.querySelector('[data-analytics-mode="weeks"]').click();assert.match(root.textContent,/Неделя с/);assert.match(root.textContent,/неполный итог/);
  client='456';root.querySelector('[data-analytics-mode="days"]').click();assert.match(root.textContent,/нет сохранённых данных/);dispose();dom.window.close();
 });
