@@ -952,11 +952,15 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 .analytics-coverage{color:#647268;font-size:14px;margin:16px 0}
 .analytics-table-scrollbar{max-width:100%;margin:0 1px 8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
 .analytics-table-scrollbar>div{height:1px}
-.analytics-table-scrollbar::-webkit-scrollbar{height:14px}
-.analytics-table-scrollbar::-webkit-scrollbar-track{background:#e7ede1;border-radius:8px}
-.analytics-table-scrollbar::-webkit-scrollbar-thumb{background:#6f8565;border:2px solid #e7ede1;border-radius:8px}
-@supports not selector(::-webkit-scrollbar){.analytics-table-scrollbar{scrollbar-color:#6f8565 #e7ede1}}
 .analytics-table-scroll{overflow:auto;max-height:72vh;max-width:100%;border:1px solid #dfe5d8;border-radius:12px;overscroll-behavior-x:contain;overflow-anchor:none}
+@supports selector(::-webkit-scrollbar){
+ .analytics-table-scrollbar::-webkit-scrollbar{height:14px}
+ .analytics-table-scroll::-webkit-scrollbar{width:14px;height:0}
+ .analytics-table-scrollbar::-webkit-scrollbar-track,.analytics-table-scroll::-webkit-scrollbar-track{background:#e7ede1;border-radius:8px}
+ .analytics-table-scrollbar::-webkit-scrollbar-thumb,.analytics-table-scroll::-webkit-scrollbar-thumb{background:#6f8565;border:2px solid #e7ede1;border-radius:8px}
+}
+/* Keep the table's own horizontal scrollbar where the two axes cannot be styled separately. */
+@supports not selector(::-webkit-scrollbar){.analytics-table-scrollbar{display:none}}
 .analytics-table-scrollbar:focus-visible,.analytics-table-scroll:focus-visible{outline:3px solid #739460;outline-offset:3px}
 .analytics-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums}
 .analytics-table-caption{text-align:left;padding:12px 16px;color:#647268;font-size:13px;caption-side:bottom}

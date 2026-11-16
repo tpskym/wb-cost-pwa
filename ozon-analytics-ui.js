@@ -1,5 +1,5 @@
-import {marketRequest} from './marketplace-api.js?v=0.2.391';
-import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.391';
+import {marketRequest} from './marketplace-api.js?v=0.2.392';
+import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
 const pointsFormat=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
