@@ -87,3 +87,17 @@ test('rate-limit wait can be stopped without saving and failed refresh keeps old
  const dispose=mountOzonAnalytics({root,getState:()=>state,getCredentials:()=>({ozonClient:'123',ozonKey:'test'}),now:()=>new Date('2026-11-01T12:00:00Z'),onOpenApi:()=>{},request:async()=>{throw Object.assign(Error('Лимит'),{status:429,retryAfterMs:1000});},commitDay:async()=>{commits++;return true;}});
  root.querySelector('#analytics-refresh').click();await tick();assert.match(root.querySelector('[role=status]').textContent,/частоту/);root.querySelector('[data-analytics-stop]').click();await tick();assert.match(root.querySelector('[role=status]').textContent,/Остановлено/);assert.equal(commits,0);assert.equal(state.accounts[0].days[0],day);assert.equal(root.querySelector('#analytics-refresh').disabled,false);dispose();dom.window.close();
 });
+
+test('days are chronological columns with aligned detail rows, missing markers and period total',()=>{
+ const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const first=summarizeAccruals('2026-11-01',[sale],types),last={date:'2026-11-03',updatedAt:'2026-11-03T12:00:00Z',count:0,total:0,rows:[]};
+ const dispose=mountOzonAnalytics({root,getState:()=>({accounts:[{clientId:'123',days:[first,last]}]}),getCredentials:()=>({ozonClient:'123'}),now:()=>new Date('2026-11-03T12:00:00Z'),onOpenApi:()=>{},commitDay:async()=>true});
+ const headers=[...root.querySelectorAll('thead th')].map(e=>e.textContent);
+ assert.match(headers[1],/01\.11\.2026/);assert.match(headers[2],/02\.11\.2026.*Не загружен/);assert.match(headers[3],/03\.11\.2026/);assert.match(headers[4],/Всего за период/);
+ const revenue=[...root.querySelectorAll('tbody tr')].find(row=>row.querySelector('th').textContent==='Выручка');
+ assert.deepEqual([...revenue.querySelectorAll('td')].map(e=>e.textContent.replace(/\s/g,'')),['80,00₽','—','0,00₽','80,00₽']);
+ assert.equal(root.querySelectorAll('.analytics-net-row td').length,4);
+ const button=root.querySelector('[data-analytics-group="sales"]');button.click();assert.equal(revenue.hidden,true);assert.equal(button.getAttribute('aria-expanded'),'false');button.click();assert.equal(revenue.hidden,false);
+ root.querySelector('[data-analytics-mode="months"]').click();assert.equal(root.querySelectorAll('thead th').length,3);assert.match(root.querySelector('thead').textContent,/ноябрь 2026/);
+ dispose();dom.window.close();
+});
