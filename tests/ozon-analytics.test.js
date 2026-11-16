@@ -8,16 +8,47 @@ import {blankProduct,validateDB} from '../calc.js';
 import {createBackupSnapshot} from '../backup-modes.js';
 const amount=value=>({amount:String(value),currency:'RUB'});
 const types=parseAccrualTypes({accrual_types:[{id:1,name:'Логистика',description:'Логистика'},{id:2,name:'Эквайринг',description:'Эквайринг'}]});
-const sale={accrual_id:1,date:'2026-11-01',total_amount:amount(60),posting:{products:[{quantity:2,commission:{sale_amount:amount(80),bonus:amount(15),coinvestment:amount(5),commission:amount(-20),sale_commission:amount(-22),seller_price:amount(50),sale_price:amount(40)},delivery:{total_accrued:amount(-20),services:[{type_id:1,accrued:amount(-20)}]}}]}};
-test('Ozon totals use actual accrued sums once, excluding informational prices and delivery totals',()=>{
+const sale={
+ accrual_id:1,date:'2026-11-01',total_amount:amount(60),
+ posting:{products:[{
+  quantity:2,
+  commission:{
+   sale_amount:amount(0),sale_price:amount(80),seller_price:amount(50),
+   bonus:amount(15),coinvestment:amount(5),sale_commission:amount(-20),commission:amount(-5)
+  },
+  delivery:{total_accrued:amount(-20),services:[{type_id:1,accrued:amount(-20)}]}
+ }]}
+};
+test('Ozon keeps buyer revenue when sale_amount is zero and uses the tariff commission with separate points',()=>{
  const day=summarizeAccruals(sale.date,[sale,sale],types);
  assert.equal(day.total,6000);assert.equal(day.count,1);assert.equal(day.rows.filter(r=>r.group==='sales').reduce((n,r)=>n+r.amount,0),10000);
+ assert.equal(day.rows.find(r=>r.label==='Выручка').amount,8000);
  assert.equal(day.rows.find(r=>r.group==='commission').amount,-2000);assert.equal(day.rows.find(r=>r.group==='delivery').amount,-2000);assert.ok(!day.rows.some(r=>r.group==='unclassified'));
  validateAnalytics({schema:1,accounts:[{clientId:'123',days:[day]}]});
 });
+test('effective commission without points, older revenue fallback and item compensation reconcile to the API total',()=>{
+ const posting=structuredClone(sale);
+ posting.date='2026-12-01';
+ const product=posting.posting.products[0];
+ product.commission.sale_amount=product.commission.sale_price;
+ delete product.commission.sale_price;
+ delete product.commission.bonus;
+ delete product.delivery.services;
+ const compensationTypes=parseAccrualTypes({accrual_types:[{id:3,name:'Товарная компенсация'}]});
+ const compensation={accrual_id:4,date:posting.date,total_amount:amount(7),non_item_fee:{type_id:3,accrued:amount(7)}};
+ const day=summarizeAccruals(posting.date,[posting,compensation],compensationTypes);
+ assert.equal(day.rows.find(row=>row.label==='Выручка').amount,8000);
+ assert.equal(day.rows.find(row=>row.group==='commission').amount,-500);
+ assert.equal(day.rows.find(row=>row.group==='delivery').amount,-2000);
+ assert.equal(day.rows.find(row=>row.group==='adjustments').amount,700);
+ assert.ok(!day.rows.some(row=>row.group==='unclassified'));
+ assert.equal(day.total,6700);
+});
 test('returns, container, item and non-item fees preserve signs and unknown reconciliation',()=>{
  const returned=structuredClone(sale);returned.accrual_id=2;returned.total_amount=amount(-80);
- for(const key of ['sale_amount','bonus','coinvestment','commission'])returned.posting.products[0].commission[key].amount=String(-Number(returned.posting.products[0].commission[key].amount));
+ const returnedCommission=returned.posting.products[0].commission;
+ returnedCommission.sale_amount=amount(-80);
+ for(const key of ['bonus','coinvestment','sale_commission','commission'])returnedCommission[key].amount=String(-Number(returnedCommission[key].amount));
  returned.posting.products[0].delivery=null;
  const fee={accrual_id:3,date:sale.date,total_amount:amount(-12),item_fees:{fees:[{quantity:4,fees:[{type_id:2,accrued:amount(-3)}]}]},container_fees:{fees:[{type_id:91,accrued:amount(-4)}]},non_item_fee:{type_id:92,accrued:amount(-2)}};
  const day=summarizeAccruals(sale.date,[returned,fee],types);
@@ -66,7 +97,15 @@ test('analytics UI loads days, replaces updates, shows periods and isolates Ozon
  const dispose=mountOzonAnalytics(options);assert.match(root.textContent,/нет сохранённых данных/);
  root.querySelector('#analytics-refresh').click();await tick();await tick();
  assert.match(root.querySelector('[role=status]').textContent,/Готово/);assert.match(root.textContent,/60,00/);assert.equal(state.accounts[0].days.length,1);
+ const [turnover,charges]=root.querySelectorAll('.analytics-summary-block');
+ assert.deepEqual([...turnover.querySelectorAll('strong,dd')].map(node=>node.textContent.replace(/\s/g,'')),['100,00₽','80,00₽','15','5,00₽']);
+ assert.deepEqual([...charges.querySelectorAll('strong,dd')].map(node=>node.textContent.replace(/\s/g,'')),['-40,00₽','-20,00₽','-20,00₽','0,00₽']);
+ assert.match(root.querySelector('.analytics-net').textContent,/К выплате за период60,00/);
+ delete state.accounts[0].days[0].breakdownVersion;
+ root.querySelector('[name="to"]').dispatchEvent(new dom.window.Event('change'));
+ assert.match(root.textContent,/до исправления расчёта выручки/);
  root.querySelector('#analytics-refresh').click();await tick();await tick();assert.equal(state.accounts[0].days.length,1);
+ assert.doesNotMatch(root.textContent,/до исправления расчёта выручки/);
  root.querySelector('[data-analytics-mode="weeks"]').click();assert.match(root.textContent,/Неделя с/);assert.match(root.textContent,/неполный итог/);
  client='456';root.querySelector('[data-analytics-mode="days"]').click();assert.match(root.textContent,/нет сохранённых данных/);dispose();dom.window.close();
 });

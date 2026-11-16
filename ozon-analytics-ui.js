@@ -1,7 +1,10 @@
-import {marketRequest} from './marketplace-api.js?v=0.2.389';
-import {analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.389';
+import {marketRequest} from './marketplace-api.js?v=0.2.390';
+import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.390';
 
-const money=value=>new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'}).format(value/100);
+const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
+const pointsFormat=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
+const money=value=>moneyFormat.format(value/100);
+const points=value=>pointsFormat.format(value/100);
 const dateLabel=value=>new Date(value+'T00:00:00Z').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
 const esc=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const pause=(ms,signal)=>new Promise((resolve,reject)=>{
@@ -15,9 +18,44 @@ const standardRows={
  returns:['Возврат выручки','Баллы за скидки','Программы партнёров'],
  commission:['Вознаграждение за продажу','Возврат вознаграждения']
 };
+
+function analyticsSummary({rows,total},hasDays){
+ const groupTotal=(...groups)=>rows.reduce((sum,row)=>sum+(groups.includes(row.group)?row.amount:0),0);
+ const turnoverRows=rows.filter(row=>row.group==='sales'||row.group==='returns');
+ const turnoverPart=(...labels)=>turnoverRows.reduce((sum,row)=>sum+(labels.includes(row.label)?row.amount:0),0);
+ const turnover=groupTotal('sales','returns');
+ const commission=groupTotal('commission');
+ const services=groupTotal('delivery','partners','promotion','other');
+ const adjustments=groupTotal('adjustments');
+ const unclassified=groupTotal('unclassified');
+ const value=(amount,format=money)=>hasDays?format(amount):'—';
+ const row=(label,amount,format)=>`<div><dt>${label}</dt><dd>${value(amount,format)}</dd></div>`;
+
+ return `<div class="analytics-summary">
+  <section class="analytics-summary-block">
+   <div class="analytics-summary-heading"><h2>Продажи и возвраты</h2><strong>${value(turnover)}</strong></div>
+   <dl>
+    ${row('Выручка',turnoverPart('Выручка','Возврат выручки'))}
+    ${row('Баллы за скидки',turnoverPart('Баллы за скидки'),points)}
+    ${row('Программы партнёров',turnoverPart('Программы партнёров'))}
+   </dl>
+  </section>
+  <section class="analytics-summary-block">
+   <div class="analytics-summary-heading"><h2>Начисления</h2><strong>${value(commission+services+adjustments+unclassified)}</strong></div>
+   <dl>
+    ${row('Вознаграждение Ozon',commission)}
+    ${row('Услуги и штрафы',services)}
+    ${row('Другие начисления',adjustments)}
+    ${unclassified?row('Не распределено по статьям',unclassified):''}
+   </dl>
+  </section>
+  <div class="analytics-net"><h2>К выплате за период</h2><strong>${value(total)}</strong></div>
+ </div>`;
+}
+
 function analyticsTable(periods,sum,mode,loaded,expected,collapsed) {
  const columns=[...periods,{...sum,key:'total',loaded,expected}];
- const cell=(column,value)=>`<td class="${column.key==='total'?'analytics-total-column':''}">${column.loaded?money(value):'—'}</td>`;
+ const cell=(column,value,format=money)=>`<td class="${column.key==='total'?'analytics-total-column':''}">${column.loaded?format(value):'—'}</td>`;
  const headers=columns.map(column=>{
   const title=column.key==='total'?'Всего за период':mode==='months'?new Date(column.key+'-01T00:00:00Z').toLocaleDateString('ru-RU',{month:'long',year:'numeric',timeZone:'UTC'}):mode==='weeks'?`Неделя с ${dateLabel(column.key)}`:new Date(column.key+'T00:00:00Z').toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'});
   const fullExpected=mode==='weeks'?7:mode==='months'?new Date(Number(column.key.slice(0,4)),Number(column.key.slice(5,7)),0).getDate():1;
@@ -26,12 +64,16 @@ function analyticsTable(periods,sum,mode,loaded,expected,collapsed) {
  }).join('');
  const body=analyticsGroups.map(([group,title])=>{
   const labels=[...new Set([...(standardRows[group]||[]),...sum.rows.filter(row=>row.group===group).map(row=>row.label)])];
-  if(group==='unclassified'&&!labels.length)return '';
+  if(['unclassified','adjustments'].includes(group)&&!labels.length)return '';
   const groupValue=column=>column.rows.filter(row=>row.group===group).reduce((n,row)=>n+row.amount,0);
   return `<tr class="analytics-group-row ${group==='unclassified'?'analytics-warning':''}"><th scope="row">${labels.length?`<button type="button" data-analytics-group="${group}" aria-expanded="${!collapsed.has(group)}"><span aria-hidden="true">${collapsed.has(group)?'›':'⌄'}</span>${title}</button>`:title}</th>${columns.map(column=>cell(column,groupValue(column))).join('')}</tr>`+
-   labels.map(label=>`<tr class="analytics-detail-row" data-analytics-detail="${group}" ${collapsed.has(group)?'hidden':''}><th scope="row">${esc(label)}</th>${columns.map(column=>cell(column,column.rows.filter(row=>row.group===group&&row.label===label).reduce((n,row)=>n+row.amount,0))).join('')}</tr>`).join('');
+   labels.map(label=>{
+    const format=label==='Баллы за скидки'&&['sales','returns'].includes(group)?points:money;
+    const amount=column=>column.rows.filter(row=>row.group===group&&row.label===label).reduce((n,row)=>n+row.amount,0);
+    return `<tr class="analytics-detail-row" data-analytics-detail="${group}" ${collapsed.has(group)?'hidden':''}><th scope="row">${esc(label)}</th>${columns.map(column=>cell(column,amount(column),format)).join('')}</tr>`;
+   }).join('');
  }).join('');
- return `<caption class="analytics-table-caption">Начисления Ozon в рублях. «—» означает, что данные не загружены.</caption><thead><tr><th scope="col">Статья доходов / расходов</th>${headers}</tr></thead><tbody>${body}<tr class="analytics-net-row"><th scope="row">Итого начислено</th>${columns.map(column=>cell(column,column.total)).join('')}</tr></tbody>`;
+ return `<caption class="analytics-table-caption">Суммы в рублях. Баллы за скидки показаны отдельно. «—» означает, что данные не загружены.</caption><thead><tr><th scope="col">Статья доходов / расходов</th>${headers}</tr></thead><tbody>${body}<tr class="analytics-net-row"><th scope="row">К выплате за период</th>${columns.map(column=>cell(column,column.total)).join('')}</tr></tbody>`;
 }
 export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpenApi,request=marketRequest,now=()=>new Date()}) {
  let disposed=false,controller=null,mode='days';const collapsed=new Set();
@@ -45,7 +87,7 @@ export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpe
   <div class="analytics-table-scrollbar" role="region" aria-label="Горизонтальная прокрутка таблицы" tabindex="0" hidden><div aria-hidden="true"></div></div>
   <div class="analytics-table-scroll" role="region" aria-label="Таблица начислений Ozon" tabindex="0"><table class="analytics-table"></table></div>
  </div>
- <details class="analytics-help"><summary>Как считаются данные</summary><p>Используются фактические начисления Seller API Ozon по дате начисления, а не по дате заказа. Недели начинаются в понедельник, месяцы — календарные. Итоги включают только выбранные и загруженные дни; неполный период отмечается.</p><p>Итого начислено — сумма операций Ozon до вашей себестоимости и налогов. Это не чистая прибыль и не банковская выплата. Баллы за скидки показаны в денежном эквиваленте, полученном из API.</p><p>Названия услуг берутся из справочника Ozon и объединяются по смыслу. Нераспределённая разница сохраняется отдельно. Данные API могут отличаться от кабинета продавца. Ozon может пересчитать прошлые дни — для обновления снова загрузите период.</p><p>Сохраняем каждый полностью загруженный день на этом устройстве. При остановке уже сохранённые дни остаются. Архив «Полный бэкап» включает аналитику.</p><a href="https://docs.ozon.ru/api/seller/#operation/GetFinanceAccrualByDay" target="_blank" rel="noopener noreferrer">Описание начислений в API Ozon ↗</a></details></section>`;
+ <details class="analytics-help"><summary>Как считаются данные</summary><p>Продажи и возвраты складываются из выручки по цене покупателя, баллов за скидки и выплат по программам партнёров. Возвраты вычитаются. К этой сумме прибавляются начисления с их знаком: вознаграждение Ozon, услуги, штрафы и другие операции.</p><p>«К выплате за период» показывает итог операций за выбранные дни по данным Seller API. В кабинете Ozon в сумму также может войти задолженность на начало периода.</p><p>Периоды определяются по дате начисления. Недели начинаются в понедельник, месяцы календарные. Итоги включают загруженные дни.</p><p>Названия услуг берутся из справочника Ozon. Если разбивка не сходится с итогом операции из API, разница видна отдельной строкой. Чтобы учесть изменения Ozon за прошлые дни, снова загрузите период.</p><p>Загруженные дни сохраняются на устройстве и входят в полный бэкап.</p><a href="https://docs.ozon.ru/api/seller/#operation/GetFinanceAccrualByDay" target="_blank" rel="noopener noreferrer">Описание начислений в API Ozon ↗</a></details></section>`;
  const form=root.querySelector('form'),from=form.elements.from,to=form.elements.to,status=root.querySelector('.analytics-status'),results=root.querySelector('[data-analytics-results]'),stop=root.querySelector('[data-analytics-stop]');
  const tableLayout=root.querySelector('.analytics-table-layout');
  const tableScroll=tableLayout.querySelector('.analytics-table-scroll');
@@ -86,11 +128,12 @@ export function mountOzonAnalytics({root,getState,commitDay,getCredentials,onOpe
    return;
   }
   const cached=stateDays(),selected=cached.filter(day=>dates.includes(day.date)),sum=aggregateDays(selected);
-  const sales=sum.rows.filter(row=>row.group==='sales').reduce((n,row)=>n+row.amount,0),returns=sum.rows.filter(row=>row.group==='returns').reduce((n,row)=>n+row.amount,0);
   const periods=analyticsPeriods(dates,cached,mode).reverse();
   const {scrollLeft,scrollTop}=tableScroll;
-  results.innerHTML=`<div class="analytics-summary"><div><span>Продажи</span><strong>${selected.length?money(sales):'—'}</strong></div><div><span>Возвраты</span><strong>${selected.length?money(returns):'—'}</strong></div><div><span>Услуги и прочие начисления</span><strong>${selected.length?money(sum.total-sales-returns):'—'}</strong></div><div class="analytics-net"><span>Итого начислено</span><strong>${selected.length?money(sum.total):'—'}</strong></div></div>
+  const needsRefresh=selected.some(day=>day.count>0&&day.breakdownVersion!==accrualBreakdownVersion);
+  results.innerHTML=`${analyticsSummary(sum,selected.length>0)}
   <p class="analytics-coverage">${dateLabel(from.value)} — ${dateLabel(to.value)} · загружено ${selected.length} из ${dates.length} дней${selected.length<dates.length?' · итоги неполные':''}</p>
+  ${needsRefresh?'<p class="analytics-empty">Данные за часть периода загружены до исправления расчёта выручки. Нажмите «Загрузить из Ozon», чтобы обновить разбивку.</p>':''}
   ${selected.length?'':'<p class="analytics-empty">За этот период нет сохранённых данных. Нажмите «Загрузить из Ozon». Используется ключ из раздела «API и доступы».</p>'}`;
   table.innerHTML=analyticsTable(periods,sum,mode,selected.length,dates.length,collapsed);
   tableLayout.hidden=false;

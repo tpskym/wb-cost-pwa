@@ -1,9 +1,14 @@
 // Ozon Seller API: GetFinanceAccrualByDay / GetFinanceAccrualTypes.
 // Amounts are already accrued totals: never multiply them by product quantity.
+export const accrualBreakdownVersion=2;
+// Ozon changes to the effective commission without separate discount points on this date.
+// https://seller.ozon.ru/media/news/obnovim-poryadok-nashih-raschyotov/
+const effectiveCommissionFrom='2026-12-01';
 export const analyticsGroups = [
  ['sales','Продажи'], ['returns','Возвраты'], ['commission','Вознаграждение Ozon'],
  ['delivery','Услуги доставки'], ['partners','Услуги партнёров'],
  ['promotion','Продвижение и реклама'], ['other','Другие услуги и штрафы'],
+ ['adjustments','Другие начисления'],
  ['unclassified','Не распределено по статьям']
 ];
 export const dayKey = date => new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow'}).format(date);
@@ -29,6 +34,7 @@ export function parseAccrualTypes(response) {
 }
 export function feeGroup(name) {
  const text=name.toLocaleLowerCase('ru');
+ if(/товарн[а-яё]*\s+(?:де)?компенсац|декомпенсац/.test(text))return 'adjustments';
  if(/эквайр|acquiring|drop.?off|партн[её]р.*(обработ|достав|упаков)|(?:обработ|достав|упаков).*партн[её]р/.test(text))return 'partners';
  if(/реклам|продвиж|promotion|advertis|cpc|cpo/.test(text))return 'promotion';
  if(/логист|logistic|достав.*мест.*выдач|last.?mile/.test(text))return 'delivery';
@@ -61,14 +67,24 @@ export function summarizeAccruals(date,accruals,types,updatedAt=new Date().toISO
   for(const product of accrual.posting?.products||[]) {
    const c=product.commission;
    if(c) {
-    const revenue=cents(c.sale_amount,true),bonus=cents(c.bonus,true),partner=cents(c.coinvestment,true);
+    const buyerPrice=cents(c.sale_price??c.sale_amount,true);
+    // A return may carry the original buyer price alongside a negative realization amount.
+    const revenue=Number(c.sale_amount?.amount)<0?-Math.abs(buyerPrice):buyerPrice;
+    const bonus=cents(c.bonus,true),partner=cents(c.coinvestment,true);
     const group=revenue+bonus+partner<0?'returns':'sales';
     add(group,group==='returns'?'Возврат выручки':'Выручка',revenue);
     add(group,'Баллы за скидки',bonus); add(group,'Программы партнёров',partner);
-    const commission=cents(c.commission,true);
+    // With separate discount points the seller dashboard shows the fee before those points are applied.
+    const separatePoints=date<effectiveCommissionFrom||bonus!==0;
+    const commission=cents(separatePoints?c.sale_commission??c.commission:c.commission??c.sale_commission,true);
     add('commission',commission>0?'Возврат вознаграждения':'Вознаграждение за продажу',commission);
    }
-   for(const service of product.delivery?.services||[])fee(service);
+   const delivery=product.delivery;
+   if(delivery?.services?.length){
+    for(const service of delivery.services)fee(service);
+   }else{
+    add('delivery','Доставка без детализации',cents(delivery?.total_accrued,true));
+   }
   }
   for(const item of accrual.item_fees?.fees||[])for(const entry of item.fees||[])fee(entry);
   for(const entry of accrual.container_fees?.fees||[])fee(entry);
@@ -77,7 +93,7 @@ export function summarizeAccruals(date,accruals,types,updatedAt=new Date().toISO
  const allocated=[...rows.values()].reduce((sum,row)=>sum+row.amount,0);
  // Preserve the API total even if Ozon adds a new field or an undisclosed adjustment.
  add('unclassified','Разница между итогом Ozon и расшифрованными статьями',total-allocated);
- return {date,updatedAt,count,total,rows:[...rows.values()]};
+ return {date,updatedAt,count,total,breakdownVersion:accrualBreakdownVersion,rows:[...rows.values()]};
 }
 export async function fetchAccrualDay(date,request,types,{signal,onPage=()=>{}}={}) {
  let last_id='';const cursors=new Set(),accruals=[];
