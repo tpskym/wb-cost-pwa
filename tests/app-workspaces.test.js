@@ -257,11 +257,13 @@ test('costs ZIP keeps the list photo when only a model is selected',async()=>{
  }finally{URL.createObjectURL=previousURL;window.HTMLAnchorElement.prototype.click=previousClick;globalThis.setTimeout=previousTimeout;}
 });
 
-test('Ozon analytics switches between reports from its menu and mobile selector and opens API settings',async()=>{
+test('analytics opens combined payouts and switches between reports from its menu and mobile selector',async()=>{
  document.querySelector('[data-space="analytics"]').click();await settle();
  assert.equal(document.querySelector('main').dataset.workspace,'analytics');assert.ok(document.querySelector('#analytics-refresh'));assert.match(document.querySelector('#analytics-workspace').textContent,/По дням/);
  const $=selector=>document.querySelector(selector);
  const picker=$('[data-analytics-report-picker]'),accruals=$('[data-analytics-report-panel="accruals"]');
+ assert.equal(accruals.querySelector('h1').textContent,'Начисления WB и Ozon');
+ assert.equal($('[data-analytics-market="all"]').getAttribute('aria-pressed'),'true');
  $('[data-analytics-mode="weeks"]').click();
  $('[data-analytics-report="clusters"]').click();
  assert.equal(accruals.hidden,true);

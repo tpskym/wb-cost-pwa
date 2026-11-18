@@ -1014,6 +1014,7 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 .analytics-help summary{cursor:pointer;min-height:44px;font-weight:700}
 @media(max-width:660px){.analytics-summary{grid-template-columns:minmax(0,1fr)}.analytics-summary-block,.analytics-net{padding:14px}}
 @media(max-width:600px){.analytics-controls{display:grid;grid-template-columns:1fr 1fr}.analytics-controls label{min-width:0}.analytics-controls button{grid-column:1/-1}.analytics-view{display:grid;grid-template-columns:1fr;width:100%}.analytics-table th:first-child{width:145px;min-width:145px;max-width:145px}.analytics-table :is(th,td){padding:10px}.analytics-table .analytics-detail-row th{padding-left:20px}.analytics-table td{min-width:140px}.analytics-table-scroll{max-height:75vh}}
+.analytics-market-view{display:flex}
 .analytics-cluster-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 .analytics-cluster-controls label{min-width:0}
 .analytics-cluster-controls :is(input,select){width:100%;min-width:0;margin:0}
