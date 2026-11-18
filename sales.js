@@ -1,4 +1,4 @@
-import {mountMarketplaceOrders} from './marketplace-orders.js?v=0.2.395';
+import {mountMarketplaceOrders} from './marketplace-orders.js?v=0.2.399';
 import {calculateManual} from './calc.js?v=0.2.392';
 const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const rub=value=>value===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'}).format(value),round=value=>Math.round((value+Number.EPSILON)*100)/100;
@@ -11,6 +11,7 @@ export function createSale(product,{date,market,quantity,unitPrice,payout=null})
 export function mountSales({root,database,save,getCredentials,onOpenApi,profitForRow}){
  database.sales??=[];
  root.innerHTML='<div id="marketplace-orders"></div>';
- mountMarketplaceOrders({root:root.querySelector('#marketplace-orders'),database,save,getCredentials,onOpenApi,profitForRow});
+ const dispose=mountMarketplaceOrders({root:root.querySelector('#marketplace-orders'),database,save,getCredentials,onOpenApi,profitForRow});
  if(database.sales.length){const section=root.ownerDocument.createElement('details');section.className='panel sales-journal';section.innerHTML=`<summary>Ранее введённые вручную продажи · ${database.sales.length} · только чтение</summary><p>Исторические записи сохранены. Новые продажи и статусы загружаются из API площадок выше.</p><div class="sales-table-scroll"><table><thead><tr><th>Дата / площадка</th><th>Товар / артикул</th><th>Кол-во</th><th>Цена за шт.</th><th>Сумма продажи</th><th>Выплата</th></tr></thead><tbody>${[...database.sales].sort((a,b)=>b.date.localeCompare(a.date)).map(sale=>`<tr><td>${escape(sale.date)}<small>${{wb:'WB',ozon:'Ozon',other:'Другая / напрямую'}[sale.market]}</small></td><td>${escape(sale.productName)}<small>${escape(sale.sku)}</small></td><td>${sale.quantity}</td><td>${rub(sale.unitPrice)}</td><td>${rub(saleAmounts(sale).revenue)}</td><td>${rub(sale.payout)}</td></tr>`).join('')}</tbody></table></div>`;root.append(section);}
+ return dispose;
 }

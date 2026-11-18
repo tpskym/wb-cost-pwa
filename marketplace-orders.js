@@ -10,7 +10,28 @@ const lastRequest=new Map();
 export async function orderRequest(operation,credentials,body={},fetcher=fetch){
  const route=routes[operation];if(!route)throw Error('Недопустимая операция чтения заказов');const [market,method,address,role]=route,key=market==='wb'?credentials.wbToken:credentials.ozonKey;if(!key||(market==='ozon'&&!credentials.ozonClient))throw Error('Введите ключи в «API и доступы». Для '+market.toUpperCase()+' нужен доступ «'+role+'».');
  if(operation.startsWith('wbReport')){const stamp=lastRequest.get(operation+key)||0;if(Date.now()-stamp<61000)throw Error('Лимит WB: повторите чтение этого отчёта через минуту.');lastRequest.set(operation+key,Date.now());}
- const url=new URL(address);if(method==='GET')for(const [k,v] of Object.entries(body))url.searchParams.set(k,String(v));let response;try{response=await fetcher(url.href,{method,headers:{'Content-Type':'application/json',...(market==='wb'?{Authorization:key}:{'Client-Id':credentials.ozonClient,'Api-Key':key})},...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(45000)});}catch{throw Error('Сеть или браузер не позволили прочитать заказы '+market.toUpperCase());}if(!response.ok){const detail=redact((await response.text()).slice(0,2000),credentials);throw Error('API '+market.toUpperCase()+': HTTP '+response.status+'. Доступ: «'+role+'».'+(response.status===429?' Лимит запросов, повторите позже.':'')+' '+detail);}let raw=redact(await response.text(),credentials);if(operation==='wbOrders')raw=raw.replace(/("next"\s*:\s*)(\d+)(?=\s*[,}])/g,'$1"$2"');const result=JSON.parse(raw);if(result?.error===true||result?.code)throw Error('API не подтвердил чтение заказов');return result;
+ const url=new URL(address);
+ if(method==='GET')for(const [name,value] of Object.entries(body))url.searchParams.set(name,String(value));
+ const marketplace=market==='wb'?'WB':'Ozon';
+ const timeout=AbortSignal.timeout(45000);
+ let response,raw;
+ try{
+  response=await fetcher(url.href,{
+   method,headers:{'Content-Type':'application/json',...(market==='wb'?{Authorization:key}:{'Client-Id':credentials.ozonClient,'Api-Key':key})},
+   ...(method==='POST'?{body:JSON.stringify(body)}:{}),credentials:'omit',redirect:'error',cache:'no-store',signal:timeout
+  });
+  raw=redact(await response.text(),credentials);
+ }catch(error){
+  if(timeout.aborted||error.name==='TimeoutError')throw Error('API '+marketplace+' не ответил за 45 секунд.');
+  if(error.name==='AbortError')throw error;
+  throw Error('Не удалось подключиться к API '+marketplace+' ('+url.hostname+').');
+ }
+ if(!response.ok)throw Error('API '+marketplace+' · HTTP '+response.status+'. Доступ «'+role+'».'+
+  (response.status===429?' Лимит запросов. Повторите позже.':'')+' '+raw.slice(0,2000));
+ if(operation==='wbOrders')raw=raw.replace(/("next"\s*:\s*)(\d+)(?=\s*[,}])/g,'$1"$2"');
+ const result=JSON.parse(raw);
+ if(result?.error===true||result?.code)throw Error('API не подтвердил чтение заказов');
+ return result;
 }
 export function orderPeriod(from,to){if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to))throw Error('Укажите даты периода');const start=Date.parse(from+'T00:00:00+03:00'),end=Date.parse(to+'T23:59:59.999+03:00');if(!Number.isFinite(start)||!Number.isFinite(end)||end<start||end-start>90*86400000)throw Error('Выберите период от 1 до 90 дней');if(start<Date.now()-90*86400000-86400000)throw Error('Для общей загрузки доступны последние 90 дней WB');return {start,end,since:new Date(start).toISOString(),to:new Date(end).toISOString()};}
 const amount=value=>{const raw=value&&typeof value==='object'?value.amount:value;return raw===null||raw===undefined||raw===''?null:Number.isFinite(Number(raw))?Number(raw):null;};
@@ -49,7 +70,7 @@ export async function loadOrderSource(source,period,request,onProgress=()=>{},pa
  if(source.startsWith('ozon')){
   for await(const postings of readOzonPostingPages(source,period,request,{onProgress,pause}))rows.push(...normalizeOzonPostings(postings,source));
  }
- else if(source==='wb-fbs'){const orders=new Map();for(let start=period.start;start<=period.end;start+=29*86400000){let next=0;const seen=new Set(),end=Math.min(period.end,start+29*86400000-1);for(let page=0;;page++){if(page>=1000)throw Error('Слишком много страниц WB');onProgress('Чтение WB FBS');const data=await request('wbOrders',{dateFrom:Math.floor(start/1000),dateTo:Math.floor(end/1000),limit:1000,next});if(!Array.isArray(data.orders))throw Error('Неожиданный формат WB');for(const row of data.orders)orders.set(String(row.id),row);if(!data.orders.length||data.next===undefined||String(data.next)==='0')break;const cursor=String(data.next);if(!/^[0-9]+$/.test(cursor)||(typeof data.next==='number'&&!Number.isSafeInteger(data.next))||seen.has(cursor))throw Error('Некорректный курсор WB; сократите период');seen.add(cursor);next=cursor;await pause(250);}}const values=[...orders.values()],statuses=[];for(let i=0;i<values.length;i+=1000){await pause(250);const data=await request('wbStatuses',{orders:values.slice(i,i+1000).map(row=>row.id)});if(!Array.isArray(data.orders))throw Error('Статусы WB не получены');statuses.push(...data.orders);}rows=normalizeWBFbs(values,statuses);}
+ else if(source==='wb-fbs'){const orders=new Map();for(let start=period.start;start<=period.end;start+=29*86400000){let next=0;const seen=new Set(),end=Math.min(period.end,start+29*86400000-1);for(let page=0;;page++){if(page>=1000)throw Error('Слишком много страниц WB');onProgress('Чтение WB · FBS, страница '+(page+1));const data=await request('wbOrders',{dateFrom:Math.floor(start/1000),dateTo:Math.floor(end/1000),limit:1000,next});if(!Array.isArray(data.orders))throw Error('Неожиданный формат WB');for(const row of data.orders)orders.set(String(row.id),row);if(!data.orders.length||data.next===undefined||String(data.next)==='0')break;const cursor=String(data.next);if(!/^[0-9]+$/.test(cursor)||(typeof data.next==='number'&&!Number.isSafeInteger(data.next))||seen.has(cursor))throw Error('Некорректный курсор WB; сократите период');seen.add(cursor);next=cursor;await pause(250);}}const values=[...orders.values()],statuses=[];for(let i=0;i<values.length;i+=1000){await pause(250);onProgress('Получаем статусы WB · FBS');const data=await request('wbStatuses',{orders:values.slice(i,i+1000).map(row=>row.id)});if(!Array.isArray(data.orders))throw Error('Статусы WB не получены');statuses.push(...data.orders);}rows=normalizeWBFbs(values,statuses);}
  else {onProgress('Чтение заказов WB из отчёта');const orders=await request('wbReportOrders',{dateFrom:new Date(period.start+3*3600000).toISOString().slice(0,-1),flag:0});onProgress('Чтение выкупов и возвратов WB');const sales=await request('wbReportSales',{dateFrom:new Date(period.start+3*3600000).toISOString().slice(0,-1),flag:0});if(!Array.isArray(orders)||!Array.isArray(sales))throw Error('Неожиданный формат отчёта WB');if(orders.length>=80000||sales.length>=80000)throw Error('Отчёт слишком большой: сократите период');rows=normalizeWBReports(orders,sales);}
  if(rows.some(row=>!row.orderId||row.orderId==='undefined'||!Number.isSafeInteger(row.quantity)||row.quantity<1||(row.price!==null&&(!Number.isFinite(row.price)||row.price<0))))throw Error('Площадка вернула некорректные строки заказов; снимок не заменён');
  const inPeriod=date=>{const stamp=Date.parse(/(?:Z|[+-]\d\d:\d\d)$/.test(date)?date:date+'+03:00');return stamp>=period.start&&stamp<=period.end;};return [...new Map(rows.filter(row=>inPeriod(row.orderedAt||row.eventAt)).map(row=>[row.id,row])).values()];
@@ -140,11 +161,11 @@ export function renderDailyOrders(rows,type='bars',containerWidth=720,period='da
 }
 export function orderActionCounts(rows){const selected=rows.filter(requiresSellerAction),count=items=>new Set(items.map(row=>row.source+':'+(row.orderId||row.id))).size;return {orders:count(selected),wb:count(selected.filter(row=>row.source.startsWith('wb-'))),ozon:count(selected.filter(row=>row.source.startsWith('ozon-'))),positions:selected.length};}
 export function requiresSellerAction(row){return row.source?.endsWith('-fbs')&&[row.status].some(s=>['Заказан · ожидает сборки','На сборке · ожидает отгрузки','Ожидает сборки','Ожидает отгрузки','Ожидает подтверждения','Ожидает регистрации'].includes(s));}
-let busy=false;
 export function mountMarketplaceOrders({root,database,save,getCredentials=()=>({}),products=()=>database.products,requester,onOpenApi=()=>{},onOpenLabel,profitForRow}){
+ let refreshController=null,photoController=null;
  root.addEventListener('click',event=>{const button=event.target.closest('[data-order-label-sku]');if(!button||button.disabled)return;const sku=button.dataset.orderLabelSku;if(onOpenLabel){Promise.resolve().then(()=>onOpenLabel(sku)).catch(error=>{const status=root.querySelector('#orders-progress');if(status)status.textContent=error.message;});}else openStockLabelDialog({database,sku,document:root.ownerDocument,notify:message=>{const status=root.querySelector('#orders-progress');if(status)status.textContent=message;}});});
  database.orderSnapshots??=[];const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),monthAgo=new Date(Date.now()-29*86400000).toISOString().slice(0,10);let page=0,actionOnly=false,chartType='bars',chartPeriod='days';const statusFilters={wb:new Set(),ozon:new Set()};
- root.innerHTML=`<section class="panel marketplace-orders"><div class="table-browser"><aside class="table-filter-rail" aria-label="Фильтры заказов"><div class="table-rail-intro"><h2>Заказы и продажи с площадок</h2><p>Только чтение · WB FBS / FBW и Ozon FBS / FBO. Записи с площадок не добавляются в ручной журнал продаж.</p></div><div class="sales-form-grid"><label>Поиск по товару, артикулу или заказу<input id="orders-query" type="search" placeholder="Название или артикул"></label><div id="orders-status" class="order-status-filters" role="group" aria-label="Статусы заказов WB и Ozon"></div></div><div class="sales-form-grid orders-period"><label>Схема<select id="orders-source"><option value="all">Все схемы</option>${Object.entries(orderSources).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Заказы с<input id="orders-from" type="date" value="${monthAgo}"></label><label>По<input id="orders-to" type="date" value="${today}"></label></div><div class="file-actions"><button id="orders-refresh">Загрузить / обновить заказы</button><button id="orders-open-keys">Ключи API</button></div><p id="orders-progress" role="status"></p><details><summary>Доступ и особенности статусов</summary><p>WB: токен с правами чтения «Маркетплейс» для FBS и «Статистика» для заказов, выкупов и возвратов FBW. Ozon: «Posting FBS read-only» и «Posting FBO». Используются ключи из общего раздела «API и доступы». При ограничении прав текст ошибки покажет нужный доступ.</p><p>Период — последние 90 дней. WB обновляет отчёты примерно раз в 30 минут; между запросами одного отчёта — не менее минуты (для базовых токенов лимит может быть строже). В FBW отчёты не сообщают промежуточные этапы доставки. «Доставлен» Ozon и «выкуп маркетплейсом» — разные признаки. Статус заказа не подтверждает выплату на ваш счёт. Если Ozon не возвращает дату создания, показывается дата начала обработки с соответствующей подписью.</p></details><details class="table-sync-details"><summary>Обновление данных</summary><div id="orders-sync-status"></div></details><p id="orders-count" class="table-result-count"></p></aside><div class="table-results"><div class="orders-analytics"><section id="orders-statistics" class="orders-shared-statistics"></section><div class="orders-chart-grid"><section class="orders-daily-chart" id="orders-chart"></section><section class="orders-daily-chart rolling-orders-chart" id="orders-moving-chart"></section></div></div><button type="button" id="orders-attention" class="orders-attention-summary" aria-pressed="false" aria-labelledby="orders-attention-title" aria-describedby="orders-attention-counts" aria-controls="orders-table">
+ root.innerHTML=`<section class="panel marketplace-orders"><div class="table-browser"><aside class="table-filter-rail" aria-label="Фильтры заказов"><div class="table-rail-intro"><h2>Заказы и продажи с площадок</h2><p>Только чтение · WB FBS / FBW и Ozon FBS / FBO. Записи с площадок не добавляются в ручной журнал продаж.</p></div><div class="sales-form-grid"><label>Поиск по товару, артикулу или заказу<input id="orders-query" type="search" placeholder="Название или артикул"></label><div id="orders-status" class="order-status-filters" role="group" aria-label="Статусы заказов WB и Ozon"></div></div><div class="sales-form-grid orders-period"><label>Схема<select id="orders-source"><option value="all">Все схемы</option>${Object.entries(orderSources).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Заказы с<input id="orders-from" type="date" value="${monthAgo}"></label><label>По<input id="orders-to" type="date" value="${today}"></label></div><div class="file-actions"><button id="orders-refresh">Загрузить / обновить заказы</button><button id="orders-open-keys">Ключи API</button></div><details><summary>Доступ и особенности статусов</summary><p>WB: токен с правами чтения «Маркетплейс» для FBS и «Статистика» для заказов, выкупов и возвратов FBW. Ozon: «Posting FBS read-only» и «Posting FBO». Используются ключи из общего раздела «API и доступы». При ограничении прав текст ошибки покажет нужный доступ.</p><p>Период — последние 90 дней. WB обновляет отчёты примерно раз в 30 минут; между запросами одного отчёта — не менее минуты (для базовых токенов лимит может быть строже). В FBW отчёты не сообщают промежуточные этапы доставки. «Доставлен» Ozon и «выкуп маркетплейсом» — разные признаки. Статус заказа не подтверждает выплату на ваш счёт. Если Ozon не возвращает дату создания, показывается дата начала обработки с соответствующей подписью.</p></details><details class="table-sync-details"><summary>Обновление данных</summary><div id="orders-sync-status"></div></details><p id="orders-count" class="table-result-count"></p></aside><div class="table-results"><p id="orders-progress" role="status"></p><div class="orders-analytics"><section id="orders-statistics" class="orders-shared-statistics"></section><div class="orders-chart-grid"><section class="orders-daily-chart" id="orders-chart"></section><section class="orders-daily-chart rolling-orders-chart" id="orders-moving-chart"></section></div></div><button type="button" id="orders-attention" class="orders-attention-summary" aria-pressed="false" aria-labelledby="orders-attention-title" aria-describedby="orders-attention-counts" aria-controls="orders-table">
  <span class="orders-attention-copy"><strong id="orders-attention-title">Требуют внимания сейчас</strong><small>По загруженным данным · все страницы выбранной схемы</small></span>
  <span id="orders-attention-counts" class="orders-attention-counts"><b data-attention-count></b><span>WB <strong data-attention-wb></strong></span><span>Ozon <strong data-attention-ozon></strong></span></span>
  </button><div id="orders-table"></div><div class="table-pagination"><button type="button" id="orders-prev">Назад</button><span id="orders-page" aria-live="polite"></span><button id="orders-next">Далее</button></div></div></div></section>`;
@@ -177,5 +198,96 @@ export function mountMarketplaceOrders({root,database,save,getCredentials=()=>({
  };statusRoot.querySelector('[data-status-reset]').onclick=()=>{actionOnly=false;statusFilters.wb.clear();statusFilters.ozon.clear();page=0;draw();};statusRoot.querySelectorAll('[data-status-all]').forEach(input=>input.onchange=()=>{actionOnly=false;statusFilters[input.dataset.statusAll].clear();page=0;draw();});statusRoot.querySelectorAll('[data-status-market]').forEach(input=>input.onchange=()=>{actionOnly=false;const chosen=statusFilters[input.dataset.statusMarket];if(input.checked)chosen.add(input.value);else chosen.delete(input.value);const market=input.dataset.statusMarket,value=input.value;page=0;draw();[...statusRoot.querySelectorAll('[data-status-market]')].find(e=>e.dataset.statusMarket===market&&e.value===value)?.focus({preventScroll:true});});const query=$('#orders-query').value.trim().toLocaleLowerCase();const rows=all.filter(row=>{const chosen=statusFilters[row.source.startsWith('wb-')?'wb':'ozon'];return (!actionOnly||requiresSellerAction(row))&&(!chosen.size||chosen.has(row.status)||chosen.has(row.substatus))&&(!query||[row.name,row.sku,row.orderId,products().find(p=>p.sku===row.sku)?.name||''].some(v=>v.toLocaleLowerCase().includes(query)));});const sorted=sortOrderRows(rows);const pages=Math.max(1,Math.ceil(rows.length/50));page=Math.min(page,pages-1);$('#orders-count').textContent='Позиций: '+rows.length+' · даты и время — Москва';$('#orders-table').innerHTML=rows.length?renderOrderTables(sorted.slice(page*50,(page+1)*50),products(),date):'<p>Заказов для выбранного фильтра нет. Проверьте даты и статус загрузки каждой схемы.</p>';bindTablePhotos(root,database);mountFreshness(root);$('#orders-page').textContent=pages===1?'Показано позиций: '+rows.length:'Страница '+(page+1)+' из '+pages+' · '+(page*50+1)+'–'+Math.min(rows.length,(page+1)*50)+' из '+rows.length;$('#orders-prev').hidden=pages===1;$('#orders-next').hidden=pages===1;$('#orders-page').parentElement.hidden=rows.length===0;$('#orders-prev').disabled=page===0;$('#orders-next').disabled=page>=pages-1;};
  $('#orders-open-keys').onclick=onOpenApi;
  for(const id of ['orders-source','orders-query'])$('#'+id).oninput=()=>{page=0;draw();};$('#orders-prev').onclick=()=>{page--;draw();};$('#orders-next').onclick=()=>{page++;draw();};
- $('#orders-refresh').onclick=async()=>{if(busy){$('#orders-progress').textContent='Загрузка уже выполняется';return;}let period;try{period=orderPeriod($('#orders-from').value,$('#orders-to').value);}catch(error){$('#orders-progress').textContent=error.message;return;}busy=true;const button=$('#orders-refresh');button.disabled=true;const source=$('#orders-source').value,from=$('#orders-from').value,to=$('#orders-to').value,credentials=getCredentials(),messages=[];try{for(const id of source==='all'?Object.keys(orderSources):[source]){try{const rows=await loadOrderSource(id,period,(op,body)=>requester?requester(op,body):orderRequest(op,credentials,body),message=>{$('#orders-progress').textContent=message;});if(!requester){const market=id.startsWith('wb')?'wb':'ozon';try{await enrichRowPhotos(market,rows,products(),(op,body)=>marketRequest(market,op,credentials,body));}catch(error){messages.push(orderSources[id]+': заказы загружены, фото не обновлены: '+redact(error.message,credentials));}}if(!root.isConnected)return;const snapshot={source:id,from,to,updatedAt:new Date().toISOString(),rows};database.orderSnapshots=database.orderSnapshots.filter(s=>s.source!==id);database.orderSnapshots.push(snapshot);save();messages.push(orderSources[id]+': загружено '+rows.length);}catch(error){messages.push(orderSources[id]+': '+redact(error.message,credentials)+(database.orderSnapshots.some(s=>s.source===id)?'. Предыдущие данные сохранены.':'. Данные ещё не загружены.'));}draw();}}finally{busy=false;button.disabled=false;$('#orders-progress').textContent=messages.join('\n');}};draw();mountFreshness(root);
+ const refreshButton=$('#orders-refresh'),status=$('#orders-progress');
+ const fetchWithSignal=signal=>(url,options)=>fetch(url,{
+  ...options,signal:AbortSignal.any([signal,options.signal].filter(Boolean))
+ });
+ async function updatePhotos(snapshots,credentials,signal){
+  const catalogueSkus=new Set(products().map(product=>product.sku));
+  const fetcher=fetchWithSignal(AbortSignal.any([signal,AbortSignal.timeout(20000)]));
+  let changed=false;
+  await Promise.all(['wb','ozon'].map(async market=>{
+   const rows=snapshots.filter(snapshot=>snapshot.source.startsWith(market+'-')).flatMap(snapshot=>snapshot.rows);
+   const candidates=[...new Set(rows.filter(row=>row.sku&&!row.imageUrl&&!catalogueSkus.has(row.sku)).map(row=>row.sku))].map(sku=>({sku}));
+   if(!candidates.length)return;
+   try{
+    await enrichRowPhotos(market,candidates,[],(operation,body)=>marketRequest(market,operation,credentials,body,fetcher));
+   }catch{}
+   if(signal.aborted||!root.isConnected)return;
+   const images=new Map(candidates.filter(row=>row.imageUrl).map(row=>[row.sku,row.imageUrl]));
+   for(const snapshot of snapshots){
+    if(!snapshot.source.startsWith(market+'-')||!database.orderSnapshots.includes(snapshot))continue;
+    for(const row of snapshot.rows){
+     const photo=images.get(row.sku);
+     if(photo&&!row.imageUrl){row.imageUrl=photo;changed=true;}
+    }
+   }
+  }));
+  if(changed&&!signal.aborted&&root.isConnected){save();draw();}
+ }
+
+ refreshButton.onclick=async()=>{
+  if(refreshController)return;
+  const from=$('#orders-from').value,to=$('#orders-to').value;
+  let period;
+  try{period=orderPeriod(from,to);}catch(error){status.textContent=error.message;return;}
+  const selection=$('#orders-source').value;
+  const sources=selection==='all'?Object.keys(orderSources):[selection];
+  const credentials=getCredentials(),loaded=[],messages=new Map();
+  photoController?.abort();
+  refreshController=new AbortController();
+  const {signal}=refreshController;
+  const fetcher=fetchWithSignal(signal);
+  refreshButton.disabled=true;
+  status.textContent='Запрашиваем заказы…';
+  const progress=(id,message)=>{
+   if(signal.aborted||!root.isConnected)return;
+   messages.set(id,message);
+   status.textContent=sources.map(source=>messages.get(source)).filter(Boolean).join('\n');
+  };
+  const request=(operation,body)=>{
+   signal.throwIfAborted();
+   return requester?requester(operation,body):orderRequest(operation,credentials,body,fetcher);
+  };
+  async function loadSchemes(schemes){
+   for(const id of schemes.filter(source=>sources.includes(source))){
+    const market=id.startsWith('wb-')?'wb':'ozon';
+    if(signal.aborted||!root.isConnected)return;
+    try{
+     const rows=await loadOrderSource(id,period,request,message=>progress(id,message));
+     if(signal.aborted||!root.isConnected)return;
+     const previous=database.orderSnapshots.filter(snapshot=>snapshot.source.startsWith(market+'-'));
+     const photos=new Map(previous.flatMap(snapshot=>snapshot.rows.filter(row=>row.imageUrl).map(row=>[row.sku,row.imageUrl])));
+     for(const row of rows)if(photos.has(row.sku))row.imageUrl=photos.get(row.sku);
+     const snapshot={source:id,from,to,updatedAt:new Date().toISOString(),rows};
+     database.orderSnapshots=database.orderSnapshots.filter(old=>old.source!==id);
+     database.orderSnapshots.push(snapshot);
+     loaded.push(snapshot);
+     save();
+     progress(id,orderSources[id]+' · загружено '+rows.length);
+     draw();
+    }catch(error){
+     const saved=database.orderSnapshots.some(old=>old.source===id);
+     progress(id,orderSources[id]+' · '+redact(error.message,credentials)+(saved?' · показаны сохранённые данные':''));
+    }
+   }
+  }
+  try{
+   await Promise.all([
+    loadSchemes(['wb-fbs']),loadSchemes(['wb-fbw']),loadSchemes(['ozon-fbs','ozon-fbo'])
+   ]);
+  }finally{
+   refreshController=null;
+   refreshButton.disabled=false;
+  }
+  if(!requester&&!signal.aborted&&root.isConnected&&loaded.length){
+   photoController=new AbortController();
+   void updatePhotos(loaded,credentials,photoController.signal).catch(()=>{});
+  }
+ };
+ draw();
+ return ()=>{
+  refreshController?.abort();
+  photoController?.abort();
+ };
 }

@@ -11,6 +11,11 @@ test('orders network has a closed read-only allowlist and uses current Ozon APIs
  for(const [op,path] of [['ozonFbs','/v4/posting/fbs/list'],['ozonFbo','/v3/posting/fbo/list'],['wbStatuses','/api/v3/orders/status'],['wbOrders','/api/v3/orders']])await orderRequest(op,credentials,{limit:100},async(url,options)=>{calls++;assert.equal(new URL(url).pathname,path);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');assert.ok(['GET','POST'].includes(options.method));return Response.json({});});
  await assert.rejects(()=>orderRequest('cancel',credentials,{},()=>{calls++;}),/Недопустимая/);assert.equal(calls,4);await assert.rejects(()=>orderRequest('ozonFbs',{},{}),/API и доступы/);
 });
+test('order network errors distinguish an unavailable host from a response timeout',async()=>{
+ const credentials={wbToken:'wb-test'};
+ await assert.rejects(orderRequest('wbOrders',credentials,{},async()=>{throw new TypeError('Load failed');}),/marketplace-api\.wildberries\.ru/);
+ await assert.rejects(orderRequest('wbOrders',credentials,{},async()=>({text:async()=>{throw new DOMException('Timeout','TimeoutError');}})),/WB не ответил за 45 секунд/);
+});
 test('Ozon preserves quantity object prices received and marketplace buyout as separate fields',()=>{
  const row=normalizeOzonPostings([posting()],'ozon-fbo')[0];assert.equal(row.price,395.5);assert.equal(row.quantity,2);assert.equal(row.status,'Доставлен');assert.equal(row.substatus,'Получен в ПВЗ');assert.equal(row.buyoutByMarketplace,false);assert.equal(row.rawStatus,'delivered / posting_received');assert.equal('payout' in row,false);assert.equal(normalizeOzonPostings([posting('new_status')],'ozon-fbo')[0].status,'Неизвестный статус: new_status');
 });
@@ -34,6 +39,55 @@ test('failed refresh retains the previous snapshot and never adds manual sales o
 });
 test('all four schemes refresh independently and retain manual sales',async()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root'),database={products:[],sales:[{id:'manual'}],orderSnapshots:[]};let saves=0,opened=false;mountMarketplaceOrders({root,database,save:()=>saves++,onOpenApi:()=>opened=true,requester:async op=>op==='wbOrders'?{orders:[],next:0}:op.startsWith('wbReport')?[]:{postings:[posting()],has_next:false,cursor:''}});await root.querySelector('#orders-refresh').onclick();assert.equal(database.orderSnapshots.length,4);assert.equal(saves,4);assert.deepEqual(database.sales,[{id:'manual'}]);assert.equal(root.querySelectorAll('.stock-item-row').length,2);root.querySelector('#orders-open-keys').click();assert.equal(opened,true);
+});
+test('orders appear before slower hosts respond, and cancelled loads retain old snapshots',async()=>{
+ const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const old={source:'wb-fbs',rows:[{source:'wb-fbs',orderId:'old',sku:'AW',status:'Доставлен'}]};
+ const database={products:[],orderSnapshots:[old]},waiting=[];
+ const dispose=mountMarketplaceOrders({
+  root,database,save:()=>true,
+  requester:async operation=>operation.startsWith('ozon')?{postings:[posting()],has_next:false}:
+   new Promise((resolve,reject)=>waiting.push(()=>reject(Error('Сеть недоступна'))))
+ });
+ const refresh=root.querySelector('#orders-refresh'),result=refresh.onclick();
+ await new Promise(resolve=>setTimeout(resolve,0));
+ assert.equal(waiting.length,2);
+ assert.deepEqual(database.orderSnapshots.map(snapshot=>snapshot.source),['wb-fbs','ozon-fbs','ozon-fbo']);
+ const progress=root.querySelector('.table-results #orders-progress');
+ assert.match(progress.textContent,/Ozon · FBO · загружено 1/);
+ dispose();
+ waiting.forEach(fail=>fail());
+ await result;
+ assert.equal(database.orderSnapshots[0],old);
+ dom.window.close();
+});
+
+test('loading orders releases refresh while card photos are still pending',async()=>{
+ const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const database={products:[],orderSnapshots:[]};
+ let respondWithPhotos,saves=0;
+ const previousFetch=globalThis.fetch;
+ globalThis.fetch=async url=>{
+  const path=new URL(url).pathname;
+  if(path==='/v3/product/info/list')return new Promise(resolve=>{respondWithPhotos=resolve;});
+  assert.equal(path,'/v3/posting/fbo/list');
+  return Response.json({postings:[posting()],has_next:false});
+ };
+ const dispose=mountMarketplaceOrders({root,database,getCredentials:()=>({ozonClient:'demo',ozonKey:'demo-key'}),save:()=>{saves++;}});
+ try{
+  root.querySelector('#orders-source').value='ozon-fbo';
+  const refresh=root.querySelector('#orders-refresh'),result=refresh.onclick();
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(refresh.disabled,false);
+  assert.equal(saves,1);
+  assert.equal(database.orderSnapshots[0].rows.length,1);
+  assert.equal(typeof respondWithPhotos,'function');
+  await result;
+  respondWithPhotos(Response.json({items:[{offer_id:'AW',primary_image:'https://example.test/aw.jpg'}]}));
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(database.orderSnapshots[0].rows[0].imageUrl,'https://example.test/aw.jpg');
+  assert.equal(saves,2);
+ }finally{dispose();globalThis.fetch=previousFetch;dom.window.close();}
 });
 test('WB cursor larger than JavaScript safe integer is read and sent without rounding',async()=>{
  const exact='946674000000000001',response=await orderRequest('wbOrders',{wbToken:'cursor-test'}, {},async()=>new Response('{"next":'+exact+',"orders":[{"id":1}]}'));assert.equal(response.next,exact);let calls=0;await loadOrderSource('wb-fbs',period(),async(op,body)=>{if(op==='wbStatuses')return {orders:[{id:1,supplierStatus:'new',wbStatus:'waiting'}]};calls++;if(calls===1)return {...response,orders:[{id:1,article:'AW',createdAt:date()}]};assert.equal(body.next,exact);return {orders:[],next:'0'};},()=>{},async()=>{});assert.equal(calls,2);
