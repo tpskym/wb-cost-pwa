@@ -195,6 +195,41 @@ test('Important tab edits the same production parameters without adding extra ca
  $('[data-tab="production"]').click();await settle();assert.equal($('#fields [data-field="grams"]').value,'32');assert.equal($('[data-cost-printer]').value,'Bambu Lab A1');assert.equal($('#fields [data-field="printerPrice"]').value,'45000');assert.ok($('#fields [data-field="printerPrice"]').readOnly);const price=$('#fields [data-field="kgPrice"]');price.value='1300';price.dispatchEvent(new window.Event('input',{bubbles:true}));await settle();$('[data-tab="important"]').click();await settle();assert.equal($('#fields [data-field="kgPrice"]').value,'1300');assert.equal(document.querySelectorAll('#fields [data-field="grams"]').length,1);$('[data-tab="production"]').click();await settle();
 });
 
+test('material use and unpacked weight edit and save the same amount from either field',async()=>{
+ const $=selector=>document.querySelector(selector);
+ $('[data-space="cost"]').click();
+ $('[data-tab="important"]').click();
+ await settle();
+ const grams=$('#fields [data-field="grams"]');
+ const weight=$('#fields [data-measurement="productWeight"]');
+ const packaged=$('#fields [data-measurement="packagingWeight"]');
+ const set=(input,value,event='input')=>{
+  input.value=value;
+  input.dispatchEvent(new window.Event(event,{bubbles:true}));
+ };
+ set(grams,'8');
+ assert.equal(weight.value,'8');
+ set(weight,'12.5');
+ assert.equal(grams.value,'12.5');
+ grams.closest('.number-control').querySelector('[data-delta="1"]').click();
+ assert.equal(weight.value,'13.5');
+ set(packaged,'25','change');
+ const id=$('#mobile-product').value;
+ let saved=(await readDatabase()).products.find(product=>product.id===id);
+ assert.equal(saved.values.grams,13.5);
+ assert.equal(saved.measurements.productWeight,13.5);
+ assert.equal(saved.measurements.packagingWeight,25);
+ set(weight,'');
+ assert.equal(grams.value,'');
+ saved=(await readDatabase()).products.find(product=>product.id===id);
+ assert.equal(saved.values.grams,null);
+ assert.equal(saved.measurements.productWeight,null);
+ assert.equal(saved.measurements.packagingWeight,25);
+ set(grams,'32');
+ $('[data-tab="production"]').click();
+ await settle();
+});
+
 test('cost summary contains cost breakdown without unused marketplace profit inputs',async()=>{document.querySelector('[data-space="cost"]').click();await settle();const root=document.querySelector('#results');assert.ok(root.querySelector('.big-number'));assert.ok(root.querySelector('.cost-list'));assert.ok(root.querySelector('details'));assert.equal(root.querySelector('[data-market-field]'),null);assert.equal(root.querySelector('[data-open-loaded-listing]'),null);assert.equal(root.querySelector('[data-market-profit]'),null);assert.doesNotMatch(root.textContent,/К переводу за товар|Налог на продажу|Маржа от цены/);});
 
 test('sale price controls recalculate the scheme payouts, profit table and saved prices',async()=>{
