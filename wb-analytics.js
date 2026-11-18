@@ -88,7 +88,14 @@ export async function requestWbFinanceReport(token,body,signal,fetcher=fetch){
   error.retryAfterMs=1000*Number(response.headers.get('X-Ratelimit-Retry')||response.headers.get('Retry-After'));
   throw error;
  }
- try{return JSON.parse(raw);}
+ try{
+  // Daily report IDs are int64. Keep every digit before JSON.parse converts integers to numbers.
+  const reportIdOrString=/"reportId"(\s*:\s*)(-?\d+)(?=\s*[,}])|"(?:[^"\\]|\\[\s\S])*"/g;
+  const json=raw.replace(reportIdOrString,(match,separator,digits)=>
+   digits===undefined?match:'"reportId"'+separator+'"'+digits+'"'
+  );
+  return JSON.parse(json);
+ }
  catch{throw Error('Не удалось прочитать финансовые отчёты WB.');}
 }
 

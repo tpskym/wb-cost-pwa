@@ -46,6 +46,20 @@ test('WB finance request uses the official finance host and treats 204 as no rep
  assert.deepEqual(rows,[]);
 });
 
+test('WB daily report IDs retain all int64 digits and distinct reports both reach the payout',async()=>{
+ const first=JSON.stringify(report('9223372036854775806',{sellerFinanceName:'Пример "reportId": 42, в названии'}))
+  .replace('"9223372036854775806"','9223372036854775806');
+ const second=JSON.stringify(report('9223372036854775807',{bankPaymentSum:'179.75'}))
+  .replace('"9223372036854775807"','9223372036854775807');
+ const raw='['+first+','+second+']';
+ const rows=await requestWbFinanceReport(token,{period:'daily'},undefined,async()=>new Response(raw));
+ assert.deepEqual(rows.map(row=>row.reportId),['9223372036854775806','9223372036854775807']);
+ assert.equal(rows[0].sellerFinanceName,'Пример "reportId": 42, в названии');
+ const [day]=await loadWbAccrualDays(dates,async()=>rows);
+ assert.equal(day.count,2);
+ assert.equal(day.total,100000);
+});
+
 test('shared report shows both totals and missing WB days, and uses the same dates in each view',async()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
  const ozon={accounts:[{clientId:'123',days:dates.map(date=>({
