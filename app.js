@@ -23,7 +23,7 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.399';
+import {mountReleaseHistory} from './release-history.js?v=0.2.400';
 import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.392';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
@@ -38,7 +38,7 @@ import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.399';
+const APP_VERSION='0.2.400';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
@@ -637,6 +637,8 @@ async function renderFiles(){
 }
 let productQuery='',productPage=0,productGroupFilter='',productCategoryFilters={wb:'',ozon:''};
 const productPageSize=20,productGroupOpen=new Map(),cataloguePresenceFilters={wb:'',ozon:'',label:'',model:''},catalogueModelStates=new Map();
+const packagingTypeLabels={box:'Коробка',bag:'Пакет'};
+function packagingTypeLabel(p){return packagingTypeLabels[p.packagingType]??packagingTypeLabels.box;}
 function catalogueProductTitle(p){return [p.sku,p.name,p.variantNote,p.colorCode].filter(Boolean).join(' · ');}
 function catalogueProductLabel(p){
  const variant=[p.variantNote,p.colorCode].filter(Boolean).join(' · ');
@@ -644,6 +646,11 @@ function catalogueProductLabel(p){
 }
 function catalogueProductButton(id){
  return [...$('#product-list').querySelectorAll('[data-product]')].find(button=>button.dataset.product===id);
+}
+function setPackagingType(p,type){
+ p.packagingType=type;
+ const label=catalogueProductButton(p.id)?.querySelector('[data-catalogue-packaging]');
+ if(label)label.textContent=packagingTypeLabel(p);
 }
 function updateCatalogueVariant(p){
  const row=catalogueProductButton(p.id);
@@ -654,7 +661,10 @@ function updateCatalogueVariant(p){
  label.querySelector('[data-catalogue-model]').replaceWith(modelBadge);
 }
 function catalogueFileActions(p){const hasLabel=!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,');return `<span class="catalogue-product-actions"><button type="button" data-catalogue-label-print="${esc(p.id)}" ${hasLabel?'':'disabled'} title="${hasLabel?'Открыть PDF этикетки этого варианта':'Прикрепите PDF этикетки в карточке товара'}" aria-label="Печать этикетки"><span class="catalogue-print-full">Печать этикетки</span><span class="catalogue-print-compact" aria-hidden="true">Этикетка</span></button><button type="button" data-catalogue-model-download="${esc(p.id)}" disabled title="Проверяем сохранённую модель" aria-label="Печать модели"><span class="catalogue-print-full">Печать модели</span><span class="catalogue-print-compact" aria-hidden="true">Модель</span></button></span>`;}
-function catalogueStatusBadges(p){const badge=(label,state)=>`<span class="catalogue-status ${state===true?'is-ready':state===false?'is-missing':'is-unknown'}" title="${esc(label)}: ${state===true?'есть':state===false?'нет':'нет сохранённых сведений; нажмите Обновить'}">${esc(label)} <b>${state===true?'✓':state===false?'—':'?'}</b></span>`;return `<span class="catalogue-statuses">${badge('WB',catalogueCardPresence(db,p,'wb'))}${badge('Ozon',catalogueCardPresence(db,p,'ozon'))}${badge('Этикетка',!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,'))}<span data-catalogue-model="${esc(p.id)}" class="catalogue-status is-unknown">Модель …</span></span>`;}
+function catalogueStatusBadges(p){
+ const badge=(label,state)=>`<span class="catalogue-status ${state===true?'is-ready':state===false?'is-missing':'is-unknown'}" title="${esc(label)}: ${state===true?'есть':state===false?'нет':'нет сохранённых сведений; нажмите Обновить'}">${esc(label)} <b>${state===true?'✓':state===false?'—':'?'}</b></span>`;
+ return `<span class="catalogue-statuses">${badge('WB',catalogueCardPresence(db,p,'wb'))}${badge('Ozon',catalogueCardPresence(db,p,'ozon'))}${badge('Этикетка',!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,'))}<span data-catalogue-model="${esc(p.id)}" class="catalogue-status is-unknown">Модель …</span><span class="catalogue-status" title="Индивидуальная упаковка">Упаковка <b data-catalogue-packaging>${packagingTypeLabel(p)}</b></span></span>`;
+}
 async function hydrateCatalogueModels(scope=document){await modelMigration.catch(()=>{});for(const badge of scope.querySelectorAll('[data-catalogue-model]')){const target=db.products.find(p=>p.id===badge.dataset.catalogueModel);if(!target)continue;let ready=false;try{ready=(await plateModels(db,target)).size>0;}catch{}catalogueModelStates.set(db.id+':'+target.id,ready);if(!badge.isConnected)continue;badge.className='catalogue-status '+(ready?'is-ready':'is-missing');badge.textContent='Модель '+(ready?'✓':'—');badge.title=ready?'Модель для печати прикреплена':'Модель для печати не выбрана';const action=badge.closest('.catalogue-product-row')?.querySelector('[data-catalogue-model-download]');if(action){action.disabled=!ready;action.title=ready?'Печать модели этого варианта':'Прикрепите или выберите модель в карточке товара';}}}
 async function loadCatalogueModelStates(){await modelMigration.catch(()=>{});const database=db;await Promise.all(database.products.map(async p=>{let ready=false;try{ready=(await plateModels(database,p)).size>0;}catch{}catalogueModelStates.set(database.id+':'+p.id,ready);}));}
 async function refreshCatalogueFileStates(){if(cataloguePresenceFilters.model){await loadCatalogueModelStates();$('#product-list').innerHTML=productList(product());bindProductList();}else hydrateCatalogueModels($('#product-list'));}
@@ -938,7 +948,9 @@ function costPrinterPicker(product){
  return `<label>Модель принтера<select class="ui-select" data-cost-printer><option value="" disabled ${known?'':'selected'}>${esc(product.printer?'Сохранённая модель: '+product.printer:'Выберите модель из «Затрат»')}</option>${printers.map(row=>`<option value="${esc(row.model)}" ${row.model===product.printer?'selected':''}>${esc(row.model)} · ${rub(row.price)}</option>`).join('')}</select></label>`;
 }
 function fieldGrid(p,items){const prices=configuredCostPrices(db,p);return `<div class="form-grid">${items.map(([k,label,unit])=>`<label>${label}<div class="input-unit"><input ${['шт.','этикеток'].includes(unit)?'data-buttons-only':''} data-field="${k}" ${Object.hasOwn(prices,k)?'readonly title="Цена из справочника затрат"':''} ${((k==='wbDelivery'&&p.shippingMode!=='wb-total')||(k==='deliveryPercent'&&p.shippingMode!=='percent')||(['logistics','reverse'].includes(k)&&p.shippingMode!=='rubles'))?'disabled':''} aria-label="${label}" type="number" min="0" step="any" ${['buyout','loss','defect','commission','ads','acquiring','deliveryPercent'].includes(k)?'max="100"':''} value="${prices[k]??p.values[k]??''}" placeholder="Не задано"><span>${unit}</span></div><small>${Object.hasOwn(prices,k)?'Цена из справочника затрат':p.values[k]===null?'Не заполнено · 0 введите явно':''}</small></label>`).join('')}</div>`;}
-function packagingTypeMarkup(p){return `<label>Тип индивидуальной упаковки<select class="ui-select" data-packaging-type><option value="box" ${p.packagingType!=='bag'?'selected':''}>Коробка</option><option value="bag" ${p.packagingType==='bag'?'selected':''}>Пакет</option></select></label>`;}
+function packagingTypeMarkup(p){
+ return `<label>Тип индивидуальной упаковки<select class="ui-select" data-packaging-type>${Object.entries(packagingTypeLabels).map(([type,label])=>`<option value="${type}" ${type===(p.packagingType??'box')?'selected':''}>${label}</option>`).join('')}</select></label>`;
+}
 function renderFields(){const p=product();$('#fields').classList.toggle('important-fields',['important','marketplace'].includes(tab));$('#fields').innerHTML=`<div class="section-title"><div><h2>${editorGroups.find(g=>g[0]===tab)[1]}</h2><p>${editorGroups.find(g=>g[0]===tab)[2]}</p></div><span class="section-number">0${editorGroups.findIndex(g=>g[0]===tab)+1}</span></div>${['production','important'].includes(tab)?`${tab==='important'?'<div class="important-equipment-layout">':''}<div class="form-grid">${costPrinterPicker(p)}<label>Материал<input id="material" value="${esc(p.material)}"></label></div><div id="product-filament-colors"></div>${tab==='important'?'</div>':''}${tab==='production'?`<div class="note">Энергия: 200 Вт — предварительная оценка для PLA. Прогрев и сушка AMS могут увеличить расход. <a href="https://bambulab.com/en-us/p2s/specs" target="_blank" rel="noreferrer">Спецификация ↗</a></div>`:''}`:''}${tab==='sales'?'<div class="note">Комиссия, реклама и эквайринг — отдельные проценты. Не вводите одну услугу дважды. Невыкуп: модель повторной продажи годного возврата; потери задаются отдельно.</div>':''}${tab==='sales'?`<label class="shipping-mode">Способ расчёта доставки площадки<select id="shipping-mode"><option value="rubles" ${p.shippingMode==='rubles'?'selected':''}>Тарифы в рублях + модель выкупа</option><option value="wb-total" ${p.shippingMode==='wb-total'?'selected':''}>Готовая сумма доставки WB, ₽ за продажу</option><option value="percent" ${p.shippingMode==='percent'?'selected':''}>Готовая доля доставки из калькулятора WB</option></select></label><div class="note">Доля из WB относится к исходной цене и параметрам расчёта. При изменении цены обновите её в WB. Готовая сумма WB предпочтительнее процента: при изменении цены доля пересчитается. В обоих готовых режимах прямая и обратная логистика не начисляются повторно и доставка не делится на выкуп. Доставка вашей коробки до приёмки остаётся отдельной.</div>`:''}${tab==='packaging'?packagingTypeMarkup(p):''}${tab==='important'?'<div class="important-production-blocks">':''}${fieldGroups[tab].map(([title,hint,keys])=>`<fieldset class="packaging-group"><legend>${title}</legend><p class="group-hint">${hint}</p>${fieldGrid(p,keys.map(k=>{const field=fields.find(f=>f[0]===k);return k==='box'?[k,p.packagingType==='bag'?'Индивидуальный пакет':'Индивидуальная коробка',...field.slice(2)]:field;}))}</fieldset>`).join('')}${tab==='important'?'</div>':''}${tab==='important'?`<fieldset class="packaging-group"><legend>Индивидуальная упаковка</legend><p class="group-hint">На одно изделие. Стоимость общая с вкладкой «Упаковка» и учитывается один раз.</p><div class="product-details-columns individual-packaging-controls">${packagingTypeMarkup(p)}${fieldGrid(p,[['box',p.packagingType==='bag'?'Стоимость пакета':'Стоимость коробки','₽/шт.','packaging']])}</div></fieldset>`:''}${['important','marketplace'].includes(tab)?productDetailsMarkup(p):''}${tab==='marketplace'?'':'<div class="editor-bottom">Пустое поле означает неизвестный расход.<br>Если расхода нет, укажите 0.</div>'}`;
  const editor=$('#fields');
  const materialWeight=editor.querySelector('[data-field="grams"]');
@@ -961,7 +973,7 @@ function renderFields(){const p=product();$('#fields').classList.toggle('importa
   save();
   renderResults();
  }));
- const packagingType=$('#fields [data-packaging-type]');if(packagingType)packagingType.onchange=()=>{p.packagingType=packagingType.value;save();renderFields();};
+ const packagingType=$('#fields [data-packaging-type]');if(packagingType)packagingType.onchange=()=>{setPackagingType(p,packagingType.value);save();renderFields();};
  if($('#shipping-mode'))$('#shipping-mode').onchange=e=>{p.shippingMode=e.target.value;save();renderFields();renderResults();};
  const printerPicker=$('[data-cost-printer]');
  if(printerPicker)printerPicker.onchange=()=>{
@@ -1251,7 +1263,7 @@ function bindCostFieldSpread(root,source){
    return {model,price,label:price===null?model:`${model} · ${rub(price)}`};
   }
  });
- bind('[data-packaging-type]',(row,input,value)=>{row.packagingType=value;});
+ bind('[data-packaging-type]',(row,input,value)=>setPackagingType(row,value));
  bind('[data-measurement]',(row,input,value)=>{
   const [part,key]=input.dataset.measurement.split('.');
   if(part==='productWeight'){setProductWeight(row,value);return;}

@@ -173,8 +173,8 @@ test('category choices follow the selected group',async()=>{
  for(const market of ['wb','ozon']){const expected=[...new Set(db.products.filter(p=>(p.productGroup||'__ungrouped__')===group).map(p=>p.marketplaceCategories?.[market]).filter(Boolean).map(c=>c.id+':'+(c.typeId||'')))];assert.deepEqual([...$('[data-catalogue-category='+market+']').options].map(o=>o.value),['','__none__',...expected]);}}
  $('[data-catalogue-reset]').click();await settle();
 });
-test('catalogue displays four saved status badges without refreshing marketplaces',async()=>{
- const row=document.querySelector('#product-list [data-product]');assert.ok(row);assert.equal(row.querySelectorAll('.catalogue-status').length,4);assert.match(row.textContent,/WB/);assert.match(row.textContent,/Ozon/);assert.match(row.textContent,/Этикетка/);assert.match(row.textContent,/Модель/);assert.ok(document.querySelector('#catalogue-refresh'));assert.match(document.querySelector('#catalogue-refresh-status').textContent,/сохранённым/);
+test('catalogue displays four saved statuses and individual packaging without refreshing marketplaces',()=>{
+ const row=document.querySelector('#product-list [data-product]');assert.ok(row);assert.equal(row.querySelectorAll('.catalogue-status').length,5);assert.match(row.textContent,/WB/);assert.match(row.textContent,/Ozon/);assert.match(row.textContent,/Этикетка/);assert.match(row.textContent,/Модель/);assert.equal(row.querySelector('[data-catalogue-packaging]').textContent,'Коробка');assert.ok(document.querySelector('#catalogue-refresh'));assert.match(document.querySelector('#catalogue-refresh-status').textContent,/сохранённым/);
 });
 test('presence filters combine and reset without calling the API',async()=>{
  const choose=(key,value)=>{const input=document.querySelector('[data-catalogue-presence="'+key+'"]');input.value=value;input.dispatchEvent(new window.Event('change'));};
@@ -371,7 +371,40 @@ test('product archive and model actions appear above their file selectors',async
 
 test('last marketplace parameters tab shares product dimensions with Important',async()=>{const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();const tabs=[...document.querySelectorAll('[data-tab]')];assert.equal(tabs.at(-1).dataset.tab,'marketplace');$('[data-tab="marketplace"]').click();await settle();assert.equal(document.querySelectorAll('[data-measurement]').length,8);const input=$('[data-measurement="product.width"]');input.value='42';input.dispatchEvent(new window.Event('change',{bubbles:true}));await settle();$('[data-tab="important"]').click();await settle();assert.equal($('[data-measurement="product.width"]').value,'42');});
 
- test('Important packaging price and type share the packaging tab fields',async()=>{const $=s=>document.querySelector(s);$('[data-space="cost"]').click();await settle();$('[data-tab="important"]').click();await settle();const type=$('[data-packaging-type]');type.value='bag';type.dispatchEvent(new window.Event('change'));const price=$('#fields [data-field="box"]');price.value='7.5';price.dispatchEvent(new window.Event('input',{bubbles:true}));await settle();$('[data-tab="packaging"]').click();await settle();assert.equal($('[data-packaging-type]').value,'bag');assert.equal($('#fields [data-field="box"]').value,'7.5');assert.match($('#fields').textContent,/Индивидуальный пакет/);const box=$('#fields [data-field="box"]');box.value='9';box.dispatchEvent(new window.Event('input',{bubbles:true}));$('[data-tab="important"]').click();await settle();assert.equal($('#fields [data-field="box"]').value,'9');});
+test('individual packaging stays in sync across editor tabs and the catalogue row',async()=>{
+ const $=selector=>document.querySelector(selector);
+ $('[data-space="cost"]').click();
+ $('[data-tab="important"]').click();
+ await settle();
+ const selectType=value=>{
+  const type=$('[data-packaging-type]');
+  type.value=value;
+  type.dispatchEvent(new window.Event('change'));
+ };
+ const setPrice=value=>{
+  const input=$('#fields [data-field="box"]');
+  input.value=value;
+  input.dispatchEvent(new window.Event('input',{bubbles:true}));
+ };
+ const badge=$('#product-list [aria-current="true"] [data-catalogue-packaging]');
+ selectType('bag');
+ assert.equal(badge.textContent,'Пакет');
+ assert.equal($('#product-list [aria-current="true"] [data-catalogue-packaging]'),badge);
+ setPrice('7.5');
+ await settle();
+ $('[data-tab="packaging"]').click();
+ assert.equal($('[data-packaging-type]').value,'bag');
+ assert.equal($('#fields [data-field="box"]').value,'7.5');
+ assert.match($('#fields').textContent,/Индивидуальный пакет/);
+ assert.equal($('#product-list [aria-current="true"] [data-catalogue-packaging]').textContent,'Пакет');
+ selectType('box');
+ assert.equal($('#product-list [aria-current="true"] [data-catalogue-packaging]').textContent,'Коробка');
+ setPrice('9');
+ $('[data-tab="important"]').click();
+ await settle();
+ assert.equal($('#fields [data-field="box"]').value,'9');
+ assert.equal($('[data-packaging-type]').value,'box');
+});
 
 test('label prompts are grouped and description prompt includes skill rules and a configurable cap',async()=>{const $=s=>document.querySelector(s);$('[data-space=cost]').click();await settle();assert.match($('.label-prompt-actions legend').textContent,/Промпты для этикеток/);assert.ok($('#label-design-prompt svg'));assert.ok($('#label-group-prompt svg'));assert.ok($('[data-barcode-pull] svg'));const input=$('[data-product-description]');input.value='Товар\nОписание';input.dispatchEvent(new window.Event('input'));assert.match($('[data-description-count]').textContent,/14 символов/);$('[data-description-prompt]').click();await settle();assert.match($('#label-prompt-title').textContent,/описания товара/);assert.match($('#label-prompt-text').value,/wb-ozon-content/);const limit=$('#description-prompt-limit');limit.value='1800';limit.dispatchEvent(new window.Event('input'));assert.match($('#label-prompt-text').value,/Максимальная длина описания: 1800/);$('[data-prompt-close]').click();});
 
