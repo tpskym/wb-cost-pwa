@@ -101,9 +101,49 @@ test('daily orders count orders once, fill empty days and use Moscow dates',asyn
 
 test('action switch checks both marketplace lists, excludes completed orders and resets',()=>{const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root'),row=(source,status,id)=>({source,status,substatus:'',id,orderId:id,sku:id,name:id,orderedAt:date(),quantity:1,price:100,currency:'RUB'}),database={products:[],orderSnapshots:[{source:'wb-fbs',rows:[row('wb-fbs','На сборке · ожидает отгрузки','w1'),row('wb-fbs','Доставлен','w2')]},{source:'ozon-fbs',rows:[row('ozon-fbs','Ожидает отгрузки','o1'),row('ozon-fbs','Доставлен','o2')]}]};mountMarketplaceOrders({root,database,save:()=>{}});let input=root.querySelector('[data-action-only]');input.checked=true;input.dispatchEvent(new dom.window.Event('change'));assert.equal(root.querySelectorAll('.stock-item-row').length,2);assert.equal(root.querySelectorAll('[data-status-market]:checked').length,2);assert.equal(root.querySelectorAll('#orders-chart svg').length,1);root.querySelector('[data-status-reset]').click();assert.equal(root.querySelectorAll('.stock-item-row').length,4);assert.equal(root.querySelector('[data-action-only]').checked,false);});
 
-test('seven day average includes zero days, deduplicates orders and excludes older or future dates',async()=>{const {averageOrders7Days}=await import('../marketplace-orders.js'),row={source:'wb-fbs',orderId:'a',orderedAt:'2026-10-24T00:00:00+03:00'},rows=[row,{...row,sku:'second'},...Array.from({length:6},(_,i)=>({source:'ozon-fbs',orderId:String(i),orderedAt:'2026-10-30T10:00:00Z'})),{...row,orderId:'old',orderedAt:'2026-10-23T10:00:00Z'},{...row,orderId:'future',orderedAt:'2026-10-31T10:00:00Z'}],result=averageOrders7Days(rows,new Date('2026-10-30T12:00:00Z'));assert.equal(result.start,'2026-10-24');assert.equal(result.end,'2026-10-30');assert.equal(result.total,1);assert.equal(result.wb,1/7);assert.equal(result.ozon,6/7);assert.equal(averageOrders7Days([],new Date('2026-10-30T12:00:00Z')).total,0);});
+test('order averages use every day of the shared loaded period and count each order once',()=>{
+ const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const makeOrders=(source,count,orderedAt)=>Array.from({length:count},(_,index)=>({
+  source,orderId:String(index),id:source+index,sku:'SKU',name:'Товар',orderedAt,status:'Доставлен',quantity:1,price:100,currency:'RUB'
+ }));
+ const wb=makeOrders('wb-fbs',35,'2026-10-10T00:00:00+03:00');
+ const ozon=makeOrders('ozon-fbo',64,'2026-10-15T20:00:00Z');
+ const database={products:[],orderSnapshots:[
+  {source:'wb-fbs',from:'2026-10-01',to:'2026-10-25',rows:[...wb,{...wb[0],id:'second line',sku:'SECOND'}]},
+  {source:'ozon-fbo',from:'2026-10-01',to:'2026-10-25',rows:ozon}
+ ]};
+ mountMarketplaceOrders({root,database,save:()=>{}});
+ const metrics=()=>[...root.querySelectorAll('.orders-chart-metrics strong')].map(node=>node.textContent);
+ const summary=()=>root.querySelector('.orders-chart-metrics').textContent;
+ assert.deepEqual(metrics(),['4 / день','1,4 / день','2,6 / день']);
+ assert.match(summary(),/01\.10\.2026 — 25\.10\.2026 · 25 дней/);
+ assert.match(summary(),/Включая дни без заказов/);
+ assert.match(summary(),/35 за этот период/);
+ assert.match(summary(),/64 за этот период/);
+ const source=root.querySelector('#orders-source');
+ const choose=value=>{source.value=value;source.oninput();};
 
-test('daily chart supports bars and line views with average summary',async()=>{const {renderDailyOrders}=await import('../marketplace-orders.js'),rows=[{source:'wb-fbs',orderId:'1',orderedAt:date()}],bars=new JSDOM(renderDailyOrders(rows)).window.document,lines=new JSDOM(renderDailyOrders(rows,'lines')).window.document;assert.ok(bars.querySelector('svg rect'));assert.equal(lines.querySelectorAll('svg [data-chart-line]').length,2);assert.equal(lines.querySelectorAll('svg [data-chart-bar]').length,0);assert.equal(lines.querySelector('[data-chart-type=lines]').getAttribute('aria-pressed'),'true');assert.match(lines.querySelector('.orders-average').textContent,/Последние 7 дней/);});
+ database.orderSnapshots[1].from='2026-10-11';
+ database.orderSnapshots[1].to='2026-10-18';
+ choose('all');
+ assert.deepEqual(metrics(),['8 / день','0 / день','8 / день']);
+ assert.match(summary(),/11\.10\.2026 — 18\.10\.2026 · 8 дней/);
+ choose('wb-fbs');
+ assert.deepEqual(metrics(),['1,4 / день','1,4 / день','0 / день']);
+
+ database.orderSnapshots[1].from='2026-10-26';
+ database.orderSnapshots[1].to='2026-10-31';
+ database.orderSnapshots[1].rows=[];
+ choose('all');
+ assert.deepEqual(metrics(),['—','—','—']);
+ assert.match(summary(),/нет общих дат/);
+ choose('ozon-fbo');
+ assert.deepEqual(metrics(),['0 / день','0 / день','0 / день']);
+ assert.match(summary(),/26\.10\.2026 — 31\.10\.2026 · 6 дней/);
+ dom.window.close();
+});
+
+test('daily chart supports bars and line views with average summary',async()=>{const {renderDailyOrders}=await import('../marketplace-orders.js'),rows=[{source:'wb-fbs',orderId:'1',orderedAt:date()}],bars=new JSDOM(renderDailyOrders(rows)).window.document,lines=new JSDOM(renderDailyOrders(rows,'lines')).window.document;assert.ok(bars.querySelector('svg rect'));assert.equal(lines.querySelectorAll('svg [data-chart-line]').length,2);assert.equal(lines.querySelectorAll('svg [data-chart-bar]').length,0);assert.equal(lines.querySelector('[data-chart-type=lines]').getAttribute('aria-pressed'),'true');assert.match(lines.querySelector('.orders-average').textContent,/Включая дни без заказов/);});
 
 test('chart uses distinct integer ticks and fills a wide container',async()=>{const {renderDailyOrders}=await import('../marketplace-orders.js'),doc=new JSDOM(renderDailyOrders([{source:'wb-fbs',orderId:'a',orderedAt:date()}],'lines',1400)).window.document;assert.equal(doc.querySelector('svg').getAttribute('viewBox'),'0 0 1400 260');assert.deepEqual([...doc.querySelectorAll('.chart-axis text')].map(e=>e.textContent),['0','1']);assert.ok(doc.querySelector('[data-chart-day][tabindex="0"]'));});
 

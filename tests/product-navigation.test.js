@@ -387,8 +387,10 @@ test('individual packaging stays in sync across editor tabs and the catalogue ro
   input.dispatchEvent(new window.Event('input',{bubbles:true}));
  };
  const badge=$('#product-list [aria-current="true"] [data-catalogue-packaging]');
+ const boxIcon=badge.querySelector('path').getAttribute('d');
  selectType('bag');
  assert.equal(badge.textContent,'Пакет');
+ assert.notEqual(badge.querySelector('path').getAttribute('d'),boxIcon);
  assert.equal($('#product-list [aria-current="true"] [data-catalogue-packaging]'),badge);
  setPrice('7.5');
  await settle();

@@ -1,7 +1,7 @@
-import {mountAnalyticsWorkspace} from './ozon-analytics-ui.js?v=0.2.399';
+import {mountAnalyticsWorkspace} from './ozon-analytics-ui.js?v=0.2.401';
 import {wbAccrualDays} from './wb-analytics.js?v=0.2.397';
 import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.392';
-import {mountFinance} from './finance.js?v=0.2.399';
+import {mountFinance} from './finance.js?v=0.2.401';
 import {buildCostDescriptionPrompt} from './ai-prompt.js?v=0.2.392';
 import {attachCardDesignZip} from './attachments.js?v=0.2.392';
 import {productDetailsMarkup,mountProductDetails,pullProductCategory,categoriesFromProduct} from './category-catalog.js?v=0.2.392';
@@ -23,7 +23,7 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.400';
+import {mountReleaseHistory} from './release-history.js?v=0.2.401';
 import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.392';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
@@ -31,14 +31,14 @@ import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabe
 import {mountWarehouseStocks} from './warehouse-stocks.js?v=0.2.392';
 import {draftFromListingTemplate} from './listing-templates.js?v=0.2.392';
 import {mountFilamentStock,mountProductFilaments,materialColorSlots} from './filament-stock.js?v=0.2.392';
-import {mountSales} from './sales.js?v=0.2.399';
+import {mountSales} from './sales.js?v=0.2.401';
 import {sharedListingChangesApplied,applySharedListingChanges,marketRequest,pullProductBarcodes,readWbFbsCommission,readAllWBCards} from './marketplace-api.js?v=0.2.392';
 import {actionIcon,confirmAction,listingItem} from './listing-fields.js?v=0.2.392';
 import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0.2.392';
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.400';
+const APP_VERSION='0.2.401';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
@@ -638,7 +638,13 @@ async function renderFiles(){
 let productQuery='',productPage=0,productGroupFilter='',productCategoryFilters={wb:'',ozon:''};
 const productPageSize=20,productGroupOpen=new Map(),cataloguePresenceFilters={wb:'',ozon:'',label:'',model:''},catalogueModelStates=new Map();
 const packagingTypeLabels={box:'Коробка',bag:'Пакет'};
-function packagingTypeLabel(p){return packagingTypeLabels[p.packagingType]??packagingTypeLabels.box;}
+function cataloguePackagingContent(p){
+ const type=p.packagingType==='bag'?'bag':'box';
+ const path=type==='bag'
+  ?'M5 8h14l2 13H3L5 8ZM8 11V7a4 4 0 0 1 8 0v4'
+  :'M12 3 3 8v8l9 5 9-5V8l-9-5ZM3 8l9 5 9-5M12 13v8M7.5 5.5l9 5';
+ return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg><b>${packagingTypeLabels[type]}</b>`;
+}
 function catalogueProductTitle(p){return [p.sku,p.name,p.variantNote,p.colorCode].filter(Boolean).join(' · ');}
 function catalogueProductLabel(p){
  const variant=[p.variantNote,p.colorCode].filter(Boolean).join(' · ');
@@ -649,8 +655,8 @@ function catalogueProductButton(id){
 }
 function setPackagingType(p,type){
  p.packagingType=type;
- const label=catalogueProductButton(p.id)?.querySelector('[data-catalogue-packaging]');
- if(label)label.textContent=packagingTypeLabel(p);
+ const badge=catalogueProductButton(p.id)?.querySelector('[data-catalogue-packaging]');
+ if(badge)badge.innerHTML=cataloguePackagingContent(p);
 }
 function updateCatalogueVariant(p){
  const row=catalogueProductButton(p.id);
@@ -663,7 +669,7 @@ function updateCatalogueVariant(p){
 function catalogueFileActions(p){const hasLabel=!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,');return `<span class="catalogue-product-actions"><button type="button" data-catalogue-label-print="${esc(p.id)}" ${hasLabel?'':'disabled'} title="${hasLabel?'Открыть PDF этикетки этого варианта':'Прикрепите PDF этикетки в карточке товара'}" aria-label="Печать этикетки"><span class="catalogue-print-full">Печать этикетки</span><span class="catalogue-print-compact" aria-hidden="true">Этикетка</span></button><button type="button" data-catalogue-model-download="${esc(p.id)}" disabled title="Проверяем сохранённую модель" aria-label="Печать модели"><span class="catalogue-print-full">Печать модели</span><span class="catalogue-print-compact" aria-hidden="true">Модель</span></button></span>`;}
 function catalogueStatusBadges(p){
  const badge=(label,state)=>`<span class="catalogue-status ${state===true?'is-ready':state===false?'is-missing':'is-unknown'}" title="${esc(label)}: ${state===true?'есть':state===false?'нет':'нет сохранённых сведений; нажмите Обновить'}">${esc(label)} <b>${state===true?'✓':state===false?'—':'?'}</b></span>`;
- return `<span class="catalogue-statuses">${badge('WB',catalogueCardPresence(db,p,'wb'))}${badge('Ozon',catalogueCardPresence(db,p,'ozon'))}${badge('Этикетка',!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,'))}<span data-catalogue-model="${esc(p.id)}" class="catalogue-status is-unknown">Модель …</span><span class="catalogue-status" title="Индивидуальная упаковка">Упаковка <b data-catalogue-packaging>${packagingTypeLabel(p)}</b></span></span>`;
+ return `<span class="catalogue-statuses">${badge('WB',catalogueCardPresence(db,p,'wb'))}${badge('Ozon',catalogueCardPresence(db,p,'ozon'))}${badge('Этикетка',!!p.labelPdf?.data?.startsWith('data:application/pdf;base64,'))}<span data-catalogue-model="${esc(p.id)}" class="catalogue-status is-unknown">Модель …</span><span class="catalogue-status is-ready" data-catalogue-packaging title="Индивидуальная упаковка">${cataloguePackagingContent(p)}</span></span>`;
 }
 async function hydrateCatalogueModels(scope=document){await modelMigration.catch(()=>{});for(const badge of scope.querySelectorAll('[data-catalogue-model]')){const target=db.products.find(p=>p.id===badge.dataset.catalogueModel);if(!target)continue;let ready=false;try{ready=(await plateModels(db,target)).size>0;}catch{}catalogueModelStates.set(db.id+':'+target.id,ready);if(!badge.isConnected)continue;badge.className='catalogue-status '+(ready?'is-ready':'is-missing');badge.textContent='Модель '+(ready?'✓':'—');badge.title=ready?'Модель для печати прикреплена':'Модель для печати не выбрана';const action=badge.closest('.catalogue-product-row')?.querySelector('[data-catalogue-model-download]');if(action){action.disabled=!ready;action.title=ready?'Печать модели этого варианта':'Прикрепите или выберите модель в карточке товара';}}}
 async function loadCatalogueModelStates(){await modelMigration.catch(()=>{});const database=db;await Promise.all(database.products.map(async p=>{let ready=false;try{ready=(await plateModels(database,p)).size>0;}catch{}catalogueModelStates.set(database.id+':'+p.id,ready);}));}
