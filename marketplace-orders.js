@@ -109,10 +109,42 @@ export function chartVisiblePeriods(items,start=Math.max(0,items.length-chartWin
 }
 const chartShowsDate=(index,count,width)=>{const stride=Math.ceil(count/Math.max(2,Math.floor((width-60)/46)));return index===0||index===count-1||index%stride===0&&index<count-1-Math.max(0,stride-1);};
 const chartDateLabel=(day,period)=>period==='months'?day.slice(5,7)+'.'+day.slice(2,4):day.slice(8)+'.'+day.slice(5,7);
+const chartDate=day=>day.split('-').reverse().join('.');
+const chartNumber=value=>value.toLocaleString('ru-RU',{maximumFractionDigits:1});
+function chartDateText(day,x,period,index,count,width){
+ const hidden=index<0||index>=count||!chartShowsDate(index,count,width);
+ return `<text class="chart-date" x="${x}" y="244" text-anchor="middle"${hidden?' hidden':''}>${chartDateLabel(day,period)}</text>`;
+}
+function chartPlot(body,id,left,width,height,step,containerWidth,start){
+ return `<defs><clipPath id="${id}"><rect x="${left}" y="0" width="${width}" height="${height}"/></clipPath></defs>
+ <g clip-path="url(#${id})"><g data-chart-track data-step="${step}" data-label-width="${Math.max(160,Number(containerWidth)||400)}" transform="translate(${-start*step} 0)">${body}</g></g>`;
+}
+function dailyChartHeading(days,period){
+ const total=days.reduce((sum,day)=>sum+day.wb+day.ozon,0);
+ return `${chartDate(days[0].day)} — ${chartDate(days.at(-1).day)} · ${period==='months'?'Месяцы':period==='weeks'?'Недели':'Дни'} · Заказов: ${total}`;
+}
 export function renderRollingOrders5Days(rows,containerWidth=720,period='days'){
  return renderRollingOrderChart(chartVisiblePeriods(rollingChartPeriods(rows,period)),containerWidth,period);
 }
-function renderRollingOrderChart(days,containerWidth,period){if(!days.length)return '';const width=Math.max(400,Math.round(containerWidth)||400,days.length*40+60),left=42,right=18,top=42,bottom=218,step=(width-left-right)/days.length,tick=Math.max(.2,Math.ceil(Math.max(...days.map(d=>d.average))/4*5)/5),maximum=tick*4,x=i=>left+step*(i+.5),y=n=>bottom-n/maximum*(bottom-top),path=smoothOrderPath(days.map((d,i)=>[x(i),y(d.average)])),fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1}),latest=days.at(-1);return `<div class="orders-chart-head"><div><small class="orders-chart-eyebrow">СКОЛЬЗЯЩЕЕ СРЕДНЕЕ</small><h3>Среднее число заказов за день</h3><p>Окно 5 дней · WB и Ozon вместе${period==='days'?'':' · на конец периода'}</p></div><div class="rolling-latest"><strong>${fmt(latest.average)}</strong><span>в день<br>на ${latest.day.split('-').reverse().join('.')}</span></div></div><p class="rolling-explanation">Каждая точка — среднее за этот день и 4 предыдущих. Дни без заказов учитываются. По загруженным данным, до вычета возвратов.</p><div class="orders-chart-scroll"><svg role="img" aria-label="Скользящее среднее заказов за 5 дней" viewBox="0 0 ${width} 260" data-visible-periods="${days.length}" style="width:100%;height:auto;min-width:0"><defs><radialGradient id="rolling-value-badge" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#f3f8eb"/><stop offset="100%" stop-color="#cbdcbb"/></radialGradient><linearGradient id="rolling-five-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6b9460" stop-opacity=".23"/><stop offset="100%" stop-color="#6b9460" stop-opacity=".025"/></linearGradient></defs>${[0,1,2,3,4].map(i=>{const v=maximum*i/4;return `<g class="chart-axis"><line x1="${left}" x2="${width-right}" y1="${y(v)}" y2="${y(v)}" stroke="#e7ece2" stroke-dasharray="3 5"/><text x="${left-12}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text></g>`;}).join('')}<path d="${path} L ${x(days.length-1)} ${bottom} L ${x(0)} ${bottom} Z" fill="url(#rolling-five-fill)"/><path d="${path}" fill="none" stroke="#5a8351" stroke-width="2.7" stroke-linecap="round"/>${days.map((d,i)=>`<g><title>${d.day}: ${fmt(d.average)} заказа в день</title><circle cx="${x(i)}" cy="${y(d.average)}" r="3" fill="#5a8351" stroke="white" stroke-width="1.5"/><circle class="rolling-value-badge" cx="${x(i)}" cy="${y(d.average)-17}" r="12" fill="url(#rolling-value-badge)" stroke="#c4d5b4" stroke-width="1"/><text class="rolling-point-number" x="${x(i)}" y="${y(d.average)-13.5}" text-anchor="middle">${fmt(d.average)}</text>${chartShowsDate(i,days.length,Math.max(160,Number(containerWidth)||400))?`<text class="chart-date" x="${x(i)}" y="244" text-anchor="middle">${chartDateLabel(d.periodDay||d.day,period)}</text>`:''}</g>`).join('')}</svg></div><p class="orders-stats-note">Окно всегда составляет 5 календарных дней; отсутствующие в загруженных данных заказы не учитываются.</p>`;}
+function renderRollingOrderChart(days,containerWidth,period,start=0){
+ if(!days.length)return '';
+ const count=Math.min(days.length,chartWindowSize);
+ const width=Math.max(400,Math.round(containerWidth)||400,count*40+60);
+ const left=42,right=18,top=42,bottom=218,step=(width-left-right)/count;
+ const peak=days.reduce((max,day)=>Math.max(max,day.average),0);
+ const tick=Math.max(.2,Math.ceil(peak/4*5)/5),maximum=tick*4;
+ const x=i=>left+step*(i+.5),y=n=>bottom-n/maximum*(bottom-top);
+ const path=smoothOrderPath(days.map((day,index)=>[x(index),y(day.average)]));
+ const latest=days[start+count-1];
+ const marks=days.map((day,index)=>`<g data-chart-point${index<start||index>=start+count?' aria-hidden="true"':''}>
+  <title>${day.day}: ${chartNumber(day.average)} заказа в день</title>
+  <circle cx="${x(index)}" cy="${y(day.average)}" r="3" fill="#5a8351" stroke="white" stroke-width="1.5"/>
+  <circle class="rolling-value-badge" cx="${x(index)}" cy="${y(day.average)-17}" r="12" fill="url(#rolling-value-badge)" stroke="#c4d5b4" stroke-width="1"/>
+  <text class="rolling-point-number" x="${x(index)}" y="${y(day.average)-13.5}" text-anchor="middle">${chartNumber(day.average)}</text>
+  ${chartDateText(day.periodDay||day.day,x(index),period,index-start,count,Math.max(160,Number(containerWidth)||400))}</g>`).join('');
+ const line=`<path d="${path} L ${x(days.length-1)} ${bottom} L ${x(0)} ${bottom} Z" fill="url(#rolling-five-fill)"/><path d="${path}" fill="none" stroke="#5a8351" stroke-width="2.7" stroke-linecap="round"/>`;
+ return `<div class="orders-chart-head"><div><small class="orders-chart-eyebrow">СКОЛЬЗЯЩЕЕ СРЕДНЕЕ</small><h3>Среднее число заказов за день</h3><p>Окно 5 дней · WB и Ozon вместе${period==='days'?'':' · на конец периода'}</p></div><div class="rolling-latest"><strong>${chartNumber(latest.average)}</strong><span>в день<br><span data-rolling-date>на ${chartDate(latest.day)}</span></span></div></div><p class="rolling-explanation">Каждая точка — среднее за этот день и 4 предыдущих. Дни без заказов учитываются. По загруженным данным, до вычета возвратов.</p><div class="orders-chart-scroll"><svg role="img" aria-label="Скользящее среднее заказов за 5 дней" viewBox="0 0 ${width} 260" data-visible-periods="${count}" style="width:100%;height:auto;min-width:0"><defs><radialGradient id="rolling-value-badge" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#f3f8eb"/><stop offset="100%" stop-color="#cbdcbb"/></radialGradient><linearGradient id="rolling-five-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6b9460" stop-opacity=".23"/><stop offset="100%" stop-color="#6b9460" stop-opacity=".025"/></linearGradient></defs>${[0,1,2,3,4].map(i=>{const v=maximum*i/4;return `<g class="chart-axis"><line x1="${left}" x2="${width-right}" y1="${y(v)}" y2="${y(v)}" stroke="#e7ece2" stroke-dasharray="3 5"/><text x="${left-12}" y="${y(v)+4}" text-anchor="end">${chartNumber(v)}</text></g>`;}).join('')}${chartPlot(line+marks,'rolling-plot-clip',left,width-left-right,260,step,containerWidth,start)}</svg></div><p class="orders-stats-note">Окно всегда составляет 5 календарных дней; отсутствующие в загруженных данных заказы не учитываются.</p>`;
+}
 const returnedOrderLine=row=>/возврат|возвращ[её]н|returned/i.test([row.status,row.substatus,row.rawStatus].join(' '));
 const cancelledOrderLine=row=>/отмен|cancel|declined|defect|not_accepted/i.test([row.status,row.rawStatus].join(' '));
 const orderCostBreakdown=[['materials','Материалы'],['printing','Печать'],['electricity','Электричество'],['labor','Труд']];
@@ -210,15 +242,27 @@ export function renderDailyOrders(rows,type='bars',containerWidth=720,period='da
  return renderDailyOrderChart(days,type,containerWidth,period,
   showStatistics&&days.length?renderOrderStatisticCards(rows):'',rows.some(row=>row.dateLabel==='Начало обработки'));
 }
-function renderDailyOrderChart(days,type,containerWidth,period,statistics='',hasProcessingDates=false){
+function renderDailyOrderChart(days,type,containerWidth,period,statistics='',hasProcessingDates=false,start=0){
  if(!days.length)return '<p>Нет загруженных заказов с датой для диаграммы.</p>';
- const width=Math.max(400,Math.round(containerWidth)||400,days.length*40+60),height=260,left=38,right=18,top=type==='lines'?64:22,bottom=218,step=(width-left-right)/days.length,peak=Math.max(1,...days.map(d=>type==='lines'?Math.max(d.wb,d.ozon):d.wb+d.ozon)),tick=Math.max(1,Math.ceil(peak/4)),maximum=Math.ceil(peak/tick)*tick,x=i=>left+step*(i+.5),y=n=>bottom-n/maximum*(bottom-top),colours=['#9361b4','#4c80d1'],totals=days.reduce((a,d)=>({wb:a.wb+d.wb,ozon:a.ozon+d.ozon}),{wb:0,ozon:0}),date=d=>d.split('-').reverse().join('.');
+ const count=Math.min(days.length,chartWindowSize);
+ const width=Math.max(400,Math.round(containerWidth)||400,count*40+60),height=260;
+ const left=38,right=18,top=type==='lines'?64:22,bottom=218,step=(width-left-right)/count;
+ const peak=days.reduce((max,day)=>Math.max(max,type==='lines'?Math.max(day.wb,day.ozon):day.wb+day.ozon),1);
+ const tick=Math.max(1,Math.ceil(peak/4)),maximum=Math.ceil(peak/tick)*tick;
+ const x=i=>left+step*(i+.5),y=n=>bottom-n/maximum*(bottom-top),colours=['#9361b4','#4c80d1'];
  const grid=Array.from({length:maximum/tick+1},(_,i)=>i*tick).map(value=>`<g class="chart-axis"><line x1="${left}" x2="${width-right}" y1="${y(value)}" y2="${y(value)}" stroke="${value?'#e9ede7':'#d5ded1'}" ${value?'stroke-dasharray="3 5"':''}/><text x="${left-12}" y="${y(value)+4}" text-anchor="end">${value}</text></g>`).join('');
  const lines=type==='lines'?['wb','ozon'].map((market,index)=>{const path=smoothOrderPath(days.map((d,i)=>[x(i),y(d[market])])),area=path+` L ${x(days.length-1)} ${bottom} L ${x(0)} ${bottom} Z`;return `<path class="chart-area" d="${area}" fill="url(#orders-fill-${market})"/><path data-chart-line d="${path}" fill="none" stroke="${colours[index]}" stroke-width="2.7" stroke-linejoin="round" stroke-linecap="round"/>`;}).join(''):'';
  const referenceBar=(d,i)=>{const total=d.wb+d.ozon;if(!total)return '';const w=Math.min(42,Math.max(22,step*.56)),l=x(i)-w/2,r=x(i)+w/2,t=y(total),h=bottom-t,radius=Math.min(w/2,h/2),shape=`M ${l} ${bottom} V ${t+radius} Q ${l} ${t} ${x(i)} ${t} Q ${r} ${t} ${r} ${t+radius} V ${bottom} Z`,badgeY=h>=24?t+12:t-12;return `<defs><clipPath id="orders-bar-clip-${i}"><path d="${shape}"/></clipPath></defs><path class="chart-bar-shell" d="${shape}" fill="url(#orders-bar-ozon)" filter="url(#orders-bar-shadow)"/><g clip-path="url(#orders-bar-clip-${i})"><rect data-chart-bar x="${l}" y="${y(d.wb)}" width="${w}" height="${bottom-y(d.wb)}" fill="url(#orders-bar-wb)"/><rect data-chart-bar x="${l}" y="${t}" width="${w}" height="${y(d.wb)-t}" fill="url(#orders-bar-ozon)"/></g><path d="${shape}" fill="none" stroke="#8197bf" stroke-opacity=".22" stroke-width=".7"/><circle class="chart-bar-badge" cx="${x(i)}" cy="${badgeY}" r="10" fill="#fffdf9" stroke="#dce2ec" stroke-width="1"/><text class="chart-bar-value" x="${x(i)}" y="${badgeY+3.6}" text-anchor="middle">${total}</text>${d.wb>0&&d.ozon>0?`<g class="chart-wb-count"><title>Wildberries: ${d.wb}</title><circle cx="${x(i)}" cy="${Math.max(badgeY+23,bottom-Math.max(12,(bottom-y(d.wb))/2))}" r="10" fill="url(#orders-wb-badge)" stroke="#d9c7e6" stroke-width="1"/><text x="${x(i)}" y="${Math.max(badgeY+23,bottom-Math.max(12,(bottom-y(d.wb))/2))+3.6}" text-anchor="middle">${d.wb}</text></g>`:''}`;};
  const lineBadge=(d,i,market,index)=>{if(d[market]===0&&days.length>1)return '';const close=d.wb>0&&d.ozon>0&&Math.abs(y(d.wb)-y(d.ozon))<26,cy=close?Math.min(y(d.wb),y(d.ozon))-(index?42:17):y(d[market])-17;return `<g data-line-value="${market}"><circle cx="${x(i)}" cy="${y(d[market])}" r="3.3" fill="${colours[index]}" stroke="#fff" stroke-width="1.7"/><circle class="orders-line-badge" cx="${x(i)}" cy="${cy}" r="11" fill="url(#orders-line-badge-${market})" stroke="${index?'#bdcde4':'#d7c3e5'}" stroke-width="1"/><text class="orders-line-number" x="${x(i)}" y="${cy+3.5}" text-anchor="middle" fill="${index?'#3e6496':'#76518c'}">${d[market]}</text></g>`;};
- const marks=days.map((d,i)=>{const title=`${date(d.day)} · WB: ${d.wb} · Ozon: ${d.ozon} · Всего: ${d.wb+d.ozon}`,label=chartShowsDate(i,days.length,Math.max(160,Number(containerWidth)||400));return `<g class="chart-day" data-chart-day="${i}" data-chart-label="${title}" tabindex="0" aria-label="${title}"><title>${title}</title><rect class="chart-hover-band" x="${x(i)-step/2}" y="${top}" width="${step}" height="${bottom-top}" fill="#506a3d" opacity="0"/>${type==='lines'?['wb','ozon'].map((market,index)=>lineBadge(d,i,market,index)).join(''):referenceBar(d,i)}${label?`<text class="chart-date" x="${x(i)}" y="244" text-anchor="middle">${chartDateLabel(d.day,period)}</text>`:''}</g>`;}).join('');
- return `<div class="orders-chart-head"><div><small class="orders-chart-eyebrow">СТАТИСТИКА ЗАКАЗОВ</small><h3>Динамика заказов</h3><p>${date(days[0].day)} — ${date(days.at(-1).day)} · ${period==='months'?'Месяцы':period==='weeks'?'Недели':'Дни'} · Заказов: ${totals.wb+totals.ozon}</p></div><div class="orders-chart-types" role="group" aria-label="Вид диаграммы"><button type="button" data-chart-type="bars" aria-pressed="${type==='bars'}">Столбцы</button><button type="button" data-chart-type="lines" aria-pressed="${type==='lines'}">Линии</button></div></div>${statistics}<div class="orders-chart-caption"><span>Новые заказы до возвратов, шт.</span><span>${type==='lines'?'Каждая линия — отдельная площадка':'Верхний кружок — всего · нижний — WB'}</span></div><div class="orders-chart-scroll"><svg role="img" aria-label="Количество новых заказов по дням: WB и Ozon" viewBox="0 0 ${width} ${height}" data-visible-periods="${days.length}" style="width:100%;height:auto;min-width:0"><defs>${[['wb','#e5d7ef'],['ozon','#d7e3f3']].map(([market,color])=>`<radialGradient id="orders-line-badge-${market}" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="65%" stop-color="#fbfcff"/><stop offset="100%" stop-color="${color}"/></radialGradient>`).join('')}<radialGradient id="orders-wb-badge" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="65%" stop-color="#faf6ff"/><stop offset="100%" stop-color="#e1d3ed"/></radialGradient><filter id="orders-bar-shadow" x="-60%" y="-25%" width="220%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#29436b" flood-opacity=".16"/></filter>${[['wb','#c9b5df','#70428c'],['ozon','#b9c8eb','#3c609e']].map(([market,light,dark])=>`<linearGradient id="orders-bar-${market}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${light}"/><stop offset="100%" stop-color="${dark}"/></linearGradient>`).join('')}${['wb','ozon'].map((m,i)=>`<linearGradient id="orders-fill-${m}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${colours[i]}" stop-opacity=".26"/><stop offset="100%" stop-color="${colours[i]}" stop-opacity=".035"/></linearGradient>`).join('')}</defs>${grid}${lines}${marks}</svg></div><div class="chart-day-readout" data-chart-readout aria-live="polite">Наведите на день, чтобы увидеть количество заказов</div><div class="orders-chart-foot"><span>Все загруженные заказы выбранной схемы · без фильтра статусов · Москва</span></div>${hasProcessingDates?'<small>Для заказов без даты создания Ozon используется дата начала обработки, предоставленная площадкой.</small>':''}`;
+ const marks=days.map((day,index)=>{
+  const title=`${chartDate(day.day)} · WB: ${day.wb} · Ozon: ${day.ozon} · Всего: ${day.wb+day.ozon}`;
+  const accessibility=index>=start&&index<start+count?' data-chart-day tabindex="0"':' aria-hidden="true"';
+  return `<g class="chart-day" data-chart-point data-chart-label="${title}" aria-label="${title}"${accessibility}>
+   <title>${title}</title><rect class="chart-hover-band" x="${x(index)-step/2}" y="${top}" width="${step}" height="${bottom-top}" fill="#506a3d" opacity="0"/>
+   ${type==='lines'?['wb','ozon'].map((market,i)=>lineBadge(day,index,market,i)).join(''):referenceBar(day,index)}
+   ${chartDateText(day.day,x(index),period,index-start,count,Math.max(160,Number(containerWidth)||400))}</g>`;
+ }).join('');
+ return `<div class="orders-chart-head"><div><small class="orders-chart-eyebrow">СТАТИСТИКА ЗАКАЗОВ</small><h3>Динамика заказов</h3><p data-daily-heading>${dailyChartHeading(chartVisiblePeriods(days,start),period)}</p></div><div class="orders-chart-types" role="group" aria-label="Вид диаграммы"><button type="button" data-chart-type="bars" aria-pressed="${type==='bars'}">Столбцы</button><button type="button" data-chart-type="lines" aria-pressed="${type==='lines'}">Линии</button></div></div>${statistics}<div class="orders-chart-caption"><span>Новые заказы до возвратов, шт.</span><span>${type==='lines'?'Каждая линия — отдельная площадка':'Верхний кружок — всего · нижний — WB'}</span></div><div class="orders-chart-scroll"><svg role="img" aria-label="Количество новых заказов по дням: WB и Ozon" viewBox="0 0 ${width} ${height}" data-visible-periods="${count}" style="width:100%;height:auto;min-width:0"><defs>${[['wb','#e5d7ef'],['ozon','#d7e3f3']].map(([market,color])=>`<radialGradient id="orders-line-badge-${market}" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="65%" stop-color="#fbfcff"/><stop offset="100%" stop-color="${color}"/></radialGradient>`).join('')}<radialGradient id="orders-wb-badge" cx="30%" cy="20%" r="90%"><stop offset="0%" stop-color="#ffffff"/><stop offset="65%" stop-color="#faf6ff"/><stop offset="100%" stop-color="#e1d3ed"/></radialGradient><filter id="orders-bar-shadow" x="-60%" y="-25%" width="220%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#29436b" flood-opacity=".16"/></filter>${[['wb','#c9b5df','#70428c'],['ozon','#b9c8eb','#3c609e']].map(([market,light,dark])=>`<linearGradient id="orders-bar-${market}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${light}"/><stop offset="100%" stop-color="${dark}"/></linearGradient>`).join('')}${['wb','ozon'].map((m,i)=>`<linearGradient id="orders-fill-${m}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${colours[i]}" stop-opacity=".26"/><stop offset="100%" stop-color="${colours[i]}" stop-opacity=".035"/></linearGradient>`).join('')}</defs>${grid}${chartPlot(lines+marks,'orders-plot-clip',left,width-left-right,height,step,containerWidth,start)}</svg></div><div class="chart-day-readout" data-chart-readout aria-live="polite">Наведите на день, чтобы увидеть количество заказов</div><div class="orders-chart-foot"><span>Все загруженные заказы выбранной схемы · без фильтра статусов · Москва</span></div>${hasProcessingDates?'<small>Для заказов без даты создания Ozon используется дата начала обработки, предоставленная площадкой.</small>':''}`;
 }
 export function orderActionCounts(rows){const selected=rows.filter(requiresSellerAction),count=items=>new Set(items.map(row=>row.source+':'+(row.orderId||row.id))).size;return {orders:count(selected),wb:count(selected.filter(row=>row.source.startsWith('wb-'))),ozon:count(selected.filter(row=>row.source.startsWith('ozon-'))),positions:selected.length};}
 export function requiresSellerAction(row){return row.source?.endsWith('-fbs')&&[row.status].some(s=>['Заказан · ожидает сборки','На сборке · ожидает отгрузки','Ожидает сборки','Ожидает отгрузки','Ожидает подтверждения','Ожидает регистрации'].includes(s));}
@@ -236,7 +280,7 @@ export function mountMarketplaceOrders({root,database,save,getCredentials=()=>({
   </div>
   <div class="orders-chart-navigation" role="group" aria-label="Навигация по истории заказов" hidden>
    <button type="button" id="orders-chart-earlier" aria-controls="orders-chart orders-moving-chart">← Раньше</button>
-   <input type="range" id="orders-chart-position" min="0" max="0" value="0" step="1" aria-label="Период обоих графиков" aria-controls="orders-chart orders-moving-chart">
+   <input type="range" id="orders-chart-position" min="0" max="0" value="0" step="0.01" aria-label="Период обоих графиков" aria-controls="orders-chart orders-moving-chart">
    <button type="button" id="orders-chart-later" aria-controls="orders-chart orders-moving-chart">Позже →</button>
   </div>
  </div>
@@ -247,45 +291,119 @@ export function mountMarketplaceOrders({root,database,save,getCredentials=()=>({
  const $=s=>root.querySelector(s),date=value=>{if(!value)return '—';const d=new Date(/(?:Z|[+-]\d\d:\d\d)$/.test(value)?value:value+'+03:00');return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',dateStyle:'short',timeStyle:'short'}).format(d);};
  const chart=$('#orders-chart'),moving=$('#orders-moving-chart'),range=$('#orders-chart-range');
  const earlier=$('#orders-chart-earlier'),later=$('#orders-chart-later'),position=$('#orders-chart-position');
+ const view=root.ownerDocument.defaultView;
  let chartStart=null,chartRows=[],dailyPeriods=[],movingPeriods=[],hasProcessingDates=false;
+ let plotted=[],shownStart=0,animationFrame=null,animationTarget=null;
  const lastStart=()=>Math.max(0,dailyPeriods.length-chartWindowSize);
  const activeStart=()=>Math.min(chartStart??lastStart(),lastStart());
 
- function drawCharts(){
-  const start=activeStart(),visible=chartVisiblePeriods(dailyPeriods,start);
-  moving.hidden=!visible.length;
-  chart.innerHTML=renderDailyOrderChart(visible,chartType,(chart.clientWidth||768)-48,chartPeriod,'',hasProcessingDates);
-  moving.innerHTML=renderRollingOrderChart(chartVisiblePeriods(movingPeriods,start),(moving.clientWidth||768)-48,chartPeriod);
+ function syncChartWindow(){
+  const start=activeStart(),index=Math.round(start),max=lastStart();
+  const visible=chartVisiblePeriods(dailyPeriods,index);
+  for(const {track,step,labelWidth,points,interactive} of plotted){
+   track.setAttribute('transform',`translate(${-start*step} 0)`);
+   if(shownStart===index)continue;
+   for(const point of points.slice(shownStart,shownStart+chartWindowSize)){
+    point.setAttribute('aria-hidden','true');
+    point.removeAttribute('tabindex');
+    point.removeAttribute('data-chart-day');
+    point.querySelector('.chart-date').setAttribute('hidden','');
+   }
+   points.slice(index,index+chartWindowSize).forEach((point,offset)=>{
+    point.removeAttribute('aria-hidden');
+    if(interactive){
+     point.setAttribute('tabindex','0');
+     point.setAttribute('data-chart-day','');
+    }
+    point.querySelector('.chart-date').toggleAttribute('hidden',!chartShowsDate(offset,visible.length,labelWidth));
+   });
+  }
+  if(visible.length&&shownStart!==index){
+   chart.querySelector('[data-daily-heading]').textContent=dailyChartHeading(visible,chartPeriod);
+   const latest=movingPeriods[index+visible.length-1];
+   moving.querySelector('.rolling-latest strong').textContent=chartNumber(latest.average);
+   moving.querySelector('[data-rolling-date]').textContent='на '+chartDate(latest.day);
+  }
+  shownStart=index;
   range.hidden=!visible.length;
-  const formatDay=day=>day.split('-').reverse().join('.');
   const first=visible[0]?.day,last=visible.at(-1)?.day;
-  const dates=!first?'':first===last?formatDay(first):`${formatDay(first)} — ${formatDay(last)}`;
-  if(range.textContent!==dates)range.textContent=dates;
-  position.setAttribute('aria-valuetext',dates);
-  position.max=lastStart();
-  position.value=start;
-  position.parentElement.hidden=!lastStart();
+  const dates=!first?'':first===last?chartDate(first):`${chartDate(first)} — ${chartDate(last)}`;
+  if(range.textContent!==dates){
+   range.textContent=dates;
+   position.setAttribute('aria-valuetext',dates);
+  }
+  if(Number(position.max)!==max)position.max=max;
+  if(Math.abs(position.valueAsNumber-start)>=.005)position.value=start;
+  position.parentElement.hidden=!max;
+  const {activeElement}=root.ownerDocument;
+  if(max&&((start===0&&activeElement===earlier)||(start===max&&activeElement===later))){
+   position.focus({preventScroll:true});
+  }
   earlier.disabled=start===0;
-  later.disabled=start===lastStart();
-  if([earlier,later].some(button=>button.disabled&&button===root.ownerDocument.activeElement))position.focus({preventScroll:true});
+  later.disabled=start===max;
+ }
+ function drawCharts(){
+  shownStart=Math.round(activeStart());
+  moving.hidden=!dailyPeriods.length;
+  chart.innerHTML=renderDailyOrderChart(dailyPeriods,chartType,(chart.clientWidth||768)-48,chartPeriod,'',hasProcessingDates,shownStart);
+  moving.innerHTML=renderRollingOrderChart(movingPeriods,(moving.clientWidth||768)-48,chartPeriod,shownStart);
+  plotted=[...root.querySelectorAll('[data-chart-track]')].map(track=>({
+   track,step:Number(track.dataset.step),labelWidth:Number(track.dataset.labelWidth),
+   points:[...track.querySelectorAll('[data-chart-point]')],interactive:chart.contains(track)
+  }));
+  syncChartWindow();
  }
  function updateChartPeriods(){
   dailyPeriods=orderChartPeriods(chartRows,chartPeriod);
   movingPeriods=rollingChartPeriods(chartRows,chartPeriod);
   drawCharts();
  }
- function moveCharts(start){
-  const next=Math.max(0,Math.min(start,lastStart()));
-  if(next===activeStart())return;
-  chartStart=next===lastStart()?null:next;
-  drawCharts();
+ function setChartStart(next){
+  const start=Math.max(0,Math.min(next,lastStart()));
+  chartStart=start===lastStart()?null:start;
+  syncChartWindow();
  }
- earlier.onclick=()=>moveCharts(activeStart()-1);
- later.onclick=()=>moveCharts(activeStart()+1);
- position.oninput=()=>moveCharts(position.valueAsNumber);
+ function stopChartAnimation(){
+  if(animationFrame!==null)view.cancelAnimationFrame(animationFrame);
+  animationFrame=null;
+  animationTarget=null;
+ }
+ function moveChartBy(delta){
+  const start=activeStart();
+  const next=Math.max(0,Math.min(Math.round(animationTarget??start)+delta,lastStart()));
+  stopChartAnimation();
+  if(start===next)return;
+  if(!view.requestAnimationFrame||view.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+   setChartStart(next);
+   return;
+  }
+  animationTarget=next;
+  const began=view.performance.now();
+  const scroll=time=>{
+   const progress=Math.min(1,Math.max(0,(time-began)/180));
+   const eased=1-(1-progress)**3;
+   setChartStart(start+(next-start)*eased);
+   if(progress<1)animationFrame=view.requestAnimationFrame(scroll);
+   else stopChartAnimation();
+  };
+  animationFrame=view.requestAnimationFrame(scroll);
+ }
+ earlier.onclick=()=>moveChartBy(-1);
+ later.onclick=()=>moveChartBy(1);
+ position.oninput=()=>{
+  stopChartAnimation();
+  setChartStart(position.valueAsNumber);
+ };
+ position.onkeydown=event=>{
+  const direction={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1}[event.key];
+  if(!direction)return;
+  event.preventDefault();
+  moveChartBy(direction);
+ };
  const grouping=root.querySelectorAll('[data-chart-period]');
  for(const button of grouping)button.onclick=()=>{
   if(chartPeriod===button.dataset.chartPeriod)return;
+  stopChartAnimation();
   chartPeriod=button.dataset.chartPeriod;
   chartStart=null;
   for(const choice of grouping)choice.setAttribute('aria-pressed',String(choice===button));
@@ -352,7 +470,7 @@ export function mountMarketplaceOrders({root,database,save,getCredentials=()=>({
   setActionOnly(event.target.checked,event.target===root.ownerDocument.activeElement);
  };statusRoot.querySelector('[data-status-reset]').onclick=()=>{actionOnly=false;statusFilters.wb.clear();statusFilters.ozon.clear();page=0;draw();};statusRoot.querySelectorAll('[data-status-all]').forEach(input=>input.onchange=()=>{actionOnly=false;statusFilters[input.dataset.statusAll].clear();page=0;draw();});statusRoot.querySelectorAll('[data-status-market]').forEach(input=>input.onchange=()=>{actionOnly=false;const chosen=statusFilters[input.dataset.statusMarket];if(input.checked)chosen.add(input.value);else chosen.delete(input.value);const market=input.dataset.statusMarket,value=input.value;page=0;draw();[...statusRoot.querySelectorAll('[data-status-market]')].find(e=>e.dataset.statusMarket===market&&e.value===value)?.focus({preventScroll:true});});const query=$('#orders-query').value.trim().toLocaleLowerCase();const rows=all.filter(row=>{const chosen=statusFilters[row.source.startsWith('wb-')?'wb':'ozon'];return (!actionOnly||requiresSellerAction(row))&&(!chosen.size||chosen.has(row.status)||chosen.has(row.substatus))&&(!query||[row.name,row.sku,row.orderId,products().find(p=>p.sku===row.sku)?.name||''].some(v=>v.toLocaleLowerCase().includes(query)));});const sorted=sortOrderRows(rows);const pages=Math.max(1,Math.ceil(rows.length/50));page=Math.min(page,pages-1);$('#orders-count').textContent='Позиций: '+rows.length+' · даты и время — Москва';$('#orders-table').innerHTML=rows.length?renderOrderTables(sorted.slice(page*50,(page+1)*50),products(),date):'<p>Заказов для выбранного фильтра нет. Проверьте даты и статус загрузки каждой схемы.</p>';bindTablePhotos(root,database);mountFreshness(root);$('#orders-page').textContent=pages===1?'Показано позиций: '+rows.length:'Страница '+(page+1)+' из '+pages+' · '+(page*50+1)+'–'+Math.min(rows.length,(page+1)*50)+' из '+rows.length;$('#orders-prev').hidden=pages===1;$('#orders-next').hidden=pages===1;$('#orders-page').parentElement.hidden=rows.length===0;$('#orders-prev').disabled=page===0;$('#orders-next').disabled=page>=pages-1;};
  $('#orders-open-keys').onclick=onOpenApi;
- $('#orders-source').oninput=()=>{page=0;chartStart=null;draw();};
+ $('#orders-source').oninput=()=>{stopChartAnimation();page=0;chartStart=null;draw();};
  $('#orders-query').oninput=()=>{page=0;draw();};$('#orders-prev').onclick=()=>{page--;draw();};$('#orders-next').onclick=()=>{page++;draw();};
  const refreshButton=$('#orders-refresh'),status=$('#orders-progress');
  const fetchWithSignal=signal=>(url,options)=>fetch(url,{
@@ -443,6 +561,7 @@ export function mountMarketplaceOrders({root,database,save,getCredentials=()=>({
  };
  draw();
  return ()=>{
+  stopChartAnimation();
   chartResize?.disconnect();
   refreshController?.abort();
   photoController?.abort();

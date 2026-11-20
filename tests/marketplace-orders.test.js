@@ -170,6 +170,16 @@ test('diagram grouping keeps history and displays a window of at most fourteen p
 
 test('sales scrolls both charts through loaded history and preserves five-day averages',()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const view=dom.window,frames=new Map();
+ let nextFrame=0;
+ view.requestAnimationFrame=callback=>{frames.set(++nextFrame,callback);return nextFrame;};
+ view.cancelAnimationFrame=id=>frames.delete(id);
+ const advance=time=>{
+  for(const [id,callback] of [...frames]){
+   frames.delete(id);
+   callback(time);
+  }
+ };
  const rows=Array.from({length:40},(_,index)=>({
   source:'wb-fbs',orderId:String(index),sku:'a',name:'Товар',
   orderedAt:new Date(Date.UTC(2026,0,1+index,12)).toISOString(),status:'Доставлен',quantity:1
@@ -177,6 +187,8 @@ test('sales scrolls both charts through loaded history and preserves five-day av
  mountMarketplaceOrders({root,database:{products:[],orderSnapshots:[{source:'wb-fbs',rows}]},save:()=>{}});
  const earlier=root.querySelector('#orders-chart-earlier'),later=root.querySelector('#orders-chart-later');
  const slider=root.querySelector('#orders-chart-position');
+ const tracks=[...root.querySelectorAll('[data-chart-track]')];
+ const chartPosition=track=>Number(track.getAttribute('transform').split(/[ (]/)[1])/-Number(track.dataset.step);
  const checkWindow=(from,to,latest)=>{
   assert.equal(root.querySelector('#orders-chart-range').textContent,from+' — '+to);
   const days=root.querySelectorAll('#orders-chart [data-chart-day]');
@@ -184,18 +196,27 @@ test('sales scrolls both charts through loaded history and preserves five-day av
   assert.ok(days[0].dataset.chartLabel.startsWith(from));
   assert.ok(days[13].dataset.chartLabel.startsWith(to));
   assert.match(root.querySelector('#orders-moving-chart .rolling-latest').textContent,new RegExp('на '+to.replaceAll('.','[.]')));
-  assert.equal(root.querySelector('#orders-moving-chart .rolling-point-number').textContent,latest);
+  assert.equal(root.querySelector('#orders-moving-chart [data-chart-point]:not([aria-hidden]) .rolling-point-number').textContent,latest);
   assert.equal(slider.getAttribute('aria-valuetext'),from+' — '+to);
  };
  checkWindow('27.01.2026','09.02.2026','1');
  assert.equal(later.disabled,true);
+ const began=view.performance.now();
  earlier.click();
+ advance(began+80);
+ for(const track of tracks)assert.ok(chartPosition(track)>25&&chartPosition(track)<26);
+ advance(began+200);
  checkWindow('26.01.2026','08.02.2026','1');
+ slider.value='7.25';
+ slider.dispatchEvent(new dom.window.Event('input'));
+ assert.deepEqual([...root.querySelectorAll('[data-chart-track]')],tracks);
+ for(const track of tracks)assert.ok(Math.abs(chartPosition(track)-7.25)<.001);
  slider.value='0';
  slider.dispatchEvent(new dom.window.Event('input'));
  checkWindow('01.01.2026','14.01.2026','0,2');
  assert.equal(earlier.disabled,true);
  later.click();
+ advance(view.performance.now()+200);
  checkWindow('02.01.2026','15.01.2026','0,4');
  root.querySelector('[data-chart-period=weeks]').click();
  assert.equal(slider.parentElement.hidden,true);
