@@ -444,6 +444,10 @@ main:not([data-workspace="prices"]) .prices-only,main[data-workspace="prices"] .
 
 .orders-chart-grid .orders-chart-scroll{margin-top:0}
 
+.orders-chart-navigation{flex:0 0 100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.orders-chart-navigation button{min-height:44px;padding:10px 12px;border-radius:10px;font-size:14px;white-space:nowrap}
+.orders-chart-navigation input[type="range"]{width:100%;min-width:0;height:44px;margin:0;padding:0;border:0;background:transparent;accent-color:#4b6549;cursor:ew-resize}
+
 .rolling-point-number{font:700 10px Arial,sans-serif;fill:#456a38}.rolling-value-badge{filter:drop-shadow(0 1px 2px #4b6b3e18)}.chart-wb-count text{font:700 11px Arial,sans-serif;fill:#76518c}.chart-wb-count{pointer-events:none}
 
 .orders-shared-statistics .orders-stats-note{font-size:11px;line-height:1.5;margin:9px 0 15px;color:#6a7564}

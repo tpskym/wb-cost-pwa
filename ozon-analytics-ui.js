@@ -1,6 +1,6 @@
 import {marketRequest} from './marketplace-api.js?v=0.2.392';
 import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
-import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.401';
+import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.403';
 import {loadWbAccrualDays,requestWbFinanceReport,wbAccrualDays,wbAnalyticsGroups,wbSellerId} from './wb-analytics.js?v=0.2.397';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});

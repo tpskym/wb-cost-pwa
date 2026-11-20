@@ -1,5 +1,5 @@
 import {dayKey,validDay} from './ozon-analytics.js?v=0.2.392';
-import {orderRequest,readOzonPostingPages} from './marketplace-orders.js?v=0.2.401';
+import {orderRequest,readOzonPostingPages} from './marketplace-orders.js?v=0.2.403';
 
 const sourcesByScheme={all:['ozon-fbs','ozon-fbo'],fbs:['ozon-fbs'],fbo:['ozon-fbo']};
 const text=value=>typeof value==='string'?value.trim():'';
