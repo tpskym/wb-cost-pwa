@@ -4,7 +4,7 @@ import {JSDOM} from 'jsdom';
 import {loadOzonFunnel,loadWbFunnel,mountSalesFunnel} from '../sales-funnel.js';
 import {marketRequest} from '../marketplace-api.js';
 
-const filters={from:'2026-11-01',to:'2026-11-10',sku:'test-sku',wbId:'',ozonIds:[]};
+const filters={from:'2026-11-01',to:'2026-11-10',sku:'test-sku'};
 const wbReport={data:{products:[{product:{nmId:42},statistic:{selected:{
  period:{start:filters.from,end:filters.to},openCount:50,cartCount:12,orderCount:8,buyoutCount:5
 }}}]}};
@@ -41,7 +41,8 @@ test('WB resolves the exact article and reports date-specific funnel totals',asy
  });
  assert.deepEqual(wb.ids,['42']);
  assert.deepEqual(wb.totals,{opens:50,cart:12,ordered:8,bought:5});
- const missing=await loadWbFunnel({...filters,wbId:'43'},async ()=>wbReport);
+ const missing=await loadWbFunnel(filters,async operation=>operation==='list'?
+  {cards:[{vendorCode:filters.sku,nmID:43}]}:wbReport);
  assert.equal(missing.totals,null);
 });
 
@@ -60,8 +61,9 @@ test('Ozon uses every matching SKU once and does not substitute unreported value
 });
 
 test('Ozon without a qualifying subscription requests only basic counts',async()=>{
- const basic=await loadOzonFunnel({...filters,ozonIds:['111']},async (operation,body)=>{
+ const basic=await loadOzonFunnel(filters,async (operation,body)=>{
   if(operation==='sellerInfo')return {subscription:{type:'PREMIUM'}};
+  if(operation==='info')return {items:[{offer_id:filters.sku,sources:[{sku:111}]}]};
   assert.equal(operation,'salesFunnel');
   assert.deepEqual(body.filters,[{key:'sku',op:'EQ',value:'111'}]);
   assert.deepEqual(body.metrics,['ordered_units']);
@@ -71,26 +73,49 @@ test('Ozon without a qualifying subscription requests only basic counts',async()
  assert.match(basic.note,/Premium Plus/);
 });
 
-test('one marketplace failure leaves the other funnel visible',async()=>{
+test('funnel uses the chosen catalogue product and keeps resolved IDs when analytics fails',async()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const products=[
+  {id:'first',sku:'other-sku',name:'Другой товар'},
+  {id:'selected',sku:filters.sku,name:'Шаблон',variantNote:'Чёрный'},
+  {id:'no-sku',sku:' ',name:'Без артикула'}
+ ];
  const dispose=mountSalesFunnel({
   root,getCredentials:()=>({wbToken:'test-wb',ozonClient:'91',ozonKey:'test-ozon'}),onOpenApi:()=>{},
+  getProducts:()=>products,getSelectedProductId:()=>products[1].id,
   now:()=>new Date('2026-11-20T12:00:00Z'),
-  request:async (market,operation)=>{
+  request:async (market,operation,_credentials,body)=>{
+   if(operation==='list'){
+    assert.equal(body.settings.filter.textSearch,filters.sku);
+    return {cards:[{vendorCode:filters.sku,nmID:42}]};
+   }
    if(market==='wb')throw Error('HTTP 403 <test-wb>');
    if(operation==='sellerInfo')return {subscription:{type:'PREMIUM_PLUS'}};
-   if(operation==='info')return {items:[{offer_id:filters.sku,sources:[{sku:111}]}]};
+   if(operation==='info'){
+    assert.deepEqual(body.offer_id,[filters.sku]);
+    return {items:[{offer_id:filters.sku,sources:[{sku:111}]}]};
+   }
+   assert.deepEqual(body.filters,[{key:'sku',op:'EQ',value:'111'}]);
    return {result:{data:[ozonRow('111',[13,140,39,20,9,0])]}};
   }
  });
  const form=root.querySelector('form');
- form.elements.sku.value=filters.sku;
+ const picker=form.elements.productId;
+ assert.equal(picker.value,'selected');
+ assert.equal(picker.selectedOptions[0].textContent,'Шаблон · Чёрный · test-sku');
+ assert.equal(picker.options.length,3);
+ assert.equal(form.querySelector('input[name="wbId"],input[name="ozonIds"]'),null);
  await form.onsubmit({preventDefault(){}});
  assert.match(root.querySelector('[data-funnel-status=wb]').textContent,/403 <\[скрыто\]>/);
  assert.match(root.querySelector('[data-funnel-status=ozon]').textContent,/Доставленные товары/);
+ assert.match(root.querySelector('[data-funnel-ids=wb]').textContent,/42/);
+ assert.match(root.querySelector('[data-funnel-ids=ozon]').textContent,/111/);
  const ordered=[...root.querySelectorAll('tbody tr')].find(row=>row.querySelector('th').textContent==='Заказали, шт.');
  assert.deepEqual([...ordered.querySelectorAll('td')].map(cell=>cell.textContent),['—','13']);
  assert.equal(form.querySelector('button[type=submit]').disabled,false);
+ picker.value='first';
+ picker.dispatchEvent(new dom.window.Event('input',{bubbles:true}));
+ assert.equal(root.querySelector('table'),null);
  dispose();
  dom.window.close();
 });
