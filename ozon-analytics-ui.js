@@ -1,6 +1,7 @@
 import {marketRequest} from './marketplace-api.js?v=0.2.392';
 import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
 import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.404';
+import {mountSalesFunnel} from './sales-funnel.js?v=0.2.405';
 import {loadWbAccrualDays,requestWbFinanceReport,wbAccrualDays,wbAnalyticsGroups,wbSellerId} from './wb-analytics.js?v=0.2.397';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
@@ -20,7 +21,7 @@ const standardRows={
  returns:['Возврат выручки','Баллы за скидки','Программы партнёров'],
  commission:['Вознаграждение за продажу','Возврат вознаграждения']
 };
-const reports=[['accruals','Начисления WB и Ozon'],['clusters','Заказы по кластерам Ozon']];
+const reports=[['accruals','Начисления WB и Ozon'],['clusters','Заказы по кластерам Ozon'],['funnel','Воронка']];
 
 export function mountAnalyticsWorkspace({root,state,getState,commitDay,getWbState,commitWbDays,getCredentials,getProducts,onOpenApi}){
  root.innerHTML=`
@@ -38,7 +39,8 @@ export function mountAnalyticsWorkspace({root,state,getState,commitDay,getWbStat
  const mounted=new Map();
  const mount={
   accruals:root=>mountAccrualAnalytics({root,getState,commitDay,getWbState,commitWbDays,getCredentials,onOpenApi}),
-  clusters:root=>mountOzonClusterOrders({root,state:state.clusters,getCredentials,getProducts,onOpenApi})
+  clusters:root=>mountOzonClusterOrders({root,state:state.clusters,getCredentials,getProducts,onOpenApi}),
+  funnel:root=>mountSalesFunnel({root,state:state.funnel??={},getCredentials,getProducts,onOpenApi})
  };
  function show(report){
   state.report=report;

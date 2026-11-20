@@ -1,4 +1,4 @@
-import {mountAnalyticsWorkspace} from './ozon-analytics-ui.js?v=0.2.404';
+import {mountAnalyticsWorkspace} from './ozon-analytics-ui.js?v=0.2.405';
 import {wbAccrualDays} from './wb-analytics.js?v=0.2.397';
 import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.392';
 import {mountFinance} from './finance.js?v=0.2.404';
@@ -23,7 +23,7 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.404';
+import {mountReleaseHistory} from './release-history.js?v=0.2.405';
 import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.392';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
@@ -38,7 +38,7 @@ import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.404';
+const APP_VERSION='0.2.405';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
@@ -848,6 +848,7 @@ function mountAnalytics(){
  if(analyticsUiState.database!==database){
   analyticsUiState.database=database;
   analyticsUiState.clusters={};
+  analyticsUiState.funnel={};
  }
  return mountAnalyticsWorkspace({
   root:$('#analytics-workspace'),state:analyticsUiState,getState:()=>database.ozonAnalytics,
