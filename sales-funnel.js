@@ -138,7 +138,70 @@ function reportMarkup(filters,results){
   </div>`;
 }
 
-export function mountSalesFunnel({root,state={},getCredentials,getProducts=()=>[],getSelectedProductId=()=>'',onOpenApi,request=marketRequest,now=()=>new Date()}){
+function openFunnelProductPicker({button,products,selectedId,hydrateProductImages,onSelect}){
+ const doc=button.ownerDocument;
+ const groups=new Map();
+ for(const product of products){
+  const group=product.productGroup?.trim()||'';
+  if(!groups.has(group))groups.set(group,[]);
+  groups.get(group).push(product);
+ }
+ const dialog=doc.createElement('dialog');
+ dialog.className='marketplace-profit-picker funnel-product-picker';
+ dialog.setAttribute('aria-labelledby','funnel-product-picker-title');
+ dialog.innerHTML=`<form method="dialog">
+  <div class="modal-head"><h2 id="funnel-product-picker-title">Выберите товар</h2></div>
+  <input type="search" aria-label="Найти товар" placeholder="Название, артикул, вариант или группа" autofocus>
+  <div class="marketplace-profit-targets">${[...groups].map(([group,items])=>`<fieldset>
+   <legend>${escape(group||'Без группы')} · ${items.length}</legend>
+   ${items.map(product=>`<label>
+    <input type="radio" name="target" value="${escape(product.id)}" ${product.id===selectedId?'checked':''}>
+    <img data-product-image="${escape(product.id)}" alt="" hidden>
+    <span><strong>${escape(product.sku)}</strong><small>${escape([product.name,product.variantNote].filter(Boolean).join(' · '))}</small></span>
+   </label>`).join('')}
+  </fieldset>`).join('')}</div>
+  <p data-funnel-product-empty role="status" hidden>Товары не найдены.</p>
+  <div class="sync-actions"><button type="submit" class="primary">Выбрать товар</button><button type="button">Отмена</button></div>
+ </form>`;
+ const form=dialog.querySelector('form');
+ const search=form.querySelector('input[type="search"]');
+ const apply=form.querySelector('button[type="submit"]');
+ const empty=form.querySelector('[data-funnel-product-empty]');
+ const groupFields=[...form.querySelectorAll('fieldset')];
+ const selected=()=>form.querySelector('label:not([hidden]) input[name="target"]:checked');
+ const updateSelection=()=>{apply.disabled=!selected();};
+ search.oninput=()=>{
+  const terms=search.value.trim().toLocaleLowerCase('ru-RU').split(/\s+/).filter(Boolean);
+  for(const group of groupFields){
+   const groupName=group.querySelector('legend').textContent.toLocaleLowerCase('ru-RU');
+   const rows=[...group.querySelectorAll('label')];
+   for(const row of rows){
+    const text=(row.textContent+' '+groupName).toLocaleLowerCase('ru-RU');
+    row.hidden=!terms.every(term=>text.includes(term));
+   }
+   group.hidden=rows.every(row=>row.hidden);
+  }
+  empty.hidden=groupFields.some(group=>!group.hidden);
+  updateSelection();
+ };
+ form.onchange=updateSelection;
+ form.onsubmit=event=>{
+  event.preventDefault();
+  const choice=selected();
+  if(!choice)return;
+  onSelect(choice.value);
+  dialog.close();
+ };
+ form.querySelector('button[type="button"]').onclick=()=>dialog.close();
+ dialog.addEventListener('close',()=>{dialog.remove();if(button.isConnected)button.focus();},{once:true});
+ updateSelection();
+ doc.body.append(dialog);
+ dialog.showModal();
+ hydrateProductImages(dialog);
+ return dialog;
+}
+
+export function mountSalesFunnel({root,state={},getCredentials,getProducts=()=>[],getSelectedProductId=()=>'',hydrateProductImages=()=>{},onOpenApi,request=marketRequest,now=()=>new Date()}){
  const today=dayKey(now());
  const filters=state.filters??={from:today.slice(0,8)+'01',to:today,productId:''};
  const products=getProducts().filter(product=>product.sku?.trim());
@@ -146,44 +209,51 @@ export function mountSalesFunnel({root,state={},getCredentials,getProducts=()=>[
  const selectedId=getSelectedProductId();
  if(!byId.has(filters.productId))filters.productId=byId.has(selectedId)?selectedId:'';
  const title=product=>[product.name,product.variantNote,product.sku.trim()].filter(Boolean).join(' · ');
- const options=products.map(product=>({id:product.id,text:title(product)}))
-  .sort((a,b)=>a.text.localeCompare(b.text,'ru',{numeric:true}));
  const earliest=dayKey(new Date(Date.parse(today+'T12:00:00Z')-364*86400000));
- let controller,disposed=false;
+ let controller,productDialog,disposed=false;
  root.innerHTML=`<section class="panel ozon-analytics">
   <div class="analytics-heading"><h1>Воронка</h1><button type="button" data-funnel-access>Настроить доступ API</button></div>
   <form class="analytics-controls funnel-controls">
-   <label class="funnel-product">Товар из «Себестоимости»
-    <select name="productId" class="ui-select" required ${options.length?'':'disabled'}>
-     <option value="">Выберите товар</option>
-     ${options.map(option=>`<option value="${escape(option.id)}">${escape(option.text)}</option>`).join('')}
-    </select>
-   </label>
+   <div class="funnel-product"><span id="funnel-product-label">Товар из «Себестоимости»</span>
+    <button type="button" class="ui-select" aria-haspopup="dialog" aria-labelledby="funnel-product-label funnel-product-name" data-funnel-product ${products.length?'':'disabled'}><span id="funnel-product-name"></span></button>
+   </div>
    <label>С даты<input name="from" type="date" value="${escape(filters.from)}" min="${earliest}" max="${today}" required></label>
    <label>По дату<input name="to" type="date" value="${escape(filters.to)}" min="${earliest}" max="${today}" required></label>
-   <div class="funnel-actions"><button type="submit" class="primary" ${options.length?'':'disabled'}>Загрузить WB и Ozon</button><button type="button" data-funnel-stop hidden>Стоп</button></div>
+   <div class="funnel-actions"><button type="submit" class="primary" ${products.length?'':'disabled'}>Загрузить WB и Ozon</button><button type="button" data-funnel-stop hidden>Стоп</button></div>
   </form>
   <p class="analytics-status" role="status"></p>
   <div data-funnel-results></div>
  </section>`;
  const form=root.querySelector('form'),result=root.querySelector('[data-funnel-results]');
  const status=root.querySelector('.analytics-status'),stop=root.querySelector('[data-funnel-stop]');
- const controls=[...form.querySelectorAll('input,select,button[type="submit"]')];
- const filterNames=['from','to','productId'];
- form.elements.productId.value=filters.productId;
+ const productButton=form.querySelector('[data-funnel-product]');
+ const productName=productButton.querySelector('span');
+ const controls=[...form.querySelectorAll('input,button[type="submit"]'),productButton];
+ const filterNames=['from','to'];
  const remember=()=>{for(const name of filterNames)filters[name]=form.elements.namedItem(name).value;};
  const identity=credentials=>[credentials.wbToken,credentials.ozonClient,credentials.ozonKey].join('\u0000');
  const selectedSku=()=>byId.get(filters.productId)?.sku.trim()||'';
  const filterKey=()=>JSON.stringify([filters.productId,selectedSku(),filters.from,filters.to]);
 
  function draw(){
+  const product=byId.get(filters.productId);
+  productName.textContent=product?title(product):'Выбрать товар';
+  productButton.title=product?title(product):'';
   const report=state.report;
   result.innerHTML=report?.key===filterKey()&&report.account===identity(getCredentials())?
    reportMarkup({...filters,sku:selectedSku()},report.results):
-   `<p class="analytics-empty">${options.length?'Выберите товар и период. Найдём карточки WB и Ozon по его артикулу.':
+   `<p class="analytics-empty">${products.length?'Выберите товар и период. Найдём карточки WB и Ozon по его артикулу.':
     'Добавьте артикул хотя бы одному товару в «Себестоимости».'}</p>`;
  }
  form.oninput=()=>{if(controller)return;remember();status.textContent='';draw();};
+ productButton.onclick=()=>{
+  if(productDialog?.open)return;
+  productDialog=openFunnelProductPicker({button:productButton,products,selectedId:filters.productId,hydrateProductImages,onSelect:id=>{
+   filters.productId=id;
+   status.textContent='';
+   draw();
+  }});
+ };
  root.querySelector('[data-funnel-access]').onclick=onOpenApi;
  stop.onclick=()=>controller?.abort();
 
@@ -242,5 +312,5 @@ export function mountSalesFunnel({root,state={},getCredentials,getProducts=()=>[
   }
  };
  draw();
- return ()=>{disposed=true;controller?.abort();};
+ return ()=>{disposed=true;controller?.abort();productDialog?.remove();};
 }

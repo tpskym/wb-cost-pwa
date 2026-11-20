@@ -1035,8 +1035,21 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 .analytics-cluster-table .analytics-cluster-unknown{background:#fff6e6}
 .analytics-cluster-table tfoot :is(th,td){background:#dfeccf;font-weight:750;border:0}
 .funnel-controls{display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr))}
-.funnel-controls label{min-width:0}
-.funnel-controls :is(input,select){width:100%;min-width:0;margin:0}
+.funnel-controls :is(label,.funnel-product){min-width:0}
+.funnel-controls input{width:100%;min-width:0;margin:0}
+.funnel-product{display:grid;gap:8px;font-size:12px;font-weight:550;color:#65716b}
+.funnel-product button.ui-select{min-width:0;margin:0;padding-right:40px;text-align:left}
+.funnel-product button span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.funnel-product-picker .modal-head h2{margin:0 0 14px}
+.funnel-product-picker input[type="search"]{width:100%;min-height:44px;margin:0}
+.funnel-product-picker .marketplace-profit-targets{min-height:0;max-height:min(45vh,calc(90dvh - 230px))}
+.funnel-product-picker label{cursor:pointer}
+.funnel-product-picker label:hover{background:#f5f7f0}
+.funnel-product-picker label:has(input:checked){border-color:#91a87c;background:#edf3e7;color:#28432b}
+.funnel-product-picker label:has(input:focus-visible){outline:2px solid #739460;outline-offset:-2px}
+.funnel-product-picker input[type="radio"]{flex:none;accent-color:#436049}
+.funnel-product-picker .sync-actions{display:flex;flex-wrap:wrap;gap:10px}
+.funnel-product-picker .sync-actions button{min-height:44px;font-size:14px}
 .funnel-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
 .funnel-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .funnel-sources{margin:12px 0}
@@ -1047,6 +1060,7 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 @media(max-width:600px){
  .funnel-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
  .funnel-product{grid-column:1/-1}
+ .funnel-product-picker{padding:16px}
  .funnel-sources{grid-template-columns:minmax(0,1fr)}
 }
 @media(min-width:1300px){

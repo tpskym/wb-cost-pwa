@@ -75,16 +75,21 @@ test('Ozon without a qualifying subscription requests only basic counts',async()
 
 test('funnel uses the chosen catalogue product and keeps resolved IDs when analytics fails',async()=>{
  const dom=new JSDOM('<div id="root"></div>'),root=dom.window.document.querySelector('#root');
+ const dialogPrototype=dom.window.HTMLDialogElement.prototype;
+ dialogPrototype.showModal=function(){this.open=true;};
+ dialogPrototype.close=function(){this.open=false;this.dispatchEvent(new dom.window.Event('close'));};
  const products=[
-  {id:'first',sku:'other-sku',name:'Другой товар'},
-  {id:'selected',sku:filters.sku,name:'Шаблон',variantNote:'Чёрный'},
+  {id:'first',sku:'other-sku',name:'Другой товар',productGroup:'Органайзеры'},
+  {id:'selected',sku:filters.sku,name:'Шаблон',variantNote:'Чёрный',productGroup:'Шаблоны'},
   {id:'no-sku',sku:' ',name:'Без артикула'}
  ];
+ let requestCount=0;
  const dispose=mountSalesFunnel({
   root,getCredentials:()=>({wbToken:'test-wb',ozonClient:'91',ozonKey:'test-ozon'}),onOpenApi:()=>{},
   getProducts:()=>products,getSelectedProductId:()=>products[1].id,
   now:()=>new Date('2026-11-20T12:00:00Z'),
   request:async (market,operation,_credentials,body)=>{
+   requestCount++;
    if(operation==='list'){
     assert.equal(body.settings.filter.textSearch,filters.sku);
     return {cards:[{vendorCode:filters.sku,nmID:42}]};
@@ -100,11 +105,22 @@ test('funnel uses the chosen catalogue product and keeps resolved IDs when analy
   }
  });
  const form=root.querySelector('form');
- const picker=form.elements.productId;
- assert.equal(picker.value,'selected');
- assert.equal(picker.selectedOptions[0].textContent,'Шаблон · Чёрный · test-sku');
- assert.equal(picker.options.length,3);
- assert.equal(form.querySelector('input[name="wbId"],input[name="ozonIds"]'),null);
+ const picker=form.querySelector('[data-funnel-product]');
+ assert.equal(picker.textContent,'Шаблон · Чёрный · test-sku');
+ assert.equal(form.querySelector('select,input[name="wbId"],input[name="ozonIds"]'),null);
+ picker.click();
+ let dialog=dom.window.document.querySelector('dialog[open]');
+ assert.deepEqual([...dialog.querySelectorAll('legend')].map(item=>item.textContent),['Органайзеры · 1','Шаблоны · 1']);
+ assert.equal(dialog.querySelector('input:checked').value,'selected');
+ const search=dialog.querySelector('input[type=search]');
+ search.value='ДРУГОЙ other-sku';
+ search.dispatchEvent(new dom.window.Event('input'));
+ assert.equal(dialog.querySelector('fieldset[hidden] legend').textContent,'Шаблоны · 1');
+ dialog.querySelector('input[value=first]').click();
+ dialog.querySelector('button[type=button]').click();
+ assert.equal(picker.textContent,'Шаблон · Чёрный · test-sku');
+ assert.equal(dom.window.document.activeElement,picker);
+ assert.equal(requestCount,0);
  await form.onsubmit({preventDefault(){}});
  assert.match(root.querySelector('[data-funnel-status=wb]').textContent,/403 <\[скрыто\]>/);
  assert.match(root.querySelector('[data-funnel-status=ozon]').textContent,/Доставленные товары/);
@@ -113,9 +129,15 @@ test('funnel uses the chosen catalogue product and keeps resolved IDs when analy
  const ordered=[...root.querySelectorAll('tbody tr')].find(row=>row.querySelector('th').textContent==='Заказали, шт.');
  assert.deepEqual([...ordered.querySelectorAll('td')].map(cell=>cell.textContent),['—','13']);
  assert.equal(form.querySelector('button[type=submit]').disabled,false);
- picker.value='first';
- picker.dispatchEvent(new dom.window.Event('input',{bubbles:true}));
+ picker.click();
+ dialog=dom.window.document.querySelector('dialog[open]');
+ dialog.querySelector('input[value=first]').click();
+ dialog.querySelector('button[type=submit]').click();
+ assert.equal(picker.textContent,'Другой товар · other-sku');
  assert.equal(root.querySelector('table'),null);
+ picker.click();
+ assert.equal(dom.window.document.querySelector('dialog input:checked').value,'first');
  dispose();
+ assert.equal(dom.window.document.querySelector('dialog'),null);
  dom.window.close();
 });
