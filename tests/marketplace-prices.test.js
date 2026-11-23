@@ -209,4 +209,37 @@ test('cost presets set only the corresponding marketplace sale-price draft',()=>
  dispose();
  window.close();
 });
+test('Ozon highlights matching sale and minimum presets independently',async()=>{
+ const {window}=new JSDOM('<main></main>'),root=window.document.querySelector('main');
+ const item=ozon();
+ const row=normalizePrice('ozon',{...item,price:{...item.price,price:'278.00',min_price:'278.0'}});
+ const database={products:[{...blankProduct(),sku:row.sku}],priceSnapshots:[{market:'ozon',updatedAt:'now',rows:[row]}]};
+ const dispose=mountMarketplacePrices({
+  root,database,save:()=>true,getCredentials:()=>({}),
+  getCostPrices:()=>({ozon:{breakEven:189,minimumWorking:226,suggested:264,roiWithReserve:278}}),
+  request:async(market,operation)=>{
+   assert.equal(market,'ozon');
+   assert.equal(operation,'prices');
+   return {items:[{...item,price:{...item.price,price:'264',min_price:'189'}}]};
+  }
+ });
+ const selected=()=>[...root.querySelectorAll('[data-price-preset][aria-pressed="true"]')]
+  .map(button=>[button.dataset.pricePreset,button.dataset.pricePresetField||'price']);
+ assert.deepEqual(selected(),[['278','price'],['278','minimum']]);
+ root.querySelector('[data-price-preset="226"][data-price-preset-field="minimum"]').click();
+ assert.deepEqual(selected(),[['226','minimum'],['278','price']]);
+ const sale=root.querySelector('[data-price-field="price"]');
+ sale.value='';
+ sale.dispatchEvent(new window.Event('input',{bubbles:true}));
+ assert.deepEqual(selected(),[['226','minimum']]);
+ sale.value='226.00';
+ sale.dispatchEvent(new window.Event('input',{bubbles:true}));
+ assert.deepEqual(selected(),[['226','price'],['226','minimum']]);
+ root.querySelector('[data-prices-market="ozon"]').click();
+ assert.deepEqual(selected(),[['226','price'],['226','minimum']]);
+ await root.querySelector('#prices-rows').onclick({target:root.querySelector('[data-price-check]')});
+ assert.deepEqual(selected(),[['189','minimum'],['264','price']]);
+ dispose();
+ window.close();
+});
 test('price loading attaches WB and Ozon main photos by exact article',async()=>{const wbResult=await loadMarketplacePrices('wb',async op=>op==='pricesAll'?{data:{listGoods:[wb()]}}:{cards:[{nmID:1,title:'WB name',photos:[{big:'https://example.com/wb.webp'}]}],cursor:{total:1}});const ozResult=await loadMarketplacePrices('ozon',async op=>op==='prices'?{items:[ozon()],cursor:''}:{items:[{offer_id:'OTHER',primary_image:['https://example.com/other.webp']},{offer_id:'SKU1',name:'Ozon name',primary_image:['https://example.com/ozon.webp']}]});assert.equal(wbResult.rows[0].imageUrl,'https://example.com/wb.webp');assert.equal(ozResult.rows[0].imageUrl,'https://example.com/ozon.webp');const dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main');mountMarketplacePrices({root,database:{products:[],priceSnapshots:[wbResult,ozResult]},save:()=>{},getCredentials:()=>({})});assert.equal(root.querySelector('.table-product-photo'),null);assert.match(root.textContent,/SKU1/);});

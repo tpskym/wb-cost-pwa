@@ -61,7 +61,7 @@ const costPriceKinds=[
  ['breakEven','Без убытка'],['minimumWorking','Минимальная'],['suggested','Предлагаемая'],['roiWithReserve','ROI 80% + 10 ₽']
 ];
 
-function costPriceMarkup(prices,market,{disabled,editable,missing}){
+function costPriceMarkup(prices,market,{disabled,editable,missing,values}){
  const title='Расчёт из «Себестоимости» · FBS';
  if(!prices)return `<div class="price-cost-targets"><strong>${title}</strong><small>${missing}</small></div>`;
  const buttons=costPriceKinds.map(([kind,label])=>{
@@ -76,8 +76,8 @@ function costPriceMarkup(prices,market,{disabled,editable,missing}){
   return `<div class="price-cost-choice">
    <div class="price-cost-choice-summary">${summary}</div>
    <div class="price-cost-choice-actions">
-    <button ${attributes} aria-label="${esc(accessibleLabel+' · в цену продажи')}">В продажу</button>
-    <button ${attributes} data-price-preset-field="minimum" aria-label="${esc(accessibleLabel+' · в минимальную цену')}">В минимум</button>
+    <button ${attributes} aria-pressed="${Boolean(canUse&&amount===values?.price)}" aria-label="${esc(accessibleLabel+' · в цену продажи')}">В продажу</button>
+    <button ${attributes} data-price-preset-field="minimum" aria-pressed="${Boolean(canUse&&amount===values?.minimum)}" aria-label="${esc(accessibleLabel+' · в минимальную цену')}">В минимум</button>
    </div>
   </div>`;
  }).join('');
@@ -146,8 +146,8 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   if(submission.status==='rejected')return 'Площадка отклонила изменение';
   return 'Отправка '+new Date(submission.at).toLocaleString('ru-RU')+' · применение ещё не подтверждено';
  }
- const quoteMarkup=({row,market,prices,missing})=>costPriceMarkup(prices,market,{
-  disabled:busy,editable:row?.currency==='RUB',missing:row&&row.currency!=='RUB'?'Подстановка доступна для цен в рублях.':missing
+ const quoteMarkup=({row,market,prices,missing},values)=>costPriceMarkup(prices,market,{
+  disabled:busy,editable:row?.currency==='RUB',missing:row&&row.currency!=='RUB'?'Подстановка доступна для цен в рублях.':missing,values
  });
  function priceCellMarkup(entry){
   const {row}=entry;
@@ -160,7 +160,7 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
    <div class="price-row-fields">${input(row,'price',wb?'Конечная цена, ₽':'Цена продажи, ₽',sale)}
     ${wb?input(row,'discount','Скидка, %',values.discount)+input(row,'base','Начальная, ₽ · автоматически',values.base):
     input(row,'base','Зачёркнутая, ₽ · 0 — нет',values.base)+input(row,'minimum','Минимальная, ₽',values.minimum)}</div>
-   ${quoteMarkup(entry)}
+   ${quoteMarkup(entry,values)}
    <div class="price-cell-actions">
     <small class="price-row-status" role="status">${submissionStatus(row)}</small>
     <div class="price-cell-buttons">
@@ -232,6 +232,12 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   if(row.market==='wb'){
    cell.querySelector('[data-price-field="base"]').value=values.base??'';
    cell.querySelector('[data-wb-calculated]').textContent=money(calculatedWBPrice(values.base,values.discount))+' '+(row.currency==='RUB'?'₽':row.currency);
+  }else{
+   for(const button of cell.querySelectorAll('[data-price-preset]')){
+    const amount=number(button.dataset.pricePreset);
+    const field=button.dataset.pricePresetField||'price';
+    button.setAttribute('aria-pressed',String(amount!==null&&amount===values[field]));
+   }
   }
   return values;
  }
