@@ -18,6 +18,40 @@ const uuid='0c159c60-ab92-46d9-9a6b-d225dbf5c7b1';
 const access={id:'test@performance.ozon.ru',secret:'fake-secret'};
 const cpc=(id)=>({id,title:'Подставки',paymentType:'CPC',advObjectType:'SKU'});
 
+test('daily analytics remembers the start date and opens through the current Moscow day',()=>{
+ const {window}=new JSDOM('<main></main>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
+ const root=window.document.querySelector('main');
+ const product={id:'stand',name:'Подставка',sku:article};
+ let now=new Date('2026-11-23T20:00:00Z');
+ const mount=state=>mountOzonPromotion({
+  root,state,getProducts:()=>[product],getSelectedProductId:()=>product.id,
+  getCredentials:()=>({}),getPromotion:()=>({products:[]}),now:()=>now
+ });
+ const update=(input,value)=>{
+  input.value=value;
+  input.dispatchEvent(new window.Event('input',{bubbles:true}));
+ };
+ let dispose=mount({tab:'daily'});
+ let form=root.querySelector('[data-promotion-filters]');
+ update(form.elements.from,'2026-11-17');
+ update(form.elements.to,'2026-11-20');
+ assert.equal(form.elements.to.value,'2026-11-20');
+ dispose();
+
+ now=new Date('2026-11-23T21:01:00Z');
+ dispose=mount({tab:'daily'});
+ form=root.querySelector('[data-promotion-filters]');
+ assert.equal(form.elements.from.value,'2026-11-17');
+ assert.equal(form.elements.to.value,'2026-11-24');
+ update(form.elements.to,'2026-11-20');
+ root.querySelector('[data-promotion-tab="queries"]').click();
+ root.querySelector('[data-promotion-tab="daily"]').click();
+ assert.equal(form.elements.from.value,'2026-11-17');
+ assert.equal(form.elements.to.value,'2026-11-24');
+ assert.equal(form.elements.to.max,'2026-11-24');
+ dispose();window.close();
+});
+
 test('search queries use the exact Ozon SKU and display the actual reporting period in Moscow',async()=>{
  const credentials={ozonClient:'123',ozonKey:'fake-key'};
  const result=await loadOzonQueries(['444','445'],dates,(operation,body)=>marketRequest('ozon',operation,credentials,body,async(url,options)=>{

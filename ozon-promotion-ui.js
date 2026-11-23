@@ -1,5 +1,5 @@
 import {marketRequest,redact} from './marketplace-api.js?v=0.2.418';
-import {dayKey} from './ozon-analytics.js?v=0.2.392';
+import {dayKey,validDay} from './ozon-analytics.js?v=0.2.392';
 import {openFunnelProductPicker,resolveOzonSkus} from './sales-funnel.js?v=0.2.418';
 import {confirmAction} from './listing-fields.js?v=0.2.392';
 import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.425';
@@ -13,6 +13,7 @@ const ratio=(a,b,scale=1)=>a!=null&&b>0?a/b*scale:null;
 const tabLabels={queries:'Поисковые запросы',daily:'Оплата за клик по дням'};
 const queryRange=({from,to})=>to&&to!==from?dateLabel(from)+' — '+dateLabel(to):dateLabel(from);
 const sellerSearchUrl='https://seller.ozon.ru/app/analytics-search/search-results/apz';
+const dailyFromKey='workshop-ozon-promotion-from-v1';
 
 const dailyMetrics=[
  ['Показы',m=>m.views],['Клики',m=>m.clicks],['CTR',m=>ratio(m.clicks,m.views,100),'%'],
@@ -94,10 +95,18 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
  getPromotion,savePromotion,onOpenApi,request=marketRequest,requestPerformance=performanceRequest,now=()=>new Date()}){
  const doc=root.ownerDocument,window=doc.defaultView;
  const today=dayKey(now());
+ let dailyToday=today;
  const latestQueries=recentQueryPeriod(today);
  const products=getProducts().filter(product=>product.sku?.trim());
  const byId=new Map(products.map(product=>[product.id,product]));
- const filters=state.filters??={productId:'',from:shiftDay(today,-13),to:today};
+ const filters=state.filters??={productId:''};
+ const validFrom=value=>validDay(value)&&value>=performanceStart&&value<=dailyToday;
+ if(!validFrom(filters.from)){
+  let previousFrom;
+  try{previousFrom=window.localStorage.getItem(dailyFromKey);}catch{}
+  filters.from=validFrom(previousFrom)?previousFrom:shiftDay(dailyToday,-13);
+ }
+ filters.to=dailyToday;
  const selectedId=getSelectedProductId();
  if(!byId.has(filters.productId))filters.productId=byId.has(selectedId)?selectedId:'';
  let active=state.tab??'queries',campaign='',pending,dialog,disposed=false,manualKey;
@@ -181,7 +190,13 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
  const currentKey=()=>JSON.stringify([filters.productId,product()?.sku,latestQueries.from,latestQueries.to,credentialId()]);
  const samePeriod=entry=>entry.from===latestQueries.from&&entry.to===latestQueries.to;
  function message(text){status.textContent=text;status.hidden=!text;}
- function remember(){filters.from=from.value;filters.to=to.value;}
+ function remember(event){
+  filters.from=from.value;
+  filters.to=to.value;
+  if(event.target===from&&validFrom(filters.from)){
+   try{window.localStorage.setItem(dailyFromKey,filters.from);}catch{}
+  }
+ }
  function draw(){
   const selected=product();
   const name=selected?[selected.name,selected.variantNote,selected.sku].filter(Boolean).join(' · '):'Выбрать товар';
@@ -214,7 +229,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
    campaignSelect.value=campaign;
    campaignSelect.disabled=!campaigns.length||Boolean(pending);
    try{
-    if(filters.to>today)throw Error('Дата окончания не может быть позже сегодняшней.');
+    if(filters.to>dailyToday)throw Error('Дата окончания не может быть позже сегодняшней.');
     if(filters.from<performanceStart)throw Error('Статистика Performance API доступна с 1 февраля 2025 года.');
     const archiveNote=report?.archived?' · Архивных кампаний пропущено '+report.archived:'';
     const lookup=report?.lookup;
@@ -230,7 +245,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
       notices.push(`Часть статистики недоступна · кампании № ${lookup.unavailable.join(', ')}.`);
      }
     }
-    if(state.performanceExtensionVersion===1&&filters.to>=shiftDay(today,-1)){
+    if(state.performanceExtensionVersion===1&&filters.to>=shiftDay(dailyToday,-1)){
      notices.push('Для статистики за сегодня и вчера обновите расширение «Мастерская — Ozon Performance API» до версии 1.1.0.');
     }
     const scroll=dailyResults.querySelector('.promotion-daily-scroll')?.scrollLeft||0;
@@ -256,9 +271,15 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   }
  }
  form.onsubmit=event=>event.preventDefault();
- form.oninput=()=>{remember();message('');draw();};
+ form.oninput=event=>{remember(event);message('');draw();};
  root.querySelectorAll('[data-promotion-tab]').forEach(button=>button.onclick=()=>{
-  active=state.tab=button.dataset.promotionTab;message('');draw();
+  const next=button.dataset.promotionTab;
+  if(next==='daily'&&active!==next){
+   dailyToday=dayKey(now());
+   filters.to=to.value=dailyToday;
+   from.max=to.max=dailyToday;
+  }
+  active=state.tab=next;message('');draw();
   maybeLoadActive();
  });
  productButton.onclick=()=>{
@@ -343,7 +364,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
     if(![1,2].includes(link?.version))throw Error('Обновите расширение «Мастерская — Ozon Performance API».');
     state.performanceExtensionVersion=link.version;
     const ids=await resolveOzonSkus(product().sku.trim(),call);
-    report=await loadOzonPerformance(ids,period,access,ads,{signal,today:link.version>=2?today:undefined,onProgress:(index,total)=>{
+    report=await loadOzonPerformance(ids,period,access,ads,{signal,today:link.version>=2?dailyToday:undefined,onProgress:(index,total)=>{
      message(`Получаю статистику Ozon · часть ${index} из ${total}…`);
     }});
    }catch(error){
