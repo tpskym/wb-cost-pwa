@@ -56,7 +56,7 @@ export async function loadWbFunnel(filters,request,{onCards=()=>{}}={}){
   'WB не вернул полный отчёт по найденным карточкам за выбранный период.'};
 }
 
-async function ozonSkus(sku,request){
+export async function resolveOzonSkus(sku,request){
  const result=await request('info',{offer_id:[sku],product_id:[],sku:[]});
  const items=result.items??result.result?.items;
  if(!Array.isArray(items))throw Error('Ozon вернул карточку в неожиданном формате.');
@@ -67,7 +67,7 @@ async function ozonSkus(sku,request){
 }
 
 export async function loadOzonFunnel(filters,request,{signal,onCards=()=>{},onProgress=()=>{},pause=waitForOzon}={}){
- const cards=ozonSkus(filters.sku,request).then(ids=>{signal?.throwIfAborted();onCards(ids);return ids;});
+ const cards=resolveOzonSkus(filters.sku,request).then(ids=>{signal?.throwIfAborted();onCards(ids);return ids;});
  const [ids,account]=await Promise.all([cards,request('sellerInfo',{}).catch(()=>null)]);
  signal?.throwIfAborted();
  const tier=account?.subscription?.type??account?.result?.subscription?.type;
@@ -138,7 +138,7 @@ function reportMarkup(filters,results){
   </div>`;
 }
 
-function openFunnelProductPicker({button,products,selectedId,hydrateProductImages,onSelect}){
+export function openFunnelProductPicker({button,products,selectedId,hydrateProductImages,onSelect}){
  const doc=button.ownerDocument;
  const groups=new Map();
  for(const product of products){

@@ -1,7 +1,8 @@
 import {marketRequest} from './marketplace-api.js?v=0.2.392';
 import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
 import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.404';
-import {mountSalesFunnel} from './sales-funnel.js?v=0.2.407';
+import {mountSalesFunnel} from './sales-funnel.js?v=0.2.418';
+import {mountOzonPromotion} from './ozon-promotion-ui.js?v=0.2.418';
 import {loadWbAccrualDays,requestWbFinanceReport,wbAccrualDays,wbAnalyticsGroups,wbSellerId} from './wb-analytics.js?v=0.2.397';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});
@@ -21,9 +22,9 @@ const standardRows={
  returns:['Возврат выручки','Баллы за скидки','Программы партнёров'],
  commission:['Вознаграждение за продажу','Возврат вознаграждения']
 };
-const reports=[['accruals','Начисления WB и Ozon'],['clusters','Заказы по кластерам Ozon'],['funnel','Воронка']];
+const reports=[['accruals','Начисления WB и Ozon'],['clusters','Заказы по кластерам Ozon'],['funnel','Воронка'],['promotion','Поиск и продвижение Ozon']];
 
-export function mountAnalyticsWorkspace({root,state,getState,commitDay,getWbState,commitWbDays,getCredentials,getProducts,getSelectedProductId,hydrateProductImages,onOpenApi}){
+export function mountAnalyticsWorkspace({root,state,getState,commitDay,getWbState,commitWbDays,getCredentials,getProducts,getSelectedProductId,hydrateProductImages,getPromotion,savePromotion,onOpenApi}){
  root.innerHTML=`
   <nav class="analytics-report-list" aria-labelledby="analytics-reports-label">
    <h2 id="analytics-reports-label">Отчёты</h2>
@@ -40,7 +41,9 @@ export function mountAnalyticsWorkspace({root,state,getState,commitDay,getWbStat
  const mount={
   accruals:root=>mountAccrualAnalytics({root,getState,commitDay,getWbState,commitWbDays,getCredentials,onOpenApi}),
   clusters:root=>mountOzonClusterOrders({root,state:state.clusters,getCredentials,getProducts,onOpenApi}),
-  funnel:root=>mountSalesFunnel({root,state:state.funnel??={},getCredentials,getProducts,getSelectedProductId,hydrateProductImages,onOpenApi})
+  funnel:root=>mountSalesFunnel({root,state:state.funnel??={},getCredentials,getProducts,getSelectedProductId,hydrateProductImages,onOpenApi}),
+  promotion:root=>mountOzonPromotion({root,state:state.promotion??={},getCredentials,getProducts,getSelectedProductId,
+   hydrateProductImages,getPromotion,savePromotion,onOpenApi})
  };
  function show(report){
   state.report=report;

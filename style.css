@@ -1137,11 +1137,52 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 .funnel-sources p{margin:6px 0 0;font-size:13px;color:#5c6c59;line-height:1.5}
 .funnel-table th:first-child{width:56%}
 .funnel-table td{white-space:nowrap}
+.promotion-actions{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:16px 0}
+.promotion-actions label,.promotion-import-help label{display:grid;gap:8px;min-width:0}
+.promotion-actions label{width:min(250px,100%)}
+.promotion-actions :is(button,select){min-height:44px;margin:0;border-radius:10px;font-size:14px}
+.promotion-report .promotion-caption{margin:12px 0;color:#526456;font-size:13px}
+.promotion-status{width:fit-content;max-width:100%;margin:12px 0;padding:10px 12px;border-radius:9px;background:#edf3e4}
+.promotion-import-help{margin:12px 0 20px}
+.promotion-import-help label{max-width:320px;margin-bottom:12px}
+.promotion-import-help input{min-height:44px;width:100%;margin:0}
+.promotion-query-table{min-width:660px}
+.promotion-query-table th:first-child{min-width:170px}
+.promotion-query-table td{white-space:nowrap}
+.promotion-daily-scroll{
+ --promotion-metric-width:198px;
+ max-height:70dvh;overscroll-behavior:contain;scroll-padding-inline-start:var(--promotion-metric-width);
+}
+.promotion-daily-table{width:max-content;min-width:100%}
+.promotion-daily-table :is(th,td){border-right:1px solid #e2e7dd}
+.promotion-daily-table th{min-width:157px;max-width:157px}
+.promotion-daily-table thead th{vertical-align:top;text-align:left;z-index:2}
+.promotion-daily-table tr>:first-child{
+ position:sticky;left:0;z-index:1;min-width:var(--promotion-metric-width);max-width:var(--promotion-metric-width);background:#f4f7f0;
+}
+.promotion-daily-table thead tr>:first-child{z-index:3;background:#eaf0e4}
+.promotion-daily-table td{white-space:nowrap;background:#fff}
+.promotion-note{
+ display:grid;gap:3px;align-content:center;width:100%;min-height:44px;margin-top:8px;padding:8px 10px;
+ border:1px dashed #a0b596;border-radius:9px;background:#fff;color:#3d5940;text-align:left;font-size:14px;
+}
+.promotion-note.has-note{background:#e0ecd4;border:1px solid #a0b596}
+.promotion-note span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere;white-space:pre-line}
+.promotion-note small{color:#4a6049;font-size:12px}
+.promotion-note:focus-visible{outline:2px solid #547649;outline-offset:2px}
+.promotion-note-dialog{width:min(490px,calc(100vw - 32px))}
+.promotion-note-dialog form,.promotion-note-dialog label{display:grid;gap:12px;min-width:0}
+.promotion-note-dialog :is(textarea,input){width:100%;margin:0;font-size:14px}
+.promotion-note-dialog input,.promotion-note-dialog button{min-height:44px}
+.promotion-note-dialog textarea{resize:vertical}
+.promotion-note-dialog [role="status"]:empty{display:none}
+.promotion-note-dialog .sync-actions{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 0}
 @media(max-width:600px){
  .funnel-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
  .funnel-product{grid-column:1/-1}
  .funnel-product-picker{padding:16px}
  .funnel-sources{grid-template-columns:minmax(0,1fr)}
+ .promotion-daily-scroll{--promotion-metric-width:125px}
 }
 @media(min-width:1300px){
  .analytics-cluster-controls{grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.25fr)}

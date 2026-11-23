@@ -1,4 +1,4 @@
-import {mountAnalyticsWorkspace} from './ozon-analytics-ui.js?v=0.2.407';
+import {mountAnalyticsWorkspace} from './ozon-analytics-ui.js?v=0.2.418';
 import {wbAccrualDays} from './wb-analytics.js?v=0.2.397';
 import {waitForBackupTask,backupCheckpoint} from './backup-cancel.js?v=0.2.392';
 import {mountFinance} from './finance.js?v=0.2.404';
@@ -23,7 +23,7 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.417';
+import {mountReleaseHistory} from './release-history.js?v=0.2.418';
 import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.417';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
@@ -38,13 +38,13 @@ import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.417';
+const APP_VERSION='0.2.418';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
 import {createFullBackup,parseFullBackup,commitFullRestore} from './full-backup.js?v=0.2.392';
 import {migrateProductModels,normalizeZipNames,replacePrintModel,assignPrintModel,selectedPrintModel,groupPrintModels,rehomePrintModels,listFiles,getFile,putFile,putFiles,deleteFile,makeZip,safeFilename,createCardDesignArchive} from './attachments.js?v=0.2.392';
-import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.392';
+import {catalogueProductBatches,productLabelPrompt,variantColors,variantSkuPrefix,variantSkuForColor,loadedListingForSku,savedListingDescription,normalizeDescriptionBreaks,productCostsBySku,groups,fields,blankProduct,calculateManual,ensureMarketplaces,validateDB,createTemplate,applyTemplate} from './calc.js?v=0.2.418';
 const KEY='workshop-db-v1',CONFIG='workshop-config-v1', $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),rub=n=>n===null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n),pct=n=>n===null?'—':n.toFixed(2).replace('.',',')+'%';
 let cardsMarket=null,catalogueRefreshBusy=false;
 let db,config={},selected,tab='important',space=globalThis.location?.hash==='#analytics'?'analytics':globalThis.location?.hash==='#finance'?'finance':globalThis.location?.hash==='#expenses'?'expenses':globalThis.location?.hash==='#prices'?'prices':globalThis.location?.hash==='#print-queue'?'print-queue':globalThis.location?.hash==='#backup'?'backup':globalThis.location?.hash==='#api'?'api':globalThis.location?.hash==='#stocks'?'stocks':globalThis.location?.hash==='#filament'?'filament':globalThis.location?.hash==='#sales'?'sales':globalThis.location?.hash==='#cards'?'cards':'cost',saveError=false,savePending=false,installPrompt,recoveryRaw=null;
@@ -859,10 +859,20 @@ function mountAnalytics(){
   analyticsUiState.database=database;
   analyticsUiState.clusters={};
   analyticsUiState.funnel={};
+  analyticsUiState.promotion={};
  }
  return mountAnalyticsWorkspace({
   root:$('#analytics-workspace'),state:analyticsUiState,getState:()=>database.ozonAnalytics,
   getWbState:()=>database.wbAnalytics,
+  getPromotion:()=>database.ozonPromotion??{products:[]},
+  savePromotion:async next=>{
+   if(db!==database||recoveryRaw)return false;
+   const previous=database.ozonPromotion;
+   database.ozonPromotion=next;
+   const ok=await save();
+   if(!ok&&db===database)database.ozonPromotion=previous;
+   return ok;
+  },
   getCredentials:getMarketplaceCredentials,getProducts:()=>database.products,getSelectedProductId:()=>selected,hydrateProductImages,
   commitWbDays:async(sellerId,dates,loaded)=>{
    if(db!==database||recoveryRaw)return false;
