@@ -57,13 +57,15 @@ export function filterPriceArticles(database,{market='all',query='',groups=null,
  for(const snapshot of database.stockSnapshots||[])for(const row of snapshot.rows){skus.add(row.sku);const key=snapshot.source.split('-')[0]+':'+row.sku;if(!stockRows.has(key))stockRows.set(key,[]);stockRows.get(key).push(row);}
  return [...skus].filter(Boolean).filter(sku=>{const product=products.get(sku);if(groups&&!groups.has(product?.productGroup||'__ungrouped__'))return false;if(![sku,product?.name,product?.productGroup,names.get(sku)].filter(Boolean).join(' ').toLocaleLowerCase('ru').includes(q))return false;return markets.some(m=>{const row=priceRows.get(m+':'+sku),effective=row?.market==='wb'?(calculatedWBPrice(row.base,row.discount)??row.price):row?.price,hasPrice=!snapshots.has(m)?null:!!(Number.isFinite(effective)&&effective>0),hasStock=stockPresence(stockRows.get(m+':'+sku)||[]);return presenceMatches(hasPrice,price)&&presenceMatches(hasStock,stock);});}).sort((a,b)=>a.localeCompare(b,'ru',{numeric:true}));
 }
-const costPriceKinds=[['breakEven','Без убытка'],['minimumWorking','Минимальная'],['suggested','Предлагаемая']];
+const costPriceKinds=[
+ ['breakEven','Без убытка'],['minimumWorking','Минимальная'],['suggested','Предлагаемая'],['roiWithReserve','ROI 80% + 10 ₽']
+];
 
 function costPriceMarkup(prices,market,{disabled,editable,missing}){
  const title='Расчёт из «Себестоимости» · FBS';
  if(!prices)return `<div class="price-cost-targets"><strong>${title}</strong><small>${missing}</small></div>`;
  const buttons=costPriceKinds.map(([kind,label])=>{
-  const capped=kind!=='breakEven'&&prices[kind]===null&&prices.atLimit;
+  const capped=(kind==='minimumWorking'||kind==='suggested')&&prices[kind]===null&&prices.atLimit;
   const amount=capped?ozonSalePriceLimit:prices[kind];
   const canUse=editable&&Number.isFinite(amount)&&amount>0&&amount<=100000000;
   const display=Number.isFinite(amount)?(prices.partial&&!capped?'≈ ':'')+money(amount)+' ₽':'Недостижима';

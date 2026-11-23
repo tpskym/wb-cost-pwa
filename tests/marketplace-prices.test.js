@@ -26,14 +26,14 @@ test('cost presets set only the corresponding marketplace sale-price draft',()=>
   request:()=>assert.fail('A preset must not call the API'),getCostPrices:matched=>{
    assert.equal(matched,product);
    return {
-    wb:{breakEven:235,minimumWorking:261,suggested:305,partial:false},
-    ozon:{breakEven:180,minimumWorking:220,suggested:null,partial:true,atLimit:{amount:40}}
+    wb:{breakEven:235,minimumWorking:261,suggested:305,roiWithReserve:320,partial:false},
+    ozon:{breakEven:180,minimumWorking:220,suggested:null,roiWithReserve:null,partial:true,atLimit:{amount:40}}
    };
   }
  });
  const [wbCell,ozonCell,unknownCell]=root.querySelectorAll('[data-price-index]');
  const field=(cell,key)=>cell.querySelector(`[data-price-field="${key}"]`).value;
- assert.deepEqual([...wbCell.querySelectorAll('[data-price-preset]')].map(button=>button.dataset.pricePreset),['235','261','305']);
+ assert.deepEqual([...wbCell.querySelectorAll('[data-price-preset]')].map(button=>button.dataset.pricePreset),['235','261','305','320']);
  assert.match(unknownCell.textContent,/Артикул не найден/);
  assert.equal(unknownCell.querySelector('[data-price-preset]'),null);
  wbCell.querySelector('[data-price-preset="235"] b').click();
@@ -51,6 +51,12 @@ test('cost presets set only the corresponding marketplace sale-price draft',()=>
  ozonCell.querySelector('[data-price-preset="300"]').click();
  assert.equal(field(ozonCell,'price'),'300');
  assert.equal(field(wbCell,'price'),'235.8');
+ const reserveButton=cell=>[...cell.querySelectorAll('[data-price-preset]')].find(button=>button.getAttribute('aria-label').startsWith('ROI 80% + 10 ₽'));
+ reserveButton(wbCell).click();
+ assert.equal(field(wbCell,'price'),'320.4');
+ assert.equal(field(ozonCell,'price'),'300');
+ assert.equal(reserveButton(ozonCell).disabled,true);
+ assert.match(reserveButton(ozonCell).textContent,/Недостижима/);
  assert.equal(wbRow.price,900);
  assert.equal(ozonRow.price,900);
  root.querySelector('[data-prices-market="ozon"]').click();

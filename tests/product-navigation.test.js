@@ -318,6 +318,8 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assertPrice('wb','working',Math.ceil((20+1.4*cost)/0.725-1e-9));
  const wbSuggested=Math.ceil((20+1.8*cost)/0.725-1e-9);
  assertPrice('wb','suggested',wbSuggested);
+ assertPrice('wb','roi-with-reserve',Math.ceil((20+1.8*cost+10)/0.725-1e-9));
+ assertPrice('wb','roi-with-reserve-profit',cost*0.8+10);
  assertPrice('wb','reference-price',wbSuggested/0.8);
  assertPrice('wb','working-profit',cost*0.4);
  assertPrice('wb','suggested-profit',cost*0.8);
@@ -332,6 +334,8 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  assertPrice('ozon','working',Math.ceil((20+4+1.4*ozonCost)/0.69-1e-9));
  const ozonSuggested=Math.ceil((20+4+1.8*ozonCost)/0.69-1e-9);
  assertPrice('ozon','suggested',ozonSuggested);
+ assertPrice('ozon','roi-with-reserve',Math.ceil((20+4+1.8*ozonCost+10)/0.69-1e-9));
+ assertPrice('ozon','roi-with-reserve-profit',ozonCost*0.8+10);
  assertPrice('ozon','reference-price',ozonSuggested*2);
  assertPrice('ozon','working-profit',ozonCost*0.4);
  assert.equal(ozonPrice.value,'0');
@@ -339,6 +343,10 @@ test('sale price controls recalculate the scheme payouts, profit table and saved
  enter(ozonSlider,180);
  assert.equal($('[data-profit-result="ozonFbs"] strong').textContent,money.format(115-10.8-4-ozonCost));
  const ozonDelivery=$('[data-market="ozon"][data-profit-logistics="fbs"]');
+ const deliveryAtSuggested=300*0.69-4-1.8*ozonCost-5;
+ enter(ozonDelivery,deliveryAtSuggested);
+ assertPrice('ozon','suggested',Math.ceil((300*0.69-5)/0.69-1e-9));
+ assert.deepEqual(prices('ozon','roi-with-reserve'),Array(2).fill('Недостижимо до 300 ₽'));
  enter(ozonDelivery,300*0.69-4-1.6*ozonCost);
  assertPrice('ozon','working-profit',ozonCost*0.4);
  assert.deepEqual(prices('ozon','working-percent'),[]);

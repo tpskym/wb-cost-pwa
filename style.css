@@ -788,8 +788,9 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-price-targets dl>.fbs-break-even-price{border-color:#e5aa79;background:#ffead7;color:#743a13}
 .fbs-price-targets dl>.fbs-working-price{border-color:#d7bf59;background:#fff4c2;color:#594507}
 .fbs-price-targets dl>.fbs-suggested-price{border-color:#c4d5b9;background:#edf5e7;color:#284835}
+.fbs-price-targets dl>.fbs-roi-with-reserve-price{border-color:#b4c9a4;background:#e4efdc;color:#284835}
 .fbs-suggested-price strong{font-weight:800}
-.fbs-working-price small,.fbs-suggested-price small{display:block;margin-top:3px;font-weight:400}
+.fbs-price-targets dd>small{display:block;margin-top:3px;font-weight:400}
 .fbs-target-profit{display:flex;flex-wrap:wrap;gap:2px 8px;width:fit-content;max-width:100%;margin-top:6px;padding:3px 7px;border:1px solid #343c282e;border-radius:5px;background:#ffffffa8;font-variant-numeric:tabular-nums}
 .fbs-suggested-price .fbs-reference-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin-top:8px;padding:4px 7px;border-radius:5px;background:#e9ebeb;color:#4f5556}
 .fbs-reference-price b{font-weight:650;font-variant-numeric:tabular-nums}
@@ -798,11 +799,8 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 .fbs-card-prices ul{display:grid;gap:4px;margin:0;padding:0;list-style:none}
 .fbs-card-prices li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px}
 .fbs-card-prices b{font-weight:650;font-variant-numeric:tabular-nums}
-@container (228px <= width < 414px){
- .fbs-price-targets dl{grid-template-columns:repeat(2,minmax(0,1fr))}
- .fbs-suggested-price{grid-column:1/-1}
-}
-@container (width >= 414px){.fbs-price-targets dl{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (width >= 228px){.fbs-price-targets dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (width >= 560px){.fbs-price-targets dl{grid-template-columns:repeat(4,minmax(0,1fr))}}
 #show-fbs-price-report{min-height:44px;padding:10px 14px;font-size:14px;background:#eaf2df;border-color:#b6cba0;color:#405f32}
 .fbs-price-report[open]{display:grid;grid-template-rows:auto minmax(0,1fr);width:min(1380px,calc(100vw - 24px));height:min(900px,calc(100dvh - 24px));max-width:none;max-height:none;padding:0;overflow:hidden;background:#f7f8f4}
 .fbs-report-header{padding:18px 22px;border-bottom:1px solid #dce4d5;background:#fff}

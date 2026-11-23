@@ -23,8 +23,8 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.409';
-import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.408';
+import {mountReleaseHistory} from './release-history.js?v=0.2.410';
+import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.410';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
 import {printProductLabel,groupLabelDesignPrompt,labelDesignPrompt,openStockLabelDialog,readLabelPdf} from './product-labels.js?v=0.2.392';
@@ -38,7 +38,7 @@ import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.409';
+const APP_VERSION='0.2.410';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
@@ -1438,16 +1438,20 @@ function fbsPriceTargets(p,r,market){
  };
  const workingProfit=atZero.cost*0.4;
  const suggestedProfit=atZero.cost*0.8;
+ const roiWithReserveProfit=suggestedProfit+10;
  const minimumWorking=threshold(workingProfit);
  const suggested=threshold(suggestedProfit);
- const atLimit=market==='ozon'&&(minimumWorking===null||suggested===null)
+ const roiWithReserve=threshold(roiWithReserveProfit);
+ const atLimit=market==='ozon'&&(minimumWorking===null||suggested===null||roiWithReserve===null)
   ? marketplaceProfitAmount(p,r,key,limit) : null;
  return {
   breakEven:threshold(0),
   minimumWorking,
   suggested,
+  roiWithReserve,
   workingProfit,
   suggestedProfit,
+  roiWithReserveProfit,
   atLimit,
   partial:atZero.partial
  };
@@ -1473,9 +1477,8 @@ function fbsPriceTargetContent(p,r,market){
  const unavailable=market==='ozon'?'Недостижимо до 300 ₽':'Недостижимо при этих тарифах';
  const amount=number=>(prices.partial?'≈ ':'')+rub(number);
  const value=price=>price===null?unavailable:amount(price);
- const renderTarget=(kind,price,target,percent)=>{
-  const capped=price===null?prices.atLimit:null;
-  const description=capped?'Прибыль при лимите · % от себестоимости':`Целевая прибыль · ${percent}% от себестоимости`;
+ const renderTarget=(kind,price,target,description)=>{
+  const capped=price===null&&kind!=='roi-with-reserve'?prices.atLimit:null;
   const profit=capped?capped.amount:target;
   const profitPercent=capped&&capped.cost>0?capped.amount/capped.cost*100:null;
   const rate=profitPercent===null?'—':(prices.partial?'≈ ':'')+pct(profitPercent);
@@ -1488,7 +1491,7 @@ function fbsPriceTargetContent(p,r,market){
   }
   return `<dd>
    <strong data-fbs-${kind}>${capped?rub(salePrice):value(price)}</strong>
-   <small>${description}</small>
+   <small>${capped?'Прибыль при лимите · % от себестоимости':description}</small>
    <span class="fbs-target-profit">
     <span data-fbs-${kind}-profit>${amount(profit)}</span>
     ${capped?`<span data-fbs-${kind}-percent>${rate}</span>`:''}
@@ -1502,11 +1505,15 @@ function fbsPriceTargetContent(p,r,market){
   <div class="fbs-break-even-price"><dt>Без убытка</dt><dd data-fbs-break-even>${value(prices.breakEven)}</dd></div>
   <div class="fbs-working-price">
    <dt>Минимальная рабочая цена</dt>
-   ${renderTarget('working',prices.minimumWorking,prices.workingProfit,40)}
+   ${renderTarget('working',prices.minimumWorking,prices.workingProfit,'Целевая прибыль · 40% от себестоимости')}
   </div>
   <div class="fbs-suggested-price">
    <dt>Предлагаемая цена</dt>
-   ${renderTarget('suggested',prices.suggested,prices.suggestedProfit,80)}
+   ${renderTarget('suggested',prices.suggested,prices.suggestedProfit,'Целевая прибыль · 80% от себестоимости')}
+  </div>
+  <div class="fbs-roi-with-reserve-price">
+   <dt>ROI 80% + 10 ₽</dt>
+   ${renderTarget('roi-with-reserve',prices.roiWithReserve,prices.roiWithReserveProfit,'Целевая чистая прибыль до вычета 10 ₽')}
   </div>
  </dl>`;
  return `<h4>${title} · цены от</h4>${content}${marketplaceCardPriceContent(p,market)}`;
