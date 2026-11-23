@@ -133,22 +133,30 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
  </div>`;
  const key=row=>row.market+':'+row.sku,allRows=()=>database.priceSnapshots.flatMap(s=>s.rows);
  const input=(row,k,label,value)=>`<label>${label}<input data-no-stepper data-price-field="${k}" type="number" min="0" step="${row.market==='wb'&&k!=='price'?'1':'0.01'}" value="${esc(value??'')}" ${row.market==='wb'&&k==='base'?'readonly':''} ${busy?'disabled':''}></label>`;
- function cell(row,index,market,prices,missing){
-  const quote=costPriceMarkup(prices,market,{disabled:busy,editable:row?.currency==='RUB',missing:row&&row.currency!=='RUB'?'Подстановка доступна для цен в рублях.':missing});
-  if(!row)return `<td class="price-absent">Нет карточки в загруженных ценах${prices?quote:''}</td>`;
-  const draft=edits.get(key(row)),values=draft||row,status=row.submission?.status;
+ function submissionStatus(row){
+  const submission=row.submission;
+  if(!submission)return '';
+  if(submission.status==='confirmed')return 'Применение подтверждено';
+  if(submission.status==='rejected')return 'Площадка отклонила изменение';
+  return 'Отправка '+new Date(submission.at).toLocaleString('ru-RU')+' · применение ещё не подтверждено';
+ }
+ const quoteMarkup=({row,market,prices,missing})=>costPriceMarkup(prices,market,{
+  disabled:busy,editable:row?.currency==='RUB',missing:row&&row.currency!=='RUB'?'Подстановка доступна для цен в рублях.':missing
+ });
+ function priceCellMarkup(entry){
+  const {row}=entry;
+  const draft=edits.get(key(row)),values=draft||row;
   const wb=row.market==='wb',currency=esc(row.currency==='RUB'?'₽':row.currency);
   const total=calculatedWBPrice(values.base,values.discount);
   const sale=wb&&!draft&&!(values.price>0)?total:values.price;
-  return `<td data-price-index="${index}">
+  return `
    ${wb?`<div class="price-calculated"><small>Фактический итог после округления WB</small><output class="price-current" data-wb-calculated aria-live="polite">${money(total)} ${currency}</output><small>На площадке при загрузке: ${money(row.price)} ${currency}</small></div>`:`<strong class="price-current">${money(row.price)} ${currency}</strong>`}
    <div class="price-row-fields">${input(row,'price',wb?'Конечная цена, ₽':'Цена продажи, ₽',sale)}
     ${wb?input(row,'discount','Скидка, %',values.discount)+input(row,'base','Начальная, ₽ · автоматически',values.base):
     input(row,'base','Зачёркнутая, ₽ · 0 — нет',values.base)+input(row,'minimum','Минимальная, ₽',values.minimum)}</div>
-   ${quote}
+   ${quoteMarkup(entry)}
    <div class="file-actions"><button data-price-send ${busy?'disabled':''}>Отправить цену</button><button data-price-check ${busy?'disabled':''}>Проверить / получить</button></div>
-   <small class="price-row-status" role="status">${status==='confirmed'?'Применение подтверждено':status==='rejected'?'Площадка отклонила изменение':status?'Отправка '+new Date(row.submission.at).toLocaleString('ru-RU')+' · применение ещё не подтверждено':''}</small>
-  </td>`;
+   <small class="price-row-status" role="status">${submissionStatus(row)}</small>`;
  }
  let rendered=[];const photoUrls=new Map();
  async function loadLocalPhotos(){
@@ -179,9 +187,11 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
    const name=product?.name||pair.find(Boolean)?.name;
    const photoRow=pair.find(r=>r?.imageUrl)||pair.find(Boolean);
    const cells=pair.map((row,index)=>{
+    const market=markets[index],prices=quotes?.[market],entry={row,market,prices,missing};
+    if(!row)return `<td class="price-absent">Нет карточки в загруженных ценах${prices?quoteMarkup(entry):''}</td>`;
     const rowIndex=rendered.length;
-    if(row)rendered.push(row);
-    return cell(row,rowIndex,markets[index],quotes?.[markets[index]],missing);
+    rendered.push(entry);
+    return `<td data-price-index="${rowIndex}">${priceCellMarkup(entry)}</td>`;
    }).join('');
    return `<tr><th scope="row"><div class="price-product">
     <span class="table-product-copy"><span class="sku-with-copy"><strong>${esc(sku).replaceAll('_','_<wbr>')}</strong>${skuCopyButton(sku)}</span><small>${esc(name||'')}</small></span>
@@ -199,9 +209,13 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
  }
  function openGroups(){const universe=filterPriceArticles(database),grouped=new Map();for(const sku of universe){const p=database.products.find(p=>p.sku===sku),name=p?.productGroup||'__ungrouped__';if(!grouped.has(name))grouped.set(name,[]);grouped.get(name).push(sku);}const names=[...grouped.keys()].sort((a,b)=>a.localeCompare(b,'ru',{numeric:true})),chosen=new Set(selectedGroups===null?names:selectedGroups),dialog=doc.createElement('dialog');groupDialog=dialog;dialog.className='price-groups-dialog';dialog.setAttribute('aria-labelledby','price-groups-title');dialog.innerHTML='<header><div><small>ФИЛЬТР ТОВАРОВ</small><h2 id="price-groups-title">Выберите группы</h2></div><button type="button" data-price-groups-close aria-label="Закрыть выбор групп">×</button></header><input type="search" data-price-groups-search placeholder="Название группы или артикул" aria-label="Поиск групп"><div class="price-group-tools"><strong data-price-groups-count></strong><span><button type="button" data-price-groups-all>Выбрать все</button><button type="button" data-price-groups-none>Снять все</button></span></div><div class="price-group-options"></div><footer><button type="button" data-price-groups-apply>Показать товары</button><button type="button" data-price-groups-close>Отмена</button></footer>';
  const drawGroups=()=>{const query=dialog.querySelector('[data-price-groups-search]').value.trim().toLocaleLowerCase('ru');dialog.querySelector('[data-price-groups-count]').textContent='Выбрано '+chosen.size+' из '+names.length;dialog.querySelector('.price-group-options').innerHTML=names.filter(name=>[name,...grouped.get(name)].join(' ').toLocaleLowerCase('ru').includes(query)).map(name=>`<label class="price-group-option"><input type="checkbox" data-price-group="${esc(name)}" ${chosen.has(name)?'checked':''}><span><strong>${esc(name==='__ungrouped__'?'Без группы':name)}</strong><small>Артикулов: ${grouped.get(name).length}</small></span></label>`).join('')||'<p>Группы не найдены</p>';};doc.body.append(dialog);drawGroups();dialog.querySelector('[data-price-groups-search]').oninput=drawGroups;dialog.querySelector('.price-group-options').onchange=event=>{const input=event.target;if(!input.matches('[data-price-group]'))return;if(input.checked)chosen.add(input.dataset.priceGroup);else chosen.delete(input.dataset.priceGroup);dialog.querySelector('[data-price-groups-count]').textContent='Выбрано '+chosen.size+' из '+names.length;};dialog.querySelector('[data-price-groups-all]').onclick=()=>{names.forEach(name=>chosen.add(name));drawGroups();};dialog.querySelector('[data-price-groups-none]').onclick=()=>{chosen.clear();drawGroups();};dialog.querySelector('[data-price-groups-apply]').onclick=()=>{selectedGroups=chosen.size===names.length?null:new Set(chosen);page=0;draw();dialog.close();};dialog.querySelectorAll('[data-price-groups-close]').forEach(button=>button.onclick=()=>dialog.close());dialog.addEventListener('close',()=>{groupDialog=null;dialog.remove();$('#prices-groups')?.focus({preventScroll:true});},{once:true});dialog.showModal();}
- const readValues=cell=>{const values=Object.fromEntries([...cell.querySelectorAll('[data-price-field]')].map(el=>[el.dataset.priceField,el.value===''?null:Number(el.value)]));if(rendered[Number(cell.dataset.priceIndex)]?.market==='wb')values.base=wbBaseFromFinal(values.price,values.discount);return values;};
+ const readValues=(cell,row)=>{
+  const values=Object.fromEntries([...cell.querySelectorAll('[data-price-field]')].map(el=>[el.dataset.priceField,number(el.value)]));
+  if(row.market==='wb')values.base=wbBaseFromFinal(values.price,values.discount);
+  return values;
+ };
  function updateDraft(cell,row){
-  const values=readValues(cell);
+  const values=readValues(cell,row);
   edits.set(key(row),values);
   if(row.market==='wb'){
    cell.querySelector('[data-price-field="base"]').value=values.base??'';
@@ -232,29 +246,34 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
  $('#prices-rows').oninput=event=>{
   const cell=event.target.closest('[data-price-index]');
   if(!cell)return;
-  updateDraft(cell,rendered[Number(cell.dataset.priceIndex)]);
+  updateDraft(cell,rendered[Number(cell.dataset.priceIndex)].row);
   const status=cell.querySelector('[data-price-preset-status]');
   if(status)status.textContent='';
  };
  $('#prices-rows').onclick=async event=>{
   const cell=event.target.closest('[data-price-index]');
   if(!cell||busy)return;
-  const row=rendered[Number(cell.dataset.priceIndex)];
+  const entry=rendered[Number(cell.dataset.priceIndex)],{row}=entry;
   const preset=event.target.closest('[data-price-preset]');
   if(preset){
    if(!preset.disabled)applyPreset(cell,row,Number(preset.dataset.pricePreset));
    return;
   }
-  if(!event.target.closest('[data-price-send],[data-price-check]'))return;
+  const button=event.target.closest('[data-price-send],[data-price-check]');
+  if(!button||button.disabled)return;
+  const sending=button.hasAttribute('data-price-send');
+  const restoreFocus=doc.activeElement===button;
   const status=cell.querySelector('.price-row-status');
+  const controls=root.querySelectorAll('button:enabled,input:enabled,select:enabled');
+  let message,received=false;
   busy=true;
-  root.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);
+  controls.forEach(control=>control.disabled=true);
+  status.textContent='Проверяю актуальную цену…';
   try{
-   if(event.target.closest('[data-price-send]')){
-    const values=readValues(cell);
-    status.textContent='Проверяю актуальную цену…';
-    const sent=await submitPriceChange(row,values,{request:request(row.market),save,isAlive:()=>root.isConnected,confirm:overrideConfirm||((text)=>confirmAction(text,{title:'Изменить цену?',accept:'Отправить цену',document:doc}))});
-    if(sent)$('#prices-status').textContent='Цена отправлена: '+row.sku+' · '+(row.market==='wb'?'WB':'Ozon')+'. Нажмите «Проверить / получить» после обработки.';
+   if(sending){
+    const values=readValues(cell,row);
+    const sent=await submitPriceChange(row,values,{request:request(row.market),save,isAlive:()=>!disposed&&root.isConnected,confirm:overrideConfirm||((text)=>confirmAction(text,{title:'Изменить цену?',accept:'Отправить цену',document:doc}))});
+    if(sent)message='Цена отправлена. После обработки нажмите «Проверить / получить».';
    }else{
     const latest=await freshPrice(row,request(row.market)),submission=row.submission;
     if(submission&&['base','price','discount','minimum'].every(k=>latest[k]===submission.expected[k]))submission.status='confirmed';
@@ -262,14 +281,21 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
     if(submission)row.submission=submission;
     edits.delete(key(row));
     save();
-    $('#prices-status').textContent='Цена получена: '+row.sku+'. '+(submission?.status==='confirmed'?'Применение подтверждено.':submission?'Отправленная цена пока не подтверждена.':'');
+    received=true;
+    message=submission?.status==='confirmed'?'Применение подтверждено':submission?'Цена получена. Применение отправленной цены пока не подтверждено.':'Цена получена.';
    }
   }catch(error){
-   $('#prices-status').textContent=redact(error.message,getCredentials());
+   message=redact(error.message,getCredentials());
   }finally{
    busy=false;
-   root.querySelectorAll('button,input,select').forEach(el=>el.disabled=false);
-   draw();
+   controls.forEach(control=>control.disabled=false);
+   if(!disposed&&cell.isConnected){
+    if(received)cell.innerHTML=priceCellMarkup(entry);
+    cell.querySelector('.price-row-status').textContent=message??submissionStatus(row);
+    if(restoreFocus&&doc.activeElement===doc.body){
+     (received?cell.querySelector('[data-price-check]'):button).focus({preventScroll:true});
+    }
+   }
   }
  };
  $('#prices-refresh').onclick=async()=>{if(busy)return;if(edits.size&&!await (overrideConfirm||((text)=>confirmAction(text,{document:doc})) )('Обновить цены с площадок? Несохранённые значения в таблице будут заменены.'))return;busy=true;root.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);const messages=[];try{for(const market of $('#prices-market').value==='all'?['wb','ozon']:[$('#prices-market').value]){try{$('#prices-status').textContent='Загружаю все цены '+(market==='wb'?'WB':'Ozon')+'…';const snapshot=await loadMarketplacePrices(market,request(market));if(!root.isConnected)return;for(const row of snapshot.rows){const old=database.priceSnapshots.find(s=>s.market===market)?.rows.find(r=>r.sku===row.sku);if(!row.imageUrl&&old?.imageUrl)row.imageUrl=old.imageUrl;if(old?.submission){row.submission=old.submission;if(['base','price','discount','minimum'].every(k=>row[k]===old.submission.expected[k]))row.submission.status='confirmed';}}database.priceSnapshots=database.priceSnapshots.filter(s=>s.market!==market).concat(snapshot);for(const k of edits.keys())if(k.startsWith(market+':'))edits.delete(k);save();messages.push((market==='wb'?'WB':'Ozon')+': '+snapshot.rows.length+' товаров. '+snapshot.warning);}catch(error){messages.push((market==='wb'?'WB':'Ozon')+': '+redact(error.message,getCredentials())+'. Предыдущие цены сохранены.');}}}finally{busy=false;root.querySelectorAll('button,input,select').forEach(el=>el.disabled=false);$('#prices-status').textContent=messages.join('\n');draw();}};

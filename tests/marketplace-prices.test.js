@@ -11,6 +11,72 @@ test('network outcome stays unknown without a retry; failed local save prevents 
 test('price snapshots and pending requests survive validation and invalid prices fail',()=>{const row=normalizePrice('ozon',ozon()),db={schema:1,id:'db',products:[blankProduct()],priceSnapshots:[{market:'ozon',updatedAt:'now',rows:[row]}]};assert.equal(validateDB(structuredClone(db)).priceSnapshots[0].rows[0].sku,'SKU1');assert.throws(()=>validateDB({...db,priceSnapshots:[...db.priceSnapshots,...db.priceSnapshots]}),/снимок/);row.price=-1;assert.throws(()=>validateDB(db),/строка/);});
 test('price UI shows WB and Ozon side by side, escapes names and confirms prices by rereading',async()=>{const dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main'),row=normalizePrice('wb',wb()),db={products:[],priceSnapshots:[{market:'wb',updatedAt:new Date().toISOString(),rows:[row]},{market:'ozon',updatedAt:new Date().toISOString(),rows:[normalizePrice('ozon',ozon('<img src=x onerror=alert(1)>'))]}]};let latest=wb(),writes=0;mountMarketplacePrices({root,database:db,save:()=>true,getCredentials:()=>({}),confirm:async()=>true,request:async(market,op,body)=>{if(op==='prices')return {data:{listGoods:[latest]}};assert.equal(op,'setPrice');writes++;latest={...wb(),discount:body.data[0].discount,sizes:[{price:body.data[0].price,discountedPrice:960}]};return {data:{id:1}};}});assert.equal(root.querySelector('img'),null);assert.equal(root.querySelectorAll('thead th').length,3);let cell=root.querySelector('[data-price-index="1"]');if(!cell||cell.querySelector('.price-current').textContent!=='900 RUB')cell=[...root.querySelectorAll('[data-price-index]')].find(c=>c.querySelector('[data-price-field="discount"]'));const final=cell.querySelector('[data-price-field="price"]');final.value='960';cell.querySelector('[data-price-field="discount"]').value='20';final.dispatchEvent(new dom.window.Event('input',{bubbles:true}));assert.equal(cell.querySelector('[data-price-field="base"]').readOnly,true);await root.querySelector('#prices-rows').onclick({target:cell.querySelector('[data-price-send]')});assert.equal(writes,1);cell=[...root.querySelectorAll('[data-price-index]')].find(c=>c.querySelector('[data-price-field="discount"]'));await root.querySelector('#prices-rows').onclick({target:cell.querySelector('[data-price-check]')});assert.equal(row.price,960);assert.equal(row.submission.status,'confirmed');assert.match(root.textContent,/Применение подтверждено/);});
 test('price refresh preserves the failed marketplace snapshot and refreshes the other independently',async()=>{const dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main'),old={market:'wb',updatedAt:'2026-10-20T00:00:00Z',rows:[normalizePrice('wb',wb())]},database={products:[],priceSnapshots:[old]};mountMarketplacePrices({root,database,save:()=>true,getCredentials:()=>({}),request:async(market,op)=>{if(market==='wb')throw Error('access denied');return op==='prices'?{items:[ozon('NEW')],cursor:''}:{items:[]};}});await root.querySelector('#prices-refresh').onclick();assert.equal(database.priceSnapshots.find(s=>s.market==='wb'),old);assert.equal(database.priceSnapshots.find(s=>s.market==='ozon').rows[0].sku,'NEW');assert.match(root.textContent,/Предыдущие цены сохранены/);});
+test('sending or checking one price keeps the page, row, and other drafts in place',async()=>{
+ const {window}=new JSDOM('<main></main>'),root=window.document.querySelector('main');
+ const updatedAt=new Date().toISOString(),article='SKU34';
+ const database={products:[],priceSnapshots:[
+  {market:'wb',updatedAt,rows:Array.from({length:35},(_,i)=>normalizePrice('wb',wb(i+1)))},
+  {market:'ozon',updatedAt,rows:[normalizePrice('ozon',ozon(article))]}
+ ]};
+ let allow=false,writes=0,latest=wb(34);
+ const dispose=mountMarketplacePrices({
+  root,database,save:()=>true,getCredentials:()=>({}),confirm:async()=>allow,
+  request:async (market,operation,body)=>{
+   assert.equal(market,'wb');
+   if(operation==='prices'){
+    assert.equal(body.nmID,34);
+    return {data:{listGoods:[latest]}};
+   }
+   assert.equal(operation,'setPrice');
+   assert.equal(body.data[0].nmID,34);
+   writes++;
+   latest={...latest,sizes:[{price:1200,discountedPrice:1080}]};
+   return {data:{id:12}};
+  }
+ });
+ root.querySelector('#prices-next').click();
+ const next=root.querySelector('#prices-next'),page=root.querySelector('#prices-page');
+ const scroller=root.querySelector('.prices-table-scroll'),tbody=root.querySelector('#prices-rows');
+ const row=[...tbody.rows].find(row=>row.querySelector('[data-price-photo-sku]').dataset.pricePhotoSku===article);
+ const [wbCell,ozonCell]=row.querySelectorAll('td'),neighbor=row.previousElementSibling;
+ const wbInput=wbCell.querySelector('[data-price-field="price"]'),ozonInput=ozonCell.querySelector('[data-price-field="price"]');
+ for(const [field,value] of [[wbInput,'1080'],[ozonInput,'950']]){
+  field.value=value;
+  field.dispatchEvent(new window.Event('input',{bubbles:true}));
+ }
+ const send=wbCell.querySelector('[data-price-send]');
+ const check=wbCell.querySelector('[data-price-check]');
+ send.focus();
+ scroller.scrollTop=730;
+ const expectPosition=()=>{
+  assert.equal(scroller.scrollTop,730);
+  assert.equal(row.parentElement,tbody);
+  assert.equal(neighbor.nextElementSibling,row);
+  assert.equal(row.lastElementChild,ozonCell);
+  assert.equal(ozonInput.value,'950');
+  assert.equal(next.disabled,true);
+  assert.match(page.textContent,/2 \/ 2/);
+ };
+ await tbody.onclick({target:send});
+ assert.equal(writes,0);
+ assert.equal(send.isConnected,true);
+ expectPosition();
+ allow=true;
+ await tbody.onclick({target:send});
+ assert.equal(writes,1);
+ assert.match(wbCell.querySelector('.price-row-status').textContent,/Цена отправлена/);
+ assert.equal(window.document.activeElement,send);
+ expectPosition();
+ check.focus();
+ await tbody.onclick({target:check});
+ assert.equal(wbCell.isConnected,true);
+ assert.equal(wbCell.querySelector('[data-price-field="price"]').value,'1080');
+ assert.equal(wbCell.querySelector('.price-row-status').textContent,'Применение подтверждено');
+ assert.equal(window.document.activeElement,wbCell.querySelector('[data-price-check]'));
+ expectPosition();
+ dispose();
+ window.close();
+});
 test('WB missing task result remains unconfirmed, while invalid decimal amounts never reach Ozon',async()=>{const row=normalizePrice('wb',wb());await assert.rejects(()=>submitPriceChange(row,{base:1200,discount:10},{request:async op=>op==='prices'?{data:{listGoods:[wb()]}}:{},confirm:async()=>true}),/номер задачи/);assert.equal(row.submission.status,'unknown');await assert.rejects(()=>submitPriceChange(normalizePrice('ozon',ozon()),{price:901.001,base:1000,minimum:600},{request:async()=>assert.fail('invalid price must not be read or sent'),confirm:async()=>assert.fail()}),/двух знаков/);});
 test('WB final price remains fixed while discount recalculates the initial price without requests or focus replacement',()=>{const dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main'),row=normalizePrice('wb',{...wb(),discount:0,sizes:[{price:456,discountedPrice:0}]}),db={products:[],priceSnapshots:[{market:'wb',updatedAt:new Date().toISOString(),rows:[row]}]};mountMarketplacePrices({root,database:db,save:()=>assert.fail('typing must not save to marketplace'),getCredentials:()=>({}),request:async()=>assert.fail('typing must not call API')});const base=root.querySelector('[data-price-field="base"]'),final=root.querySelector('[data-price-field="price"]'),discount=root.querySelector('[data-price-field="discount"]'),output=root.querySelector('[data-wb-calculated]');assert.equal(base.readOnly,true);assert.equal(final.value,'456');discount.focus();discount.value='20';discount.dispatchEvent(new dom.window.Event('input',{bubbles:true}));assert.equal(base.value,'570');assert.equal(final.value,'456');assert.equal(output.textContent,'456 ₽');assert.equal(dom.window.document.activeElement,discount);assert.equal(root.querySelector('[data-price-field="discount"]'),discount);final.value='800';final.dispatchEvent(new dom.window.Event('input',{bubbles:true}));assert.equal(base.value,'1000');assert.equal(output.textContent,'800 ₽');discount.value='';discount.dispatchEvent(new dom.window.Event('input',{bubbles:true}));assert.equal(output.textContent,'— ₽');assert.equal(row.price,0);});
 test('cost presets set only the corresponding marketplace sale-price draft',()=>{
