@@ -31,7 +31,7 @@ function analyticsDay(value){
  return typeof value==='string'&&Number.isFinite(Date.parse(value))?dayKey(new Date(value)):'';
 }
 
-export async function loadOzonQueries(ids,{from,to},request){
+export async function loadOzonQueries(ids,{from,to},request,{sortBy='BY_SEARCHES'}={}){
  const queries=new Map(),wanted=new Set(ids);
  let period;
  const pageSize=100,perSku=15;
@@ -41,7 +41,7 @@ export async function loadOzonQueries(ids,{from,to},request){
    skus:ids, page, page_size:pageSize, limit_by_sku:perSku,
    date_from:from+'T00:00:00.000+03:00',
    ...(to?{date_to:to+'T23:59:59.999+03:00'}:{}),
-   sort_by:'BY_SEARCHES',sort_dir:'DESCENDING'
+   sort_by:sortBy,sort_dir:'DESCENDING'
   });
   if(!Array.isArray(result.queries))throw Error('Ozon вернул поисковые запросы в неожиданном формате.');
   const dates=result.analytics_period;
@@ -50,10 +50,12 @@ export async function loadOzonQueries(ids,{from,to},request){
   for(const entry of result.queries){
    const sku=skuId(entry?.sku),query=typeof entry?.query==='string'?entry.query.trim():'';
    if(!wanted.has(sku)||!query)continue;
+   const sales=numberValue(entry.gmv),count=numberValue(entry.order_count);
+   const orders=Number.isSafeInteger(count)?count:null;
    queries.set(JSON.stringify([sku,query]),{
     sku,query,searches:numberValue(entry.unique_search_users),views:numberValue(entry.unique_view_users),
-    position:numberValue(entry.position),orders:numberValue(entry.order_count),
-    sales:numberValue(entry.gmv),currency:['RUB','RUR'].includes(entry.currency)?'₽':String(entry.currency??'')
+    position:numberValue(entry.position),orders:orders===0&&sales>0?null:orders,
+    sales,currency:['RUB','RUR'].includes(entry.currency)?'₽':String(entry.currency??'')
    });
   }
   if(result.queries.length<pageSize||page+1>=Number(result.page_count))break;
@@ -66,17 +68,31 @@ export const recentQueryPeriod=today=>({from:shiftDay(today,-7),to:shiftDay(toda
 const subscriptionError=error=>error.status===403&&/premium subscription|подписк[а-яё]*\s+premium/i.test(error.message);
 
 export async function loadRecentOzonQueries(ids,today,request){
- const period=recentQueryPeriod(today);
- try{return await loadOzonQueries(ids,period,request);}
+ let interval=recentQueryPeriod(today),result;
+ try{result=await loadOzonQueries(ids,interval,request);}
  catch(error){
   if(!subscriptionError(error))throw error;
   // Give Ozon the start day and let the API choose its weekly interval.
-  try{return await loadOzonQueries(ids,{from:period.from},request);}
+  interval={from:interval.from};
+  try{result=await loadOzonQueries(ids,interval,request);}
   catch(weeklyError){
    if(subscriptionError(weeklyError)||weeklyError.status===400)return null;
    throw weeklyError;
   }
  }
+ const unresolved=result.rows.filter(row=>row.orders===null&&row.sales>0);
+ if(!unresolved.length)return result;
+ // Recheck positive sales in Ozon's report sorted by revenue. Keep the original
+ // period, SKU and query together when recovering a count.
+ const skus=[...new Set(unresolved.map(row=>row.sku))];
+ const bySales=await loadOzonQueries(skus,interval,request,{sortBy:'BY_GMV'}).catch(()=>null);
+ if(!bySales||bySales.period.from!==result.period.from||bySales.period.to!==result.period.to)return result;
+ const byQuery=new Map(bySales.rows.map(row=>[JSON.stringify([row.sku,row.query]),row]));
+ for(const row of unresolved){
+  const match=byQuery.get(JSON.stringify([row.sku,row.query]));
+  if(match?.orders>0&&match.sales===row.sales&&match.currency===row.currency)row.orders=match.orders;
+ }
+ return result;
 }
 
 const fields={

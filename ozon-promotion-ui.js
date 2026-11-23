@@ -2,7 +2,7 @@ import {marketRequest,redact} from './marketplace-api.js?v=0.2.418';
 import {dayKey} from './ozon-analytics.js?v=0.2.392';
 import {openFunnelProductPicker,resolveOzonSkus} from './sales-funnel.js?v=0.2.418';
 import {confirmAction} from './listing-fields.js?v=0.2.392';
-import {loadRecentOzonQueries,parseOzonPromotion,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.420';
+import {loadRecentOzonQueries,parseOzonPromotion,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.421';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const formatNumber=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -11,6 +11,7 @@ const display=(value,unit='')=>value==null?'—':formatNumber.format(value)+(uni
 const ratio=(a,b,scale=1)=>a!=null&&b>0?a/b*scale:null;
 const tabLabels={queries:'Поисковые запросы',daily:'Оплата за клик по дням'};
 const queryRange=({from,to})=>to&&to!==from?dateLabel(from)+' — '+dateLabel(to):dateLabel(from);
+const sellerSearchUrl='https://seller.ozon.ru/app/analytics-search/search-results/apz';
 
 const dailyMetrics=[
  ['Показы',m=>m.views],['Клики',m=>m.clicks],['CTR',m=>ratio(m.clicks,m.views,100),'%'],
@@ -36,17 +37,20 @@ async function readWorkbook(file){
 function queryMarkup(report){
  const {period,rows}=report;
  const range=period.to?'за '+queryRange(period):'за неделю с '+dateLabel(period.from);
- const summary=`<p class="promotion-caption">Данные Ozon ${range}</p>`;
+ const summary=`<p class="promotion-caption">Данные Seller API ${range}</p>`;
  if(!rows.length)return summary+'<p class="analytics-empty">Ozon не вернул поисковые запросы за этот период.</p>';
  const columns=[
   ['SKU Ozon',row=>row.sku,new Set(rows.map(row=>row.sku)).size>1],
   ['Покупателей искало',row=>display(row.searches),true],
   ['Покупателей увидело',row=>display(row.views),rows.some(row=>row.views!==null)],
   ['Позиция в поиске',row=>display(row.position),rows.some(row=>row.position!==null)],
-  ['Заказано товаров',row=>display(row.orders),true],
+  ['Заказы по запросу',row=>display(row.orders),true],
   ['Заказано на сумму',row=>esc(display(row.sales,row.currency)),true]
  ].filter(([, ,visible])=>visible);
- return summary+`<div class="analytics-cluster-results" role="region" aria-label="Поисковые запросы Ozon" tabindex="0">
+ const notice=rows.some(row=>row.orders===null&&row.sales>0)?
+  `<p class="promotion-caption">У строк с суммой и прочерком Seller API не подтвердил количество заказов.
+   <a href="${sellerSearchUrl}" target="_blank" rel="noopener noreferrer">Сверить с кабинетом Ozon ↗</a></p>`:'';
+ return summary+notice+`<div class="analytics-cluster-results" role="region" aria-label="Поисковые запросы Ozon" tabindex="0">
   <table class="analytics-cluster-table promotion-query-table">
    <thead><tr><th scope="col">Запрос</th>${columns.map(([label])=>`<th scope="col">${label}</th>`).join('')}</tr></thead>
    <tbody>${rows.map(row=>`<tr><th scope="row">${esc(row.query)}</th>${columns.map(([,value])=>`<td>${value(row)}</td>`).join('')}</tr>`).join('')}</tbody>
@@ -106,7 +110,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
    </p>
    <div class="promotion-actions">
     <button type="button" class="primary" data-load-queries>Загрузить за последние 7 дней</button>
-    <a class="promotion-open-seller" data-query-open-seller href="https://seller.ozon.ru/app/analytics-search/search-results/apz" target="_blank" rel="noopener noreferrer" hidden>Открыть отчёт в Ozon ↗</a>
+    <a class="promotion-open-seller" data-query-open-seller href="${sellerSearchUrl}" target="_blank" rel="noopener noreferrer" hidden>Открыть отчёт в Ozon ↗</a>
    </div>
    <div data-query-results></div>
    <details class="analytics-help promotion-import-help promotion-query-entry" data-manual-queries hidden>

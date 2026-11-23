@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {blankProduct,validateDB} from '../calc.js';
 import {marketRequest} from '../marketplace-api.js';
-import {loadOzonQueries,parseOzonPromotion,promotionDays} from '../ozon-promotion.js';
+import {loadOzonQueries,loadRecentOzonQueries,parseOzonPromotion,promotionDays} from '../ozon-promotion.js';
 import {mountOzonPromotion} from '../ozon-promotion-ui.js';
 
 const article='stand-white';
@@ -52,6 +52,21 @@ test('advertising statistics distinguish zero, missing metrics and days without 
  const rollup=workbook('1000',[row('19.11.2026–21.11.2026',444,5,25)]);
  assert.throws(()=>parseOzonPromotion(rollup,{article,ids:['444']}),/группировку «По дням»/);
  assert.throws(()=>parseOzonPromotion(aggregate,{article,ids:['444'],campaignOverride:'2000'}),/группировку «По дням»/);
+});
+
+test('positive sales with a zero count stay unconfirmed when the second response is from a different period',async()=>{
+ const result=await loadRecentOzonQueries(['444'],'2026-11-23',async(operation,body)=>{
+  assert.equal(operation,'productQueries');
+  const recheck=body.sort_by==='BY_GMV';
+  return {
+   analytics_period:{date_from:recheck?'2026-11-15':'2026-11-16',date_to:'2026-11-22'},
+   page_count:1,queries:[
+    {sku:444,query:'подставка для эпл вотч',order_count:recheck?1:0,gmv:236,currency:'RUB'},
+    {sku:444,query:'часы',order_count:0,gmv:0,currency:'RUB'}
+   ]
+  };
+ });
+ assert.deepEqual(result.rows.map(row=>[row.orders,row.sales]),[[null,236],[0,0]]);
 });
 
 test('promotion UI imports and updates a campaign by day and preserves a note in the database',async()=>{
@@ -128,9 +143,9 @@ test('search queries load for the selected product over the last week without a 
     return {items:[{offer_id:article,sku:444},{offer_id:'other',sku:445}]};
    }
    assert.deepEqual(body.skus,['444']);
-   requested.push([body.date_from.slice(0,10),body.date_to?.slice(0,10)]);
+   requested.push([body.date_from.slice(0,10),body.date_to?.slice(0,10),body.sort_by]);
    if(allowWeek&&!body.date_to)return {queries:[{
-    sku:444,query:'подставка для часов',unique_search_users:128,order_count:1,gmv:236,currency:'RUB'
+    sku:444,query:'подставка для часов',unique_search_users:128,order_count:body.sort_by==='BY_GMV'?'1':0,gmv:236,currency:'RUB'
    }],page_count:1,analytics_period:{date_from:'2026-11-16',date_to:'2026-11-22'}};
    throw Object.assign(Error('API OZON: 403 · Analytics for the specified period is available starting from the premium subscription'),{status:403});
   }
@@ -138,23 +153,25 @@ test('search queries load for the selected product over the last week without a 
  let dispose=mount();
  const $=selector=>root.querySelector(selector);
  await new Promise(resolve=>setImmediate(resolve));
- assert.deepEqual(requested,[['2026-11-16','2026-11-22'],['2026-11-16',undefined]]);
+ assert.deepEqual(requested,[
+  ['2026-11-16','2026-11-22','BY_SEARCHES'],['2026-11-16',undefined,'BY_SEARCHES'],['2026-11-16',undefined,'BY_GMV']
+ ]);
  assert.equal($('[data-promotion-dates]').hidden,true);
  assert.equal($('[data-query-access-note]').hidden,true);
  const results=$('[data-query-results]');
  assert.match(results.textContent,/16.11.2026 — 22.11.2026/);
  assert.deepEqual([...results.querySelectorAll('thead th')].map(column=>column.textContent),
-  ['Запрос','Покупателей искало','Заказано товаров','Заказано на сумму']);
+  ['Запрос','Покупателей искало','Заказы по запросу','Заказано на сумму']);
  assert.match(results.textContent,/подставка для часов1281236 ₽/);
  root.querySelector('[data-promotion-tab="daily"]').click();
  assert.equal($('[data-promotion-dates]').hidden,false);
  assert.equal($('[data-promotion-filters]').elements.from.value,'2026-11-10');
  root.querySelector('[data-promotion-tab="queries"]').click();
- assert.equal(requested.length,2);
+ assert.equal(requested.length,3);
 
  allowWeek=false;
  await $('[data-load-queries]').onclick();
- assert.equal(requested.length,4);
+ assert.equal(requested.length,5);
  assert.equal($('[data-query-access-note]').hidden,false);
  assert.equal($('[data-query-open-seller]').hidden,false);
  assert.equal($('[data-manual-queries]').open,false);
