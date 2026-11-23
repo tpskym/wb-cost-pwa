@@ -69,11 +69,17 @@ function costPriceMarkup(prices,market,{disabled,editable,missing}){
   const amount=capped?ozonSalePriceLimit:prices[kind];
   const canUse=editable&&Number.isFinite(amount)&&amount>0&&amount<=100000000;
   const display=Number.isFinite(amount)?(prices.partial&&!capped?'≈ ':'')+money(amount)+' ₽':'Недостижима';
-  const platform=market==='wb'?'WB':'Ozon';
-  return `<button type="button" data-price-preset="${canUse?amount:''}" ${disabled||!canUse?'disabled':''}
-    aria-label="${esc(label+' · '+display+' · '+platform+(capped?' · лимит расчёта':''))}">
-   <span>${label}</span><b>${display}</b>
-  </button>`;
+  const accessibleLabel=label+' · '+display+' · '+(market==='wb'?'WB':'Ozon')+(capped?' · лимит расчёта':'');
+  const attributes=`type="button" data-price-preset="${canUse?amount:''}" ${disabled||!canUse?'disabled':''}`;
+  const summary=`<span>${label}</span><b>${display}</b>`;
+  if(market==='wb')return `<button ${attributes} aria-label="${esc(accessibleLabel)}">${summary}</button>`;
+  return `<div class="price-cost-choice">
+   <div class="price-cost-choice-summary">${summary}</div>
+   <div class="price-cost-choice-actions">
+    <button ${attributes} aria-label="${esc(accessibleLabel+' · в цену продажи')}">В продажу</button>
+    <button ${attributes} data-price-preset-field="minimum" aria-label="${esc(accessibleLabel+' · в минимальную цену')}">В минимум</button>
+   </div>
+  </div>`;
  }).join('');
  const notes=[
   prices.partial?'Расчёт по неполным данным.':'',
@@ -123,7 +129,7 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
    <label>Поиск<input type="search" id="prices-query" placeholder="Артикул или название"></label>
    <button type="button" id="prices-filter-reset" class="prices-filter-reset">Сбросить фильтры</button><button id="prices-refresh">Обновить цены</button><button id="prices-keys">API и доступы</button>
    <div id="prices-freshness"></div><p id="prices-status" role="status"></p>
-   <small>Расчётные цены заполняют поле продажи. Для публикации нажмите «Отправить цену» у нужной площадки.</small>
+   <small>Для публикации нажмите «Отправить цену» у нужной площадки.</small>
    <small>WB: доступ «Цены и скидки» с записью. Ozon: Product с записью.</small>
   </aside>
   <div class="table-results">
@@ -223,8 +229,8 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   }
   return values;
  }
- function applyPreset(cell,row,amount){
-  const field=cell.querySelector('[data-price-field="price"]');
+ function applyPreset(cell,row,amount,destination){
+  const field=cell.querySelector(`[data-price-field="${destination}"]`);
   if(row.market==='wb'){
    const discount=number(cell.querySelector('[data-price-field="discount"]').value);
    const nearest=wbBaseFromFinal(amount,discount);
@@ -236,12 +242,18 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   }
   field.value=String(amount);
   const values=updateDraft(cell,row);
-  const conflicts=row.market==='ozon'?[
-   values.base>0&&values.base<=amount?'зачёркнутую цену':'',
-   values.minimum>amount?'минимальную цену Ozon':''
-  ].filter(Boolean):[];
   const status=cell.querySelector('[data-price-preset-status]');
-  status.textContent=conflicts.length?`Перед отправкой проверьте ${conflicts.join(' и ')}.`:`Подставлено ${money(amount)} ₽.`;
+  if(row.market==='wb'){
+   status.textContent=`Подставлено ${money(amount)} ₽.`;
+   return;
+  }
+  const label=destination==='minimum'?'Минимальная цена':'Цена продажи';
+  const warnings=[
+   values.price===null?'Укажите цену продажи.':'',
+   values.price!==null&&values.base>0&&values.base<=values.price?'Зачёркнутая цена должна быть выше цены продажи.':'',
+   values.price!==null&&values.minimum>values.price?'Минимальная цена должна быть не выше цены продажи.':''
+  ].filter(Boolean);
+  status.textContent=[`${label} — ${money(amount)} ₽.`,...warnings].join(' ');
  }
  $('#prices-rows').oninput=event=>{
   const cell=event.target.closest('[data-price-index]');
@@ -256,7 +268,7 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   const entry=rendered[Number(cell.dataset.priceIndex)],{row}=entry;
   const preset=event.target.closest('[data-price-preset]');
   if(preset){
-   if(!preset.disabled)applyPreset(cell,row,Number(preset.dataset.pricePreset));
+   if(!preset.disabled)applyPreset(cell,row,Number(preset.dataset.pricePreset),preset.dataset.pricePresetField||'price');
    return;
   }
   const button=event.target.closest('[data-price-send],[data-price-check]');

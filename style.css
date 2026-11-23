@@ -498,7 +498,7 @@ main[data-workspace="prices"]{max-width:none}
 .price-cost-targets{margin:16px 0;padding:12px;border:1px solid #dfe6d6;border-radius:10px;background:#f5f8f0;color:#3b5435}
 .price-cost-targets>strong{display:block;font-size:13px;line-height:1.4}
 .price-cost-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.price-cost-buttons button{
+.price-cost-buttons>button{
  display:flex;flex:1 1 max-content;flex-direction:column;justify-content:center;gap:3px;
  min-width:0;max-width:100%;min-height:44px;padding:10px 12px;text-align:left;
  background:#fff;border-color:#cddac0;border-radius:9px;font-size:14px;line-height:1.25;
@@ -509,6 +509,25 @@ main[data-workspace="prices"]{max-width:none}
 .price-cost-buttons button:focus-visible{outline:2px solid #739460;outline-offset:2px}
 .price-cost-buttons button:disabled{opacity:1;background:#f0f3eb;color:#697567}
 .price-cost-buttons button:disabled b{color:inherit;font-size:14px}
+.price-cost-choice{
+ display:grid;grid-template-rows:1fr auto;flex:1 1 10rem;min-width:0;
+ border:1px solid #cddac0;border-radius:9px;background:#fff;
+}
+.price-cost-choice-summary{
+ display:grid;align-content:center;gap:3px;padding:10px 12px;
+ color:#243732;font-size:14px;font-weight:550;line-height:1.25;overflow-wrap:anywhere;
+}
+.price-cost-choice-summary b{font-size:16px;color:#3b5736}
+.price-cost-choice-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid #cddac0}
+.price-cost-choice-actions button{
+ min-width:0;min-height:44px;padding:8px 4px;border:0;border-radius:0;
+ font-size:14px;text-align:center;overflow-wrap:anywhere;white-space:normal;
+}
+.price-cost-choice-actions button:first-child{border-bottom-left-radius:8px}
+.price-cost-choice-actions button+button{border-left:1px solid #cddac0;border-bottom-right-radius:8px}
+.price-cost-choice-actions button:focus-visible{outline-offset:-3px}
+.price-cost-choice:has(button:disabled){background:#f0f3eb}
+.price-cost-choice:has(button:disabled) .price-cost-choice-summary :is(span,b){color:#697567}
 .prices-table .price-cost-targets>small{margin:8px 0 0;color:#52634b}
 .price-cost-targets [data-price-preset-status]:empty{display:none}
 @media(max-width:650px){
