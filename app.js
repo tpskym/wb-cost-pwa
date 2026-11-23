@@ -23,7 +23,7 @@ import {openGroupLabelPicker} from './group-label-picker.js?v=0.2.392';
 import {openCostReport} from './cost-report.js?v=0.2.392';
 import {openFbsPriceReport} from './fbs-price-report.js?v=0.2.392';
 import {mountLabelThumbnail} from './label-thumbnail.js?v=0.2.392';
-import {mountReleaseHistory} from './release-history.js?v=0.2.410';
+import {mountReleaseHistory} from './release-history.js?v=0.2.411';
 import {mountMarketplacePrices,normalizePrice} from './marketplace-prices.js?v=0.2.410';
 import {createWorkspaceHistory,mountTopRefresh} from './workspace-history.js?v=0.2.392';
 import {mountPrintQueue,openEnqueueDialog} from './print-queue.js?v=0.2.392';
@@ -38,7 +38,7 @@ import {readWBPrice,wbFbsCommission,wbFbsDispatchHours} from './wb-prices.js?v=0
 import {ozonMoscowDelivery,ozonSalePriceLimit,wbFbsDelivery,wbFbsDeliveryPerSale} from './marketplace-delivery.js?v=0.2.392';
 import {ozonSellerPrice,readOzonCommissions,readOzonPrice} from './price-editor.js?v=0.2.392';
 import {installNumberControls} from './number-controls.js?v=0.2.392';
-const APP_VERSION='0.2.410';
+const APP_VERSION='0.2.411';
 installImagePreview(document);installSkuCopy(document);
 import {disposeListingEditor} from './listing-editor.js?v=0.2.392';
 import {mountMarketplaceUI,getMarketplaceCredentials,activateMarketplaceSettings} from './marketplace-ui.js?v=0.2.392';
