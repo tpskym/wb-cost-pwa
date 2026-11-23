@@ -9,7 +9,43 @@ test('WB writes just one price after fresh check, cancellation and drift prevent
 test('Ozon sends normal, crossed and minimum price, and catches per-item rejection',async()=>{const row=normalizePrice('ozon',ozon());let sent;const request=async(op,body)=>{if(op==='prices')return {items:[ozon()]};sent=body;return {result:[{offer_id:'SKU1',updated:false,errors:[{message:'Price rejected'}]}]};};await assert.rejects(()=>submitPriceChange(row,{base:1200,price:1000,minimum:700},{request,confirm:async()=>true}),/Price rejected/);assert.equal(row.submission.status,'rejected');assert.deepEqual(sent,{prices:[{offer_id:'SKU1',price:'1000.00',old_price:'1200.00',min_price:'700.00',currency_code:'RUB'}]});});
 test('network outcome stays unknown without a retry; failed local save prevents price write',async()=>{let writes=0;const row=normalizePrice('wb',wb()),request=async(op)=>{if(op==='prices')return {data:{listGoods:[wb()]}};writes++;throw Error('network');};await assert.rejects(()=>submitPriceChange(row,{base:1100,discount:10},{request,confirm:async()=>true}),/network/);assert.equal(row.submission.status,'unknown');assert.equal(writes,1);await assert.rejects(()=>submitPriceChange(row,{base:1100,discount:10},{request,confirm:async()=>true,save:()=>false}),/не отправлена/);assert.equal(writes,1);});
 test('price snapshots and pending requests survive validation and invalid prices fail',()=>{const row=normalizePrice('ozon',ozon()),db={schema:1,id:'db',products:[blankProduct()],priceSnapshots:[{market:'ozon',updatedAt:'now',rows:[row]}]};assert.equal(validateDB(structuredClone(db)).priceSnapshots[0].rows[0].sku,'SKU1');assert.throws(()=>validateDB({...db,priceSnapshots:[...db.priceSnapshots,...db.priceSnapshots]}),/снимок/);row.price=-1;assert.throws(()=>validateDB(db),/строка/);});
-test('price UI shows WB and Ozon side by side, escapes names and confirms prices by rereading',async()=>{const dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main'),row=normalizePrice('wb',wb()),db={products:[],priceSnapshots:[{market:'wb',updatedAt:new Date().toISOString(),rows:[row]},{market:'ozon',updatedAt:new Date().toISOString(),rows:[normalizePrice('ozon',ozon('<img src=x onerror=alert(1)>'))]}]};let latest=wb(),writes=0;mountMarketplacePrices({root,database:db,save:()=>true,getCredentials:()=>({}),confirm:async()=>true,request:async(market,op,body)=>{if(op==='prices')return {data:{listGoods:[latest]}};assert.equal(op,'setPrice');writes++;latest={...wb(),discount:body.data[0].discount,sizes:[{price:body.data[0].price,discountedPrice:960}]};return {data:{id:1}};}});assert.equal(root.querySelector('img'),null);assert.equal(root.querySelectorAll('thead th').length,3);let cell=root.querySelector('[data-price-index="1"]');if(!cell||cell.querySelector('.price-current').textContent!=='900 RUB')cell=[...root.querySelectorAll('[data-price-index]')].find(c=>c.querySelector('[data-price-field="discount"]'));const final=cell.querySelector('[data-price-field="price"]');final.value='960';cell.querySelector('[data-price-field="discount"]').value='20';final.dispatchEvent(new dom.window.Event('input',{bubbles:true}));assert.equal(cell.querySelector('[data-price-field="base"]').readOnly,true);await root.querySelector('#prices-rows').onclick({target:cell.querySelector('[data-price-send]')});assert.equal(writes,1);cell=[...root.querySelectorAll('[data-price-index]')].find(c=>c.querySelector('[data-price-field="discount"]'));await root.querySelector('#prices-rows').onclick({target:cell.querySelector('[data-price-check]')});assert.equal(row.price,960);assert.equal(row.submission.status,'confirmed');assert.match(root.textContent,/Применение подтверждено/);});
+test('price UI escapes names and automatically confirms a price applied immediately',async()=>{
+ const {window}=new JSDOM('<main></main>'),root=window.document.querySelector('main');
+ const updatedAt=new Date().toISOString(),row=normalizePrice('wb',wb());
+ const database={products:[],priceSnapshots:[
+  {market:'wb',updatedAt,rows:[row]},
+  {market:'ozon',updatedAt,rows:[normalizePrice('ozon',ozon('<img src=x onerror=alert(1)>'))]}
+ ]};
+ const calls=[];
+ let latest=wb();
+ const dispose=mountMarketplacePrices({
+  root,database,save:()=>true,getCredentials:()=>({}),confirm:async()=>true,
+  request:async(market,operation,body)=>{
+   assert.equal(market,'wb');
+   calls.push(operation);
+   if(operation==='prices')return {data:{listGoods:[latest]}};
+   assert.equal(operation,'setPrice');
+   latest={...wb(),discount:body.data[0].discount,sizes:[{price:body.data[0].price,discountedPrice:960}]};
+   return {data:{id:1}};
+  }
+ });
+ assert.equal(root.querySelector('img'),null);
+ assert.equal(root.querySelectorAll('thead th').length,3);
+ const discount=root.querySelector('[data-price-field="discount"]');
+ const cell=discount.closest('td');
+ const final=cell.querySelector('[data-price-field="price"]');
+ final.value='960';
+ discount.value='20';
+ final.dispatchEvent(new window.Event('input',{bubbles:true}));
+ assert.equal(cell.querySelector('[data-price-field="base"]').readOnly,true);
+ await root.querySelector('#prices-rows').onclick({target:cell.querySelector('[data-price-send]')});
+ assert.deepEqual(calls,['prices','setPrice','prices']);
+ assert.equal(row.price,960);
+ assert.equal(row.submission.status,'confirmed');
+ assert.match(cell.textContent,/Применение подтверждено/);
+ dispose();
+ window.close();
+});
 test('price refresh preserves the failed marketplace snapshot and refreshes the other independently',async()=>{const dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main'),old={market:'wb',updatedAt:'2026-10-20T00:00:00Z',rows:[normalizePrice('wb',wb())]},database={products:[],priceSnapshots:[old]};mountMarketplacePrices({root,database,save:()=>true,getCredentials:()=>({}),request:async(market,op)=>{if(market==='wb')throw Error('access denied');return op==='prices'?{items:[ozon('NEW')],cursor:''}:{items:[]};}});await root.querySelector('#prices-refresh').onclick();assert.equal(database.priceSnapshots.find(s=>s.market==='wb'),old);assert.equal(database.priceSnapshots.find(s=>s.market==='ozon').rows[0].sku,'NEW');assert.match(root.textContent,/Предыдущие цены сохранены/);});
 test('sending or checking one price keeps the page, row, and other drafts in place',async()=>{
  const {window}=new JSDOM('<main></main>'),root=window.document.querySelector('main');
@@ -18,13 +54,14 @@ test('sending or checking one price keeps the page, row, and other drafts in pla
   {market:'wb',updatedAt,rows:Array.from({length:35},(_,i)=>normalizePrice('wb',wb(i+1)))},
   {market:'ozon',updatedAt,rows:[normalizePrice('ozon',ozon(article))]}
  ]};
- let allow=false,writes=0,latest=wb(34);
+ let allow=false,writes=0,readsAfterWrite=0,latest=wb(34);
  const dispose=mountMarketplacePrices({
   root,database,save:()=>true,getCredentials:()=>({}),confirm:async()=>allow,
   request:async (market,operation,body)=>{
    assert.equal(market,'wb');
    if(operation==='prices'){
     assert.equal(body.nmID,34);
+    if(writes&&++readsAfterWrite<=2)return {data:{listGoods:[wb(34)]}};
     return {data:{listGoods:[latest]}};
    }
    assert.equal(operation,'setPrice');
@@ -64,16 +101,50 @@ test('sending or checking one price keeps the page, row, and other drafts in pla
  allow=true;
  await tbody.onclick({target:send});
  assert.equal(writes,1);
- assert.match(wbCell.querySelector('.price-row-status').textContent,/Цена отправлена/);
+ assert.equal(readsAfterWrite,2);
+ assert.match(wbCell.querySelector('.price-row-status').textContent,/ещё не подтвердила.*«Проверить \/ получить»/);
+ assert.equal(wbInput.value,'1080');
  assert.equal(window.document.activeElement,send);
  expectPosition();
  check.focus();
  await tbody.onclick({target:check});
+ assert.equal(readsAfterWrite,3);
  assert.equal(wbCell.isConnected,true);
  assert.equal(wbCell.querySelector('[data-price-field="price"]').value,'1080');
  assert.equal(wbCell.querySelector('.price-row-status').textContent,'Применение подтверждено');
  assert.equal(window.document.activeElement,wbCell.querySelector('[data-price-check]'));
  expectPosition();
+ dispose();
+ window.close();
+});
+test('Ozon retries a pending verification after one second and confirms the price',async()=>{
+ const {window}=new JSDOM('<main></main>'),root=window.document.querySelector('main');
+ const item=ozon(),row=normalizePrice('ozon',item);
+ const database={products:[],priceSnapshots:[{market:'ozon',updatedAt:new Date().toISOString(),rows:[row]}]};
+ const calls=[],verificationTimes=[];
+ let submitted;
+ const dispose=mountMarketplacePrices({
+  root,database,save:()=>true,getCredentials:()=>({}),confirm:async()=>true,
+  request:async (market,operation,body)=>{
+   assert.equal(market,'ozon');
+   calls.push(operation);
+   if(operation==='setPrice'){
+    [submitted]=body.prices;
+    return {result:[{offer_id:item.offer_id,updated:true,errors:[]}]};
+   }
+   if(submitted)verificationTimes.push(performance.now());
+   return {items:[verificationTimes.length<2?item:{...item,price:submitted}]};
+  }
+ });
+ const input=root.querySelector('[data-price-field="price"]');
+ input.value='950';
+ input.dispatchEvent(new window.Event('input',{bubbles:true}));
+ await root.querySelector('#prices-rows').onclick({target:root.querySelector('[data-price-send]')});
+ assert.deepEqual(calls,['prices','setPrice','prices','prices']);
+ assert.ok(verificationTimes[1]-verificationTimes[0]>=950);
+ assert.equal(row.price,950);
+ assert.equal(row.submission.status,'confirmed');
+ assert.equal(root.querySelector('.price-row-status').textContent,'Применение подтверждено');
  dispose();
  window.close();
 });

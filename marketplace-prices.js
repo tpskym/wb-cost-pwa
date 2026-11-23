@@ -265,27 +265,41 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   const restoreFocus=doc.activeElement===button;
   const status=cell.querySelector('.price-row-status');
   const controls=root.querySelectorAll('button:enabled,input:enabled,select:enabled');
-  let message,received=false;
+  const isAlive=()=>!disposed&&cell.isConnected;
+  const priceRequest=request(row.market);
+  let message,received=false,sent=false;
   busy=true;
   controls.forEach(control=>control.disabled=true);
   status.textContent='Проверяю актуальную цену…';
   try{
    if(sending){
     const values=readValues(cell,row);
-    const sent=await submitPriceChange(row,values,{request:request(row.market),save,isAlive:()=>!disposed&&root.isConnected,confirm:overrideConfirm||((text)=>confirmAction(text,{title:'Изменить цену?',accept:'Отправить цену',document:doc}))});
-    if(sent)message='Цена отправлена. После обработки нажмите «Проверить / получить».';
-   }else{
-    const latest=await freshPrice(row,request(row.market)),submission=row.submission;
-    if(submission&&['base','price','discount','minimum'].every(k=>latest[k]===submission.expected[k]))submission.status='confirmed';
-    Object.assign(row,latest);
-    if(submission)row.submission=submission;
-    edits.delete(key(row));
-    save();
-    received=true;
-    message=submission?.status==='confirmed'?'Применение подтверждено':submission?'Цена получена. Применение отправленной цены пока не подтверждено.':'Цена получена.';
+    sent=await submitPriceChange(row,values,{request:priceRequest,save,isAlive,confirm:overrideConfirm||((text)=>confirmAction(text,{title:'Изменить цену?',accept:'Отправить цену',document:doc}))});
+    if(!sent||!isAlive())return;
+    status.textContent='Цена отправлена. Проверяю применение…';
    }
+   const submission=row.submission;
+   const matchesSubmission=price=>submission&&['base','price','discount','minimum'].every(field=>price[field]===submission.expected[field]);
+   let latest=await freshPrice(row,priceRequest);
+   if(sent&&!matchesSubmission(latest)){
+    status.textContent='Цена отправлена. Проверю повторно через секунду…';
+    await new Promise(resolve=>setTimeout(resolve,1000));
+    if(!isAlive())return;
+    latest=await freshPrice(row,priceRequest);
+   }
+   const applied=matchesSubmission(latest);
+   if(applied)submission.status='confirmed';
+   received=!sent||applied||!samePrice(row,latest);
+   Object.assign(row,latest);
+   if(!sent||applied)edits.delete(key(row));
+   save();
+   if(applied)message='Применение подтверждено';
+   else if(sent)message='Цена отправлена. Площадка ещё не подтвердила применение. Позже нажмите «Проверить / получить».';
+   else if(submission)message='Цена получена. Применение отправленной цены пока не подтверждено.';
+   else message='Цена получена.';
   }catch(error){
-   message=redact(error.message,getCredentials());
+   const detail=redact(error.message,getCredentials());
+   message=sent?`Цена отправлена. Проверка не удалась. ${detail}`:detail;
   }finally{
    busy=false;
    controls.forEach(control=>control.disabled=false);
@@ -293,7 +307,8 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
     if(received)cell.innerHTML=priceCellMarkup(entry);
     cell.querySelector('.price-row-status').textContent=message??submissionStatus(row);
     if(restoreFocus&&doc.activeElement===doc.body){
-     (received?cell.querySelector('[data-price-check]'):button).focus({preventScroll:true});
+     const actionSelector=sending?'[data-price-send]':'[data-price-check]';
+     (received?cell.querySelector(actionSelector):button).focus({preventScroll:true});
     }
    }
   }
