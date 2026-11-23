@@ -43,8 +43,8 @@ test('search queries use the exact Ozon SKU and display the actual reporting per
 test('advertising statistics load a daily archive and distinguish zeros, missing metrics and missing days',async()=>{
  const requests=[],progress=[];
  const archive=zipSync({
-  '1000.csv':strToU8(csv([row('19.11.2026',444,0,0),row('20.11.2026',444,5,'25,00'),row('20.11.2026',555,20,35)])),
-  '2000.csv':strToU8(csv([row('20.11.2026',444,10,'37,50')]))
+  'reports/1000-statistics.csv':strToU8(csv([row('19.11.2026',444,0,0),row('20.11.2026',444,5,'25,00'),row('20.11.2026',555,20,35)])),
+  'statistics.csv':strToU8('Кампания по продвижению товаров № 2000\n'+csv([row('20.11.2026',444,10,'37,50')]))
  });
  let checks=0;
  const report=await loadOzonPerformance(['444'],dates,access,async(operation,body,token)=>{
@@ -68,7 +68,7 @@ test('advertising statistics load a daily archive and distinguish zeros, missing
  assert.deepEqual(requests,['token','campaigns','submit','status','status','report']);
  assert.deepEqual(progress,[[1,1]]);
  assert.equal(report.archived,1);
- assert.deepEqual(report.lookup,{skus:['444'],listed:4,clickCampaigns:3,requested:2,productRows:4,matchedRows:3});
+ assert.deepEqual(report.lookup,{skus:['444'],listed:4,clickCampaigns:3,requested:2,productRows:4,matchedRows:3,unavailable:[]});
  const days=promotionDays(report.rows,dates.from,dates.to);
  assert.deepEqual(days.map(day=>day.metrics?.clicks??null),[0,15,null]);
  assert.deepEqual(days.map(day=>day.metrics?.expense??null),[0,62.5,null]);
@@ -76,6 +76,53 @@ test('advertising statistics load a daily archive and distinguish zeros, missing
  assert.equal(promotionDays(report.rows,dates.from,dates.to,'2000')[1].metrics.clicks,10);
  const aggregate=[['Дата добавления',...headers.slice(1)],row('19.11.2026',444,5,25)];
  assert.throws(()=>parseOzonPerformanceRows(aggregate,{...dates,campaignId:'1000',ids:['444']}),/не совпали с запрошенным/);
+});
+
+test('an absent campaign CSV is retried separately without losing its neighbours',async()=>{
+ const archive=zipSync({'1000.csv':strToU8(csv([row('20.11.2026',444,5,25)]))});
+ const submissions=[];
+ const report=await loadOzonPerformance(['444'],dates,access,async(operation,body)=>{
+  if(operation==='token')return {access_token:'bearer'};
+  if(operation==='campaigns')return {list:[cpc('1000'),cpc('51897894')]};
+  if(operation==='submit'){submissions.push(body.campaigns);return {UUID:uuid};}
+  if(operation==='status')return {state:'OK'};
+  assert.equal(operation,'report');
+  if(submissions.length===1)return Buffer.from(archive).toString('base64');
+  throw Object.assign(Error('Отчёт недоступен'),{status:404});
+ });
+ assert.deepEqual(submissions,[['1000','51897894'],['51897894']]);
+ assert.deepEqual(report.lookup.unavailable,['51897894']);
+ assert.deepEqual(report.rows.map(row=>[row.campaignId,row.clicks]),[['1000',5]]);
+});
+
+test('recent Ozon days are fetched by SKU and combined with disjoint historical dates',async()=>{
+ const period={from:'2026-11-21',to:'2026-11-23'},sku='6035112693';
+ const requests=[];
+ const report=await loadOzonPerformance([sku],period,access,async(operation,body)=>{
+  requests.push(operation);
+  if(operation==='token')return {access_token:'bearer'};
+  if(operation==='campaigns')return {list:[cpc('51897894')]};
+  if(operation==='recent'){
+   assert.deepEqual(body,{campaignIds:['51897894'],dateFrom:'2026-11-22',dateTo:'2026-11-23'});
+   return {rows:[
+    {campaignId:'51897894',date:'2026-11-23',sku,views:'171',clicks:'10',expense:'68,55',toCart:'2',orders:'0',sales:'0'},
+    {campaignId:'51897894',date:'2026-11-23',sku:'555',clicks:'900'},
+    {campaignId:'777',date:'2026-11-23',sku,clicks:'800'}
+   ]};
+  }
+  if(operation==='submit'){
+   assert.deepEqual(body,{campaigns:['51897894'],dateFrom:'2026-11-21',dateTo:'2026-11-21'});
+   return {UUID:uuid};
+  }
+  if(operation==='status')return {state:'OK'};
+  assert.equal(operation,'report');
+  return Buffer.from(csv([row('21.11.2026',sku,5,25)])).toString('base64');
+ },{today:'2026-11-23'});
+ assert.deepEqual(requests,['token','campaigns','recent','submit','status','report']);
+ const days=promotionDays(report.rows,period.from,period.to);
+ assert.deepEqual(days.map(day=>day.metrics?.clicks??null),[5,null,10]);
+ const current=days[2].metrics;
+ assert.deepEqual([current.views,current.cart,current.expense,current.orders,current.totalSales],[171,2,68.55,0,null]);
 });
 
 test('extension sends credentials only to the documented Performance API operations',async()=>{
@@ -100,6 +147,15 @@ test('extension sends credentials only to the documented Performance API operati
   return Response.json({UUID:uuid});
  });
  assert.equal(submitted.data.UUID,uuid);
+ assert.equal((await handleOzonPerformance({type,operation:'ping'},sender,denied)).data.version,2);
+ const recentBody={campaignIds:['51897894'],dateFrom:'2026-11-23',dateTo:'2026-11-23'};
+ const recent=await handleOzonPerformance({type,operation:'recent',token:'bearer',body:recentBody},sender,async(url,options)=>{
+  assert.equal(url,'https://api-performance.ozon.ru/api/client/statistics/products/sku');
+  assert.equal(options.headers.Authorization,'Bearer bearer');
+  assert.deepEqual(JSON.parse(options.body),recentBody);
+  return Response.json({rows:[]});
+ });
+ assert.deepEqual(recent.data,{rows:[]});
 });
 
 test('positive sales with a zero count stay unconfirmed when the second response is from a different period',async()=>{

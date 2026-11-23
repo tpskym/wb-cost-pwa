@@ -2,8 +2,8 @@ import {marketRequest,redact} from './marketplace-api.js?v=0.2.418';
 import {dayKey} from './ozon-analytics.js?v=0.2.392';
 import {openFunnelProductPicker,resolveOzonSkus} from './sales-funnel.js?v=0.2.418';
 import {confirmAction} from './listing-fields.js?v=0.2.392';
-import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.424';
-import {loadOzonPerformance,performanceCredentials,performanceRequest,performanceStart,savePerformanceCredentials} from './ozon-performance.js?v=0.2.424';
+import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.425';
+import {loadOzonPerformance,performanceCredentials,performanceRequest,performanceStart,savePerformanceCredentials} from './ozon-performance.js?v=0.2.425';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const formatNumber=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -69,11 +69,11 @@ function dailyEmptyReason(report){
  return 'Ozon вернул строки выбранного товара с пустыми показателями.';
 }
 
-function dailyMarkup(days,notes,source,emptyReason){
+function dailyMarkup(days,notes,source,notices){
  const byDay=new Map(notes.map(note=>[note.day,note]));
  const count=days.filter(day=>day.metrics).length;
  return `<p class="promotion-caption">${source?esc(source)+' · ':''}Данные за ${count} из ${days.length} дней · «—» означает, что показателя нет</p>
- ${emptyReason?`<p class="analytics-status promotion-status">${esc(emptyReason)}</p>`:''}
+ ${notices.map(notice=>`<p class="analytics-status promotion-status">${esc(notice)}</p>`).join('')}
  <div class="analytics-cluster-results promotion-daily-scroll" role="region" aria-label="Оплата за клик по дням" tabindex="0">
   <table class="analytics-cluster-table promotion-daily-table">
    <thead><tr><th scope="col">Показатель</th>${days.map(({day})=>{
@@ -220,9 +220,21 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
     const lookup=report?.lookup;
     const stats=lookup?` · SKU ${lookup.skus.join(', ')} · Запрошено кампаний ${lookup.requested}`:'';
     const source=report?'Ozon Performance API · '+queryRange(report)+stats+archiveNote:rows.length?'Ранее сохранённые данные':'';
-    const emptyReason=report&&!rows.length&&report.from<=filters.from&&report.to>=filters.to?dailyEmptyReason(report):'';
+    const notices=[];
+    if(report&&report.from<=filters.from&&report.to>=filters.to){
+     if(!rows.length&&!lookup?.unavailable?.length){
+      const reason=dailyEmptyReason(report);
+      if(reason)notices.push(reason);
+     }
+     if(lookup?.unavailable?.length){
+      notices.push(`Часть статистики недоступна · кампании № ${lookup.unavailable.join(', ')}.`);
+     }
+    }
+    if(state.performanceExtensionVersion===1&&filters.to>=shiftDay(today,-1)){
+     notices.push('Для статистики за сегодня и вчера обновите расширение «Мастерская — Ozon Performance API» до версии 1.1.0.');
+    }
     const scroll=dailyResults.querySelector('.promotion-daily-scroll')?.scrollLeft||0;
-    dailyResults.innerHTML=dailyMarkup(promotionDays(rows,filters.from,filters.to,campaign),previous.notes,source,emptyReason);
+    dailyResults.innerHTML=dailyMarkup(promotionDays(rows,filters.from,filters.to,campaign),previous.notes,source,notices);
     dailyResults.querySelector('.promotion-daily-scroll').scrollLeft=scroll;
    }catch(error){dailyResults.innerHTML=`<p class="analytics-empty">${esc(error.message)}</p>`;}
   }else{
@@ -328,10 +340,11 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
    let report;
    try{
     const link=await ads('ping',{});
-    if(link?.version!==1)throw Error('Обновите расширение «Мастерская — Ozon Performance API».');
+    if(![1,2].includes(link?.version))throw Error('Обновите расширение «Мастерская — Ozon Performance API».');
+    state.performanceExtensionVersion=link.version;
     const ids=await resolveOzonSkus(product().sku.trim(),call);
-    report=await loadOzonPerformance(ids,period,access,ads,{signal,onProgress:(index,total)=>{
-     message(`Ozon формирует отчёт по дням · часть ${index} из ${total}…`);
+    report=await loadOzonPerformance(ids,period,access,ads,{signal,today:link.version>=2?today:undefined,onProgress:(index,total)=>{
+     message(`Получаю статистику Ozon · часть ${index} из ${total}…`);
     }});
    }catch(error){
     if(['EXTENSION_REQUIRED','PERFORMANCE_ACCESS_DENIED'].includes(error.code))performanceSetup.open=true;
@@ -346,7 +359,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   if(active==='queries'){maybeLoadQueries();return;}
   if(disposed||pending||!product()||!performanceAccess.id||!performanceAccess.secret||attemptedDaily.has(dailyKey()))return;
   const report=dailyReport();
-  if(!report||(!report.lookup&&!report.rows.length)||report.from>filters.from||report.to<filters.to)fetchPerformance();
+  if(!report||(!report.lookup?.unavailable&&!report.rows.length)||report.from>filters.from||report.to<filters.to)fetchPerformance();
  }
  performanceButton.onclick=fetchPerformance;
  performanceForm.onsubmit=event=>{

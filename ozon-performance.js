@@ -1,5 +1,5 @@
 import {dateRange,validDay} from './ozon-analytics.js?v=0.2.392';
-import {parseOzonPerformanceRows} from './ozon-promotion.js?v=0.2.424';
+import {parseOzonPerformanceRows,parseOzonRecentPerformanceRows,shiftDay} from './ozon-promotion.js?v=0.2.425';
 
 const extensionId='fboekfplfoifkgjkninefbfiffngmfdl';
 const storageKey='workshop-ozon-performance-v1';
@@ -110,33 +110,85 @@ function parseCsv(text,unwrap=true){
  return rows;
 }
 
-async function readReport(encoded,campaigns,ids,period){
- if(typeof encoded!=='string'||!encoded)throw Error('Ozon вернул пустой файл отчёта.');
- const bytes=Uint8Array.from(atob(encoded),char=>char.charCodeAt(0));
- const campaignFiles=new Map(campaigns.map(id=>[id+'.csv',id]));
- const parse=(campaignId,data)=>parseOzonPerformanceRows(csvRows(data),{...period,ids,campaignId});
- if(bytes[0]!==0x50||bytes[1]!==0x4b){
-  if(campaigns.length!==1)throw Error('Ozon не вернул архив с отчётами кампаний.');
-  return [parse(campaigns[0],bytes)];
- }
- const {unzipSync}=await import('./ozon-report-zip.js?v=0.2.422');
- let size=0;
- const archive=unzipSync(bytes,{filter:file=>{
-  if(!campaignFiles.has(file.name))return false;
-  size+=file.originalSize;
-  if(size>archiveLimit)throw Error('Отчёт Ozon слишком большой. Выберите более короткий период.');
-  return true;
- }});
- return campaigns.map(id=>{
-  const data=archive[id+'.csv'];
-  if(!data)throw Error('Ozon не вернул отчёт для кампании № '+id+'.');
-  return parse(id,data);
- });
+function campaignIdFromName(name){
+ const filename=name.split('/').at(-1);
+ return filename.match(/^(\d{1,20})(?=[\s_.-])/)?.[1];
 }
 
-export async function loadOzonPerformance(ids,period,credentials,request,{signal,onProgress=()=>{},wait=pause}={}){
+async function readReport(encoded,campaigns,ids,period){
+ if(typeof encoded!=='string')throw Error('Ozon вернул неизвестный формат файла отчёта.');
+ if(!encoded)return {reports:[],missing:campaigns};
+ const bytes=Uint8Array.from(atob(encoded),char=>char.charCodeAt(0));
+ const wanted=new Set(campaigns),byCampaign=new Map(),ambiguous=new Set();
+ const accept=(data,idFromName)=>{
+  const named=wanted.has(idFromName)?idFromName:undefined;
+  const csv=csvRows(data);
+  const meta=csv.slice(0,4).flat().find(value=>/^\s*кампания\s/i.test(value??''));
+  const idFromMeta=meta?.match(/№\s*(\d{1,20})/)?.[1];
+  if(named&&idFromMeta&&named!==idFromMeta)return;
+  const id=idFromMeta??named;
+  if(!wanted.has(id))return;
+  if(byCampaign.has(id)){ambiguous.add(id);return;}
+  byCampaign.set(id,csv);
+ };
+ if(bytes[0]===0x50&&bytes[1]===0x4b){
+  const {unzipSync}=await import('./ozon-report-zip.js?v=0.2.422');
+  let size=0;
+  const archive=unzipSync(bytes,{filter:file=>{
+   if(!/\.csv$/i.test(file.name)||file.name.startsWith('__MACOSX/'))return false;
+   size+=file.originalSize;
+   if(size>archiveLimit)throw Error('Отчёт Ozon слишком большой. Выберите более короткий период.');
+   return true;
+  }});
+  for(const [name,data] of Object.entries(archive)){
+   try{accept(data,campaignIdFromName(name));}
+   catch{/* A malformed CSV must not hide the other campaigns in the archive. */}
+  }
+ }else if(campaigns.length===1)accept(bytes,campaigns[0]);
+ else throw Error('Ozon не вернул архив с отчётами кампаний.');
+ const reports=[],missing=[];
+ for(const campaignId of campaigns){
+  const csv=byCampaign.get(campaignId);
+  if(!csv||ambiguous.has(campaignId)){missing.push(campaignId);continue;}
+  try{reports.push(parseOzonPerformanceRows(csv,{...period,ids,campaignId}));}
+  catch(error){
+   if(campaigns.length===1)throw error;
+   missing.push(campaignId);
+  }
+ }
+ return {reports,missing};
+}
+
+async function readHistorical(call,job,ids,wait,signal){
+ const {campaigns,from,to}=job;
+ const {UUID:uuid}=await call('submit',{campaigns,dateFrom:from,dateTo:to});
+ if(!uuidPattern.test(uuid))throw Error('Ozon не вернул номер отчёта по кампаниям.');
+ for(let attempt=0;attempt<60;attempt++){
+  if(attempt)await wait(2000,signal);
+  const {state}=await call('status',{uuid});
+  if(state==='OK')return readReport(await call('report',{uuid}),campaigns,ids,job);
+  if(state==='ERROR')throw Error('Ozon не смог сформировать отчёт по кампаниям. Повторите загрузку или сократите период.');
+  if(state!=='IN_PROGRESS'&&state!=='NOT_STARTED')throw Error('Ozon вернул неизвестный статус отчёта.');
+ }
+ throw Error('Ozon ещё формирует отчёт. Попробуйте загрузить его позже.');
+}
+
+async function readRecent(call,job,ids){
+ const {campaigns,from,to}=job;
+ const {rows}=await call('recent',{campaignIds:campaigns,dateFrom:from,dateTo:to});
+ if(!Array.isArray(rows))throw Error('Ozon вернул неизвестный формат оперативной статистики.');
+ const byCampaign=new Map(campaigns.map(id=>[id,[]]));
+ for(const row of rows)byCampaign.get(String(row?.campaignId))?.push(row);
+ return {
+  reports:campaigns.map(campaignId=>parseOzonRecentPerformanceRows(byCampaign.get(campaignId),{...job,ids,campaignId})),
+  missing:[]
+ };
+}
+
+export async function loadOzonPerformance(ids,period,credentials,request,{signal,onProgress=()=>{},wait=pause,today}={}){
  const {from,to}=period;
  const days=dateRange(from,to);
+ if(validDay(today)&&to>today)throw Error('Дата окончания не может быть позже сегодняшней.');
  if(from<performanceStart)throw Error('Статистика Performance API доступна с 1 февраля 2025 года.');
  if(!credentials.id||!credentials.secret)throw Error('Введите Client ID и Client Secret из настроек Ozon Performance API.');
  const auth=await request('token',credentials);
@@ -153,35 +205,57 @@ export async function loadOzonPerformance(ids,period,credentials,request,{signal
    (c.state!=='CAMPAIGN_STATE_FINISHED'||!validDay(c.toDate)||c.toDate>=from);
  });
  const available=candidates.filter(c=>c.state!=='CAMPAIGN_STATE_ARCHIVED');
+ const recentFrom=validDay(today)?shiftDay(today,-1):null;
+ const recentDays=recentFrom?days.filter(day=>day>=recentFrom&&day<=today):[];
+ const historicalDays=recentFrom?days.filter(day=>day<recentFrom):days;
  const jobs=[];
- for(let i=0;i<days.length;i+=62){
+ if(recentDays.length){
   for(let j=0;j<available.length;j+=10){
-   jobs.push({from:days[i],to:days[Math.min(i+61,days.length-1)],campaigns:available.slice(j,j+10).map(c=>c.id)});
+   jobs.push({from:recentDays[0],to:recentDays.at(-1),recent:true,campaigns:available.slice(j,j+10).map(c=>c.id)});
   }
  }
- const rows=[];
+ for(let i=0;i<historicalDays.length;i+=62){
+  for(let j=0;j<available.length;j+=10){
+   jobs.push({from:historicalDays[i],to:historicalDays[Math.min(i+61,historicalDays.length-1)],campaigns:available.slice(j,j+10).map(c=>c.id)});
+  }
+ }
+ const rows=[],unavailable=new Set();
  const lookup={skus:ids,listed:all.length,clickCampaigns:clickCampaigns.length,requested:available.length,productRows:0,matchedRows:0};
+ let completed=0,firstError;
  for(const [index,job] of jobs.entries()){
   onProgress(index+1,jobs.length);
-  const {campaigns}=job;
-  const {UUID:uuid}=await call('submit',{campaigns,dateFrom:job.from,dateTo:job.to});
-  if(!uuidPattern.test(uuid))throw Error('Ozon не вернул номер отчёта по кампаниям.');
-  let ready=false;
-  for(let attempt=0;attempt<60;attempt++){
-   if(attempt)await wait(2000,signal);
-   const {state}=await call('status',{uuid});
-   if(state==='OK'){ready=true;break;}
-   if(state==='ERROR')throw Error('Ozon не смог сформировать отчёт по кампаниям. Повторите загрузку или сократите период.');
-   if(state!=='IN_PROGRESS'&&state!=='NOT_STARTED')throw Error('Ozon вернул неизвестный статус отчёта.');
+  let result;
+  if(job.recent){
+   try{result=await readRecent(call,job,ids);}
+   catch{signal?.throwIfAborted();}
   }
-  if(!ready)throw Error('Ozon ещё формирует отчёт. Попробуйте загрузить его позже.');
-  const reports=await readReport(await call('report',{uuid}),campaigns,ids,job);
-  for(const report of reports){
+  try{result??=await readHistorical(call,job,ids,wait,signal);}
+  catch(error){
+   signal?.throwIfAborted();
+   firstError??=error;
+   for(const id of job.campaigns)unavailable.add(id);
+   if([401,403,429].includes(error.status)){
+    for(const pending of jobs.slice(index+1))for(const id of pending.campaigns)unavailable.add(id);
+    break;
+   }
+   continue;
+  }
+  completed++;
+  if(result.missing.length&&result.missing.length<job.campaigns.length){
+   try{
+    const retried=await readHistorical(call,{...job,campaigns:result.missing},ids,wait,signal);
+    result={reports:[...result.reports,...retried.reports],missing:retried.missing};
+   }catch{signal?.throwIfAborted();}
+  }
+  for(const id of result.missing)unavailable.add(id);
+  for(const report of result.reports){
    lookup.productRows+=report.productRows;
    lookup.matchedRows+=report.matchedRows;
    rows.push(...report.rows);
   }
  }
+ if(!completed&&firstError)throw firstError;
+ lookup.unavailable=[...unavailable];
  const used=new Set(rows.map(row=>row.campaignId));
  return {
   from,to,client:credentials.id,rows,lookup,

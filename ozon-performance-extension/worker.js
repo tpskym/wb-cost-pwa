@@ -18,6 +18,13 @@ function route(message){
  case 'campaigns':
   if(!Number.isSafeInteger(body.page)||body.page<1)return null;
   return ['/api/client/campaign?advObjectType=SKU&pageSize=100&page='+body.page];
+ case 'recent': {
+  const {campaignIds,dateFrom,dateTo}=body;
+  if(!Array.isArray(campaignIds)||!campaignIds.length||campaignIds.length>10||
+   campaignIds.some(id=>typeof id!=='string'||!idPattern.test(id))||
+   !datePattern.test(dateFrom)||!datePattern.test(dateTo)||dateFrom>dateTo)return null;
+  return ['/api/client/statistics/products/sku',{method:'POST',body:JSON.stringify({campaignIds,dateFrom,dateTo})}];
+ }
  case 'submit': {
   const {campaigns,dateFrom,dateTo}=body;
   if(!Array.isArray(campaigns)||!campaigns.length||campaigns.length>10||
@@ -54,7 +61,7 @@ export async function handleOzonPerformance(message,sender,request=fetch){
  const senderUrl=URL.canParse(sender.url)?new URL(sender.url):null;
  if(sender.frameId!==0||senderUrl?.origin!=='https://tpskym.github.io'||
   !senderUrl.pathname.startsWith('/wb-cost-pwa/')||message?.type!=='workshop-ozon-performance')return;
- if(message.operation==='ping')return {ok:true,data:{version:1}};
+ if(message.operation==='ping')return {ok:true,data:{version:2}};
  const target=route(message);
  if(!target)return {ok:false,error:'Неизвестный запрос к Ozon Performance API.'};
  const [path,options={}]=target;

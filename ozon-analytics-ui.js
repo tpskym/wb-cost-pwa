@@ -2,7 +2,7 @@ import {marketRequest} from './marketplace-api.js?v=0.2.392';
 import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
 import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.404';
 import {mountSalesFunnel} from './sales-funnel.js?v=0.2.418';
-import {mountOzonPromotion} from './ozon-promotion-ui.js?v=0.2.424';
+import {mountOzonPromotion} from './ozon-promotion-ui.js?v=0.2.425';
 import {loadWbAccrualDays,requestWbFinanceReport,wbAccrualDays,wbAnalyticsGroups,wbSellerId} from './wb-analytics.js?v=0.2.397';
 
 const moneyFormat=new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB'});

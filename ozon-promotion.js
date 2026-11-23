@@ -133,8 +133,6 @@ function sumMetrics(entries){
 }
 
 export function parseOzonPerformanceRows(report,{ids,campaignId,from,to}){
- const wanted=new Set(ids),rows=new Map();
- let productRows=0,matchedRows=0;
  const headerRow=report.findIndex(row=>{
   const headers=row.map(headerKey);
   return headers.some(key=>skuHeader.test(key))&&
@@ -142,19 +140,30 @@ export function parseOzonPerformanceRows(report,{ids,campaignId,from,to}){
  });
  if(headerRow<0)throw Error('Ozon вернул неизвестный формат статистики «Оплата за клик».');
  const headers=report[headerRow].map(headerKey);
- const skuIndex=headerIndex(headers,skuHeader);
- const dateIndex=headerIndex(headers,/^(?:дата|день|период|дата статистики|дата отчета|date)$/);
  const columns=Object.fromEntries(fieldKeys.map(key=>[key,headerIndex(headers,fields[key])]));
- for(const row of report.slice(headerRow+1)){
-  const sku=skuId(row[skuIndex]);
+ columns.sku=headerIndex(headers,skuHeader);
+ columns.date=headerIndex(headers,/^(?:дата|день|период|дата статистики|дата отчета|date)$/);
+ return collectPerformanceRows(report.slice(headerRow+1),{ids,campaignId,from,to},(row,key)=>row[columns[key]]);
+}
+
+export function parseOzonRecentPerformanceRows(report,options){
+ return collectPerformanceRows(report,options,(row,key)=>row?.[key==='cart'?'toCart':key]);
+}
+
+function collectPerformanceRows(report,{ids,campaignId,from,to},read){
+ const wanted=new Set(ids),rows=new Map();
+ let productRows=0,matchedRows=0;
+ for(const row of report){
+  const sku=skuId(read(row,'sku'));
   if(!sku)continue;
   productRows++;
   if(!wanted.has(sku))continue;
   matchedRows++;
-  const day=dateIndex<0&&from===to?from:dayFromCell(row[dateIndex]);
+  const date=read(row,'date');
+  const day=date==null&&from===to?from:dayFromCell(date);
   if(!day||day<from||day>to)throw Error('Даты в отчёте Ozon не совпали с запрошенным периодом.');
   const metrics=Object.fromEntries(fieldKeys.map(key=>{
-   const value=numberValue(row[columns[key]]);
+   const value=numberValue(read(row,key));
    return [key,countFields.has(key)&&!Number.isSafeInteger(value)?null:value];
   }));
   if(!Object.values(metrics).some(value=>value!==null))continue;
@@ -215,6 +224,8 @@ export function validateOzonPromotion(state){
     const lookup=report.lookup;
     if(!lookup||!Array.isArray(lookup.skus)||!lookup.skus.length||lookup.skus.some(sku=>typeof sku!=='string'||!skuId(sku))||
      ['listed','clickCampaigns','requested','productRows','matchedRows'].some(key=>!Number.isSafeInteger(lookup[key])||lookup[key]<0))invalid();
+    if(lookup.unavailable!==undefined&&(!Array.isArray(lookup.unavailable)||
+     lookup.unavailable.some(id=>typeof id!=='string'||!skuId(id))))invalid();
    }
    validateRows(report.rows,report);
   }
