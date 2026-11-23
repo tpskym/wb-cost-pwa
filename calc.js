@@ -1,5 +1,5 @@
 import {validateAnalytics} from './ozon-analytics.js?v=0.2.392';
-import {validateOzonPromotion} from './ozon-promotion.js?v=0.2.418';
+import {validateOzonPromotion} from './ozon-promotion.js?v=0.2.419';
 import {filamentTypes} from './filament-stock.js?v=0.2.392';
 import {validateExpensesDatabase} from './expenses.js?v=0.2.392';
 import {validatePrintQueue} from './print-queue-state.js?v=0.2.392';

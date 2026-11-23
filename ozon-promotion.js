@@ -5,6 +5,19 @@ export const shiftDay=(day,days)=>new Date(Date.parse(day)+days*dayMs).toISOStri
 const skuId=value=>(typeof value!=='number'||Number.isSafeInteger(value))&&/^\d{1,20}$/.test(String(value??'').trim())?String(value).trim():'';
 const noteTime=value=>/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
 export const promotionNoteLimit=1200;
+export const queryTextLimit=20000;
+
+export function readQueryPhrases(text){
+ if(text.length>queryTextLimit)throw Error('Список фраз слишком длинный.');
+ const phrases=new Map();
+ for(const line of text.split(/\r?\n/)){
+  const phrase=line.trim();
+  const normalized=phrase.toLocaleLowerCase('ru-RU');
+  if(phrase&&!phrases.has(normalized))phrases.set(normalized,phrase);
+ }
+ if(!phrases.size)throw Error('Вставьте хотя бы одну поисковую фразу.');
+ return [...phrases.values()];
+}
 
 function numberValue(value){
  const text=String(value??'').trim().replace(/[\s\u00a0\u202f₽]/g,'').replace(',','.');
@@ -161,6 +174,18 @@ export function validateOzonPromotion(state){
   if(!product||typeof product.id!=='string'||!product.id||ids.has(product.id)||
    !Array.isArray(product.notes)||!Array.isArray(product.rows))invalid();
   ids.add(product.id);
+  if(product.queryLists!==undefined){
+   if(!Array.isArray(product.queryLists))invalid();
+   const periods=new Set();
+   for(const list of product.queryLists){
+    if(!list||!validDay(list.from)||!validDay(list.to)||list.from>list.to||
+     !Array.isArray(list.phrases)||!list.phrases.length||list.phrases.some(phrase=>typeof phrase!=='string'||!phrase.trim()||/[\r\n]/.test(phrase))||
+     list.phrases.join('\n').length>queryTextLimit)invalid();
+    const key=list.from+'/'+list.to;
+    if(periods.has(key))invalid();
+    periods.add(key);
+   }
+  }
   const days=new Set(),campaignDays=new Set();
   for(const note of product.notes){
    if(!note||!validDay(note.day)||days.has(note.day)||typeof note.text!=='string'||!note.text.trim()||

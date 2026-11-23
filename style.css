@@ -1143,9 +1143,18 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 .promotion-actions :is(button,select){min-height:44px;margin:0;border-radius:10px;font-size:14px}
 .promotion-report .promotion-caption{margin:12px 0;color:#526456;font-size:13px}
 .promotion-status{width:fit-content;max-width:100%;margin:12px 0;padding:10px 12px;border-radius:9px;background:#edf3e4}
+.promotion-access-note{background:#fbf2dc;color:#725321}
 .promotion-import-help{margin:12px 0 20px}
 .promotion-import-help label{max-width:320px;margin-bottom:12px}
 .promotion-import-help input{min-height:44px;width:100%;margin:0}
+.promotion-query-entry form{max-width:620px;margin-top:16px}
+.promotion-query-entry label{max-width:none}
+.promotion-query-entry textarea{width:100%;margin:0;font-size:14px;resize:vertical}
+.promotion-query-entry button{min-height:44px;font-size:14px}
+.promotion-manual-phrases{padding:14px 16px;border:1px solid #dfe5d8;border-radius:10px;background:#f5f8f0;overflow-wrap:anywhere}
+.promotion-manual-phrases h2{margin:0;font-size:16px}
+.promotion-manual-phrases ul{margin:8px 0 0;padding-inline-start:22px}
+.promotion-manual-phrases li+li{margin-top:4px}
 .promotion-query-table{min-width:660px}
 .promotion-query-table th:first-child{min-width:170px}
 .promotion-query-table td{white-space:nowrap}

@@ -2,7 +2,7 @@ import {marketRequest,redact} from './marketplace-api.js?v=0.2.418';
 import {dayKey,dateRange} from './ozon-analytics.js?v=0.2.392';
 import {openFunnelProductPicker,resolveOzonSkus} from './sales-funnel.js?v=0.2.418';
 import {confirmAction} from './listing-fields.js?v=0.2.392';
-import {loadOzonQueries,parseOzonPromotion,promotionDays,promotionNoteLimit,shiftDay} from './ozon-promotion.js?v=0.2.418';
+import {loadOzonQueries,parseOzonPromotion,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,shiftDay} from './ozon-promotion.js?v=0.2.419';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const formatNumber=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -10,6 +10,7 @@ const dateLabel=day=>day.split('-').reverse().join('.');
 const display=(value,unit='')=>value==null?'—':formatNumber.format(value)+(unit?' '+unit:'');
 const ratio=(a,b,scale=1)=>a!=null&&b>0?a/b*scale:null;
 const tabLabels={queries:'Поисковые запросы',daily:'Оплата за клик по дням'};
+const querySubscriptionError=error=>error.status===403&&/premium subscription|подписк[а-яё]*\s+premium/i.test(error.message);
 
 const dailyMetrics=[
  ['Показы',m=>m.views],['Клики',m=>m.clicks],['CTR',m=>ratio(m.clicks,m.views,100),'%'],
@@ -71,12 +72,13 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
  getPromotion,savePromotion,onOpenApi,request=marketRequest,loadWorkbook=readWorkbook,now=()=>new Date()}){
  const doc=root.ownerDocument;
  const today=dayKey(now());
+ const latestQueries={from:shiftDay(today,-7),to:shiftDay(today,-1)};
  const products=getProducts().filter(product=>product.sku?.trim());
  const byId=new Map(products.map(product=>[product.id,product]));
  const filters=state.filters??={productId:'',from:shiftDay(today,-13),to:today};
  const selectedId=getSelectedProductId();
  if(!byId.has(filters.productId))filters.productId=byId.has(selectedId)?selectedId:'';
- let active=state.tab??'queries',campaign='',pending,dialog,disposed=false,lastImportedPeriod;
+ let active=state.tab??'queries',campaign='',pending,dialog,disposed=false,lastImportedPeriod,queryDenial,manualKey;
  root.innerHTML=`<section class="panel ozon-analytics promotion-report">
   <div class="analytics-heading"><h1>Поиск и продвижение Ozon</h1>
    <button type="button" data-promotion-api>Настроить доступ Ozon</button></div>
@@ -91,11 +93,25 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   <div class="analytics-view" role="group" aria-label="Данные отчёта">
    ${Object.entries(tabLabels).map(([id,label])=>`<button type="button" data-promotion-tab="${id}" aria-pressed="false">${label}</button>`).join('')}
   </div>
-  <p class="analytics-status promotion-status" role="status" hidden></p>
+  <p class="analytics-status promotion-status" data-promotion-status role="status" hidden></p>
   <div data-promotion-section="queries">
-   <div class="promotion-actions"><button type="button" class="primary" data-load-queries>Загрузить запросы из Ozon</button></div>
+   <p class="analytics-status promotion-status promotion-access-note" data-query-access-note role="status" hidden></p>
+   <div class="promotion-actions">
+    <button type="button" class="primary" data-load-queries>Загрузить запросы из Ozon</button>
+    <button type="button" data-retry-queries hidden>Попробовать за последние 7 дней</button>
+   </div>
    <p class="promotion-caption">Свежие запросы появляются с задержкой. За более ранние даты Ozon отдаёт аналитику по неделям при подходящей подписке.</p>
    <div data-query-results></div>
+   <details class="analytics-help promotion-import-help promotion-query-entry" data-manual-queries hidden>
+    <summary>Вставить фразы из кабинета Ozon</summary>
+    <p>Откройте отчёт по выбранному товару в Ozon Seller и скопируйте доступные фразы. Список сохранится для товара и дат, указанных выше.</p>
+    <a href="https://seller.ozon.ru/app/analytics-search/search-results/apz" target="_blank" rel="noopener noreferrer">Открыть «Видимость в поиске» ↗</a>
+    <form data-manual-query-form>
+     <label>Поисковые фразы<textarea name="phrases" rows="4" maxlength="${queryTextLimit}" required placeholder="Одна фраза на строку"></textarea></label>
+     <button type="submit">Сохранить фразы</button>
+    </form>
+   </details>
+   <div data-manual-query-results></div>
   </div>
   <div data-promotion-section="daily" hidden>
    <div class="promotion-actions">
@@ -114,15 +130,18 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
  </section>`;
  const $=selector=>root.querySelector(selector);
  const form=$('[data-promotion-filters]'),from=form.elements.from,to=form.elements.to;
- const productButton=$('[data-promotion-product]'),loadButton=$('[data-load-queries]');
+ const productButton=$('[data-promotion-product]'),loadButton=$('[data-load-queries]'),retryButton=$('[data-retry-queries]');
+ const manualEntry=$('[data-manual-queries]'),manualForm=$('[data-manual-query-form]');
+ const manualText=manualForm.elements.phrases,manualSave=manualForm.querySelector('button'),manualResults=$('[data-manual-query-results]');
  const importButton=$('[data-import-promotion]'),fileInput=$('[data-promotion-file]');
  const campaignSelect=$('[data-promotion-campaign]'),campaignNumber=$('[data-promotion-campaign-number]');
- const importDates=$('[data-import-dates]'),status=$('.promotion-status');
+ const importDates=$('[data-import-dates]'),status=$('[data-promotion-status]'),accessNote=$('[data-query-access-note]');
  const queryResults=$('[data-query-results]'),dailyResults=$('[data-daily-results]');
  const product=()=>byId.get(filters.productId);
  const record=()=>getPromotion().products.find(entry=>entry.id===filters.productId)??{id:filters.productId,rows:[],notes:[]};
  const credentialId=()=>String(getCredentials().ozonClient||'');
  const currentKey=()=>JSON.stringify([filters.productId,product()?.sku,filters.from,filters.to,credentialId()]);
+ const samePeriod=entry=>entry.from===filters.from&&entry.to===filters.to;
  function message(text){status.textContent=text;status.hidden=!text;}
  function remember(){filters.from=from.value;filters.to=to.value;}
  function daysInPeriod(){if(filters.to>today)throw Error('Дата окончания не может быть позже сегодняшней.');return dateRange(filters.from,filters.to);}
@@ -134,6 +153,9 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   productButton.disabled=!products.length||Boolean(pending);
   const noProduct=selected?'':products.length?'Выберите товар из «Себестоимости».':'Укажите артикул хотя бы для одного товара в «Себестоимости».';
   loadButton.disabled=!selected||Boolean(pending);
+  retryButton.hidden=!selected||queryDenial?.key!==currentKey()||!queryDenial.retry;
+  retryButton.disabled=Boolean(pending);
+  manualText.disabled=manualSave.disabled=Boolean(pending);
   importButton.disabled=!selected||Boolean(pending);
   importDates.hidden=!lastImportedPeriod;
   from.disabled=to.disabled=Boolean(pending);
@@ -156,8 +178,23 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
     dailyResults.querySelector('.promotion-daily-scroll').scrollLeft=scroll;
    }catch(error){dailyResults.innerHTML=`<p class="analytics-empty">${esc(error.message)}</p>`;}
   }else{
-   queryResults.innerHTML=state.queries?.key===currentKey()?queryMarkup(state.queries.data):
-    `<p class="analytics-empty">${noProduct||'Загрузите фразы из раздела Ozon «Запросы моего товара».'}</p>`;
+   const key=currentKey(),denied=queryDenial?.key===key;
+   accessNote.hidden=!denied||Boolean(pending);
+   accessNote.textContent=!denied?'':queryDenial.retry?
+    'Ozon требует Premium для выгрузки запросов за этот период. Можно попробовать загрузить последние 7 дней.':
+    'Ozon требует Premium для выгрузки запросов за последние 7 дней. Если фразы видны в кабинете, их можно скопировать сюда.';
+   queryResults.innerHTML=state.queries?.key===key?queryMarkup(state.queries.data):
+    denied?'':`<p class="analytics-empty">${noProduct||'Загрузите фразы из раздела Ozon «Запросы моего товара».'}</p>`;
+   manualEntry.hidden=!selected;
+   const saved=(selected&&record().queryLists?.find(samePeriod)?.phrases)||[];
+   const nextKey=JSON.stringify([filters.productId,filters.from,filters.to]);
+   if(manualKey!==nextKey){
+    manualKey=nextKey;
+    manualText.value=saved.join('\n');
+   }
+   manualResults.innerHTML=saved.length?
+    `<section class="promotion-manual-phrases"><h2>Фразы из кабинета Ozon</h2>
+     <ul>${saved.map(phrase=>`<li>${esc(phrase)}</li>`).join('')}</ul></section>`:'';
   }
  }
  form.onsubmit=event=>event.preventDefault();
@@ -202,20 +239,50 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   return true;
  }
 
- loadButton.onclick=()=>run('Загружаю поисковые запросы Ozon…',async(call,signal)=>{
-  remember();
+ function selectedQueryPeriod(){
   const days=daysInPeriod();
-  const newest=shiftDay(today,-1),end=filters.to>newest?newest:filters.to;
+  const end=filters.to>latestQueries.to?latestQueries.to:filters.to;
   if(filters.from>end)throw Error('Выберите даты до сегодняшнего дня. Ozon ещё рассчитывает свежие показатели.');
   const weekly=filters.from<shiftDay(today,-30);
   if(weekly&&days.length>7)throw Error('За даты старше месяца выберите одну неделю или день внутри нужной недели.');
+  return {from:filters.from,to:weekly?undefined:end};
+ }
+ function fetchQueries(tryLatest=false){return run('Загружаю поисковые запросы Ozon…',async(call,signal)=>{
+  remember();
+  const period=tryLatest?latestQueries:selectedQueryPeriod();
   const key=currentKey(),article=product().sku.trim();
   const ids=await resolveOzonSkus(article,call);
-  const data=await loadOzonQueries(ids,{from:filters.from,to:weekly?undefined:end},call);
-  signal.throwIfAborted();
-  state.queries={key,data};
-  message('');
- });
+  try{
+   const data=await loadOzonQueries(ids,period,call);
+   signal.throwIfAborted();
+   state.queries={key,data};
+   queryDenial=null;
+   message('');
+  }catch(error){
+   signal.throwIfAborted();
+   if(!querySubscriptionError(error))throw error;
+   const retry=period.from!==latestQueries.from||period.to!==latestQueries.to;
+   queryDenial={key,retry};
+   if(!retry)manualEntry.open=true;
+   message('');
+  }
+ });}
+ loadButton.onclick=()=>fetchQueries();
+ retryButton.onclick=()=>fetchQueries(true);
+ manualForm.onsubmit=event=>{
+  event.preventDefault();
+  return run('Сохраняю фразы…',async()=>{
+   remember();
+   daysInPeriod();
+   const phrases=readQueryPhrases(manualText.value),original=record();
+   const list={from:filters.from,to:filters.to,phrases};
+   const queryLists=[...(original.queryLists??[]).filter(entry=>!samePeriod(entry)),list];
+   if(!await saveRecord({...original,queryLists})||disposed)return;
+   manualText.value=phrases.join('\n');
+   manualEntry.open=false;
+   message('Список фраз сохранён.');
+  });
+ };
 
  importButton.onclick=()=>fileInput.click();
  fileInput.onchange=()=>{
