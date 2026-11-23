@@ -155,14 +155,20 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
   const wb=row.market==='wb',currency=esc(row.currency==='RUB'?'₽':row.currency);
   const total=calculatedWBPrice(values.base,values.discount);
   const sale=wb&&!draft&&!(values.price>0)?total:values.price;
-  return `
+  return `<div class="price-cell">
    ${wb?`<div class="price-calculated"><small>Фактический итог после округления WB</small><output class="price-current" data-wb-calculated aria-live="polite">${money(total)} ${currency}</output><small>На площадке при загрузке: ${money(row.price)} ${currency}</small></div>`:`<strong class="price-current">${money(row.price)} ${currency}</strong>`}
    <div class="price-row-fields">${input(row,'price',wb?'Конечная цена, ₽':'Цена продажи, ₽',sale)}
     ${wb?input(row,'discount','Скидка, %',values.discount)+input(row,'base','Начальная, ₽ · автоматически',values.base):
     input(row,'base','Зачёркнутая, ₽ · 0 — нет',values.base)+input(row,'minimum','Минимальная, ₽',values.minimum)}</div>
    ${quoteMarkup(entry)}
-   <div class="file-actions"><button data-price-send ${busy?'disabled':''}>Отправить цену</button><button data-price-check ${busy?'disabled':''}>Проверить / получить</button></div>
-   <small class="price-row-status" role="status">${submissionStatus(row)}</small>`;
+   <div class="price-cell-actions">
+    <small class="price-row-status" role="status">${submissionStatus(row)}</small>
+    <div class="price-cell-buttons">
+     <button type="button" data-price-send ${busy?'disabled':''}>Отправить цену</button>
+     <button type="button" data-price-check ${busy?'disabled':''}>Проверить / получить</button>
+    </div>
+   </div>
+  </div>`;
  }
  let rendered=[];const photoUrls=new Map();
  async function loadLocalPhotos(){
