@@ -1,5 +1,5 @@
 import {validGoogleClientId} from './google-drive-setup.js?v=0.2.392';
-import {performanceCredentials,savePerformanceCredentials} from './ozon-performance.js?v=0.2.422';
+import {performanceCredentials,savePerformanceCredentials} from './ozon-performance.js?v=0.2.424';
 import {skuCopyButton} from './sku-copy.js?v=0.2.392';
 import {mountOzonRichText} from './ozon-rich-text.js?v=0.2.392';
 import {mountListingTemplates} from './listing-templates.js?v=0.2.392';

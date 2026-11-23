@@ -117,6 +117,7 @@ const countFields=new Set(['views','clicks','cart','orders','modelOrders']);
 const headerKey=value=>String(value??'').toLocaleLowerCase('ru-RU').replace(/ё/g,'е').replace(/[^а-яa-z0-9₽]+/g,' ').trim();
 const headerIndex=(headers,pattern)=>headers.findIndex(value=>pattern.test(value));
 const datePattern=/\d{4}-\d{2}-\d{2}|\d{2}\.\d{2}\.\d{4}/g;
+const skuHeader=/^(?:sku(?: ozon| товара)?|ozon id|артикул ozon)$/;
 
 function dayFromCell(value){
  const text=String(value??'').trim();
@@ -133,18 +134,23 @@ function sumMetrics(entries){
 
 export function parseOzonPerformanceRows(report,{ids,campaignId,from,to}){
  const wanted=new Set(ids),rows=new Map();
+ let productRows=0,matchedRows=0;
  const headerRow=report.findIndex(row=>{
   const headers=row.map(headerKey);
-  return headers.some(key=>/^(?:sku(?: ozon)?|ozon id|артикул ozon)$/.test(key))&&
+  return headers.some(key=>skuHeader.test(key))&&
    headers.some(key=>fields.views.test(key)||fields.clicks.test(key))&&headers.some(key=>fields.expense.test(key));
  });
  if(headerRow<0)throw Error('Ozon вернул неизвестный формат статистики «Оплата за клик».');
  const headers=report[headerRow].map(headerKey);
- const skuIndex=headerIndex(headers,/^(?:sku(?: ozon)?|ozon id|артикул ozon)$/);
+ const skuIndex=headerIndex(headers,skuHeader);
  const dateIndex=headerIndex(headers,/^(?:дата|день|период|дата статистики|дата отчета|date)$/);
  const columns=Object.fromEntries(fieldKeys.map(key=>[key,headerIndex(headers,fields[key])]));
  for(const row of report.slice(headerRow+1)){
-  if(!wanted.has(skuId(row[skuIndex])))continue;
+  const sku=skuId(row[skuIndex]);
+  if(!sku)continue;
+  productRows++;
+  if(!wanted.has(sku))continue;
+  matchedRows++;
   const day=dateIndex<0&&from===to?from:dayFromCell(row[dateIndex]);
   if(!day||day<from||day>to)throw Error('Даты в отчёте Ozon не совпали с запрошенным периодом.');
   const metrics=Object.fromEntries(fieldKeys.map(key=>{
@@ -155,7 +161,7 @@ export function parseOzonPerformanceRows(report,{ids,campaignId,from,to}){
   if(!rows.has(day))rows.set(day,[]);
   rows.get(day).push(metrics);
  }
- return [...rows].map(([day,entries])=>({campaignId,day,...sumMetrics(entries)}));
+ return {productRows,matchedRows,rows:[...rows].map(([day,entries])=>({campaignId,day,...sumMetrics(entries)}))};
 }
 
 export function promotionDays(rows,from,to,campaign=''){
@@ -205,6 +211,11 @@ export function validateOzonPromotion(state){
     typeof report.client!=='string'||!report.client||!Array.isArray(report.rows)||!Array.isArray(report.campaigns)||
     !Number.isSafeInteger(report.archived)||report.archived<0||
     report.campaigns.some(c=>!c||typeof c.id!=='string'||!skuId(c.id)||typeof c.title!=='string'))invalid();
+   if(report.lookup!==undefined){
+    const lookup=report.lookup;
+    if(!lookup||!Array.isArray(lookup.skus)||!lookup.skus.length||lookup.skus.some(sku=>typeof sku!=='string'||!skuId(sku))||
+     ['listed','clickCampaigns','requested','productRows','matchedRows'].some(key=>!Number.isSafeInteger(lookup[key])||lookup[key]<0))invalid();
+   }
    validateRows(report.rows,report);
   }
  }

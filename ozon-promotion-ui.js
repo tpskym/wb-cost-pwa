@@ -2,8 +2,8 @@ import {marketRequest,redact} from './marketplace-api.js?v=0.2.418';
 import {dayKey} from './ozon-analytics.js?v=0.2.392';
 import {openFunnelProductPicker,resolveOzonSkus} from './sales-funnel.js?v=0.2.418';
 import {confirmAction} from './listing-fields.js?v=0.2.392';
-import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.422';
-import {loadOzonPerformance,performanceCredentials,performanceRequest,performanceStart,savePerformanceCredentials} from './ozon-performance.js?v=0.2.422';
+import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.424';
+import {loadOzonPerformance,performanceCredentials,performanceRequest,performanceStart,savePerformanceCredentials} from './ozon-performance.js?v=0.2.424';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const formatNumber=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -58,10 +58,22 @@ function queryMarkup(report){
  </div>`;
 }
 
-function dailyMarkup(days,notes,source){
+function dailyEmptyReason(report){
+ const lookup=report.lookup;
+ if(!lookup)return '';
+ if(!lookup.listed)return 'Performance API вернул пустой список кампаний. Проверьте, что ключи относятся к тому же кабинету Ozon, где запущена реклама.';
+ if(!lookup.clickCampaigns)return `Ozon вернул кампании (${lookup.listed}), среди них нет кампаний «Оплата за клик».`;
+ if(!lookup.requested)return 'На выбранные даты нет кампаний, доступных для выгрузки через Ozon Performance API.';
+ if(!lookup.productRows)return 'В выгруженных кампаниях нет строк по товарам за выбранный период.';
+ if(!lookup.matchedRows)return 'В отчётах кампаний есть данные по другим SKU. Сверьте SKU выбранного товара с товаром в кампании Ozon.';
+ return 'Ozon вернул строки выбранного товара с пустыми показателями.';
+}
+
+function dailyMarkup(days,notes,source,emptyReason){
  const byDay=new Map(notes.map(note=>[note.day,note]));
  const count=days.filter(day=>day.metrics).length;
  return `<p class="promotion-caption">${source?esc(source)+' · ':''}Данные за ${count} из ${days.length} дней · «—» означает, что показателя нет</p>
+ ${emptyReason?`<p class="analytics-status promotion-status">${esc(emptyReason)}</p>`:''}
  <div class="analytics-cluster-results promotion-daily-scroll" role="region" aria-label="Оплата за клик по дням" tabindex="0">
   <table class="analytics-cluster-table promotion-daily-table">
    <thead><tr><th scope="col">Показатель</th>${days.map(({day})=>{
@@ -205,9 +217,12 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
     if(filters.to>today)throw Error('Дата окончания не может быть позже сегодняшней.');
     if(filters.from<performanceStart)throw Error('Статистика Performance API доступна с 1 февраля 2025 года.');
     const archiveNote=report?.archived?' · Архивных кампаний пропущено '+report.archived:'';
-    const source=report?'Ozon Performance API · '+queryRange(report)+archiveNote:rows.length?'Ранее сохранённые данные':'';
+    const lookup=report?.lookup;
+    const stats=lookup?` · SKU ${lookup.skus.join(', ')} · Запрошено кампаний ${lookup.requested}`:'';
+    const source=report?'Ozon Performance API · '+queryRange(report)+stats+archiveNote:rows.length?'Ранее сохранённые данные':'';
+    const emptyReason=report&&!rows.length&&report.from<=filters.from&&report.to>=filters.to?dailyEmptyReason(report):'';
     const scroll=dailyResults.querySelector('.promotion-daily-scroll')?.scrollLeft||0;
-    dailyResults.innerHTML=dailyMarkup(promotionDays(rows,filters.from,filters.to,campaign),previous.notes,source);
+    dailyResults.innerHTML=dailyMarkup(promotionDays(rows,filters.from,filters.to,campaign),previous.notes,source,emptyReason);
     dailyResults.querySelector('.promotion-daily-scroll').scrollLeft=scroll;
    }catch(error){dailyResults.innerHTML=`<p class="analytics-empty">${esc(error.message)}</p>`;}
   }else{
@@ -324,14 +339,14 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
    }
    signal.throwIfAborted();
    if(!await saveRecord({...record(),performance:report})||disposed)return;
-   message(report.rows.length?'Статистика Ozon обновлена.':'Ozon не вернул статистику по выбранному товару за этот период.');
+   message(report.rows.length?'Статистика Ozon обновлена.':'');
   });
  };
  function maybeLoadActive(){
   if(active==='queries'){maybeLoadQueries();return;}
   if(disposed||pending||!product()||!performanceAccess.id||!performanceAccess.secret||attemptedDaily.has(dailyKey()))return;
   const report=dailyReport();
-  if(!report||report.from>filters.from||report.to<filters.to)fetchPerformance();
+  if(!report||(!report.lookup&&!report.rows.length)||report.from>filters.from||report.to<filters.to)fetchPerformance();
  }
  performanceButton.onclick=fetchPerformance;
  performanceForm.onsubmit=event=>{

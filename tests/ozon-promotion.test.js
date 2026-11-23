@@ -54,7 +54,7 @@ test('advertising statistics load a daily archive and distinguish zeros, missing
    return {access_token:'bearer'};
   }
   assert.equal(token,'bearer');
-  if(operation==='campaigns')return {list:[cpc('1000'),cpc('2000'),
+  if(operation==='campaigns')return {list:[{...cpc('1000'),paymentType:undefined},{...cpc('2000'),advObjectType:undefined},
    {...cpc('3000'),paymentType:'CPO'},{...cpc('4000'),state:'CAMPAIGN_STATE_ARCHIVED'}]};
   if(operation==='submit'){
    assert.deepEqual(body,{campaigns:['1000','2000'],dateFrom:dates.from,dateTo:dates.to});
@@ -68,6 +68,7 @@ test('advertising statistics load a daily archive and distinguish zeros, missing
  assert.deepEqual(requests,['token','campaigns','submit','status','status','report']);
  assert.deepEqual(progress,[[1,1]]);
  assert.equal(report.archived,1);
+ assert.deepEqual(report.lookup,{skus:['444'],listed:4,clickCampaigns:3,requested:2,productRows:4,matchedRows:3});
  const days=promotionDays(report.rows,dates.from,dates.to);
  assert.deepEqual(days.map(day=>day.metrics?.clicks??null),[0,15,null]);
  assert.deepEqual(days.map(day=>day.metrics?.expense??null),[0,62.5,null]);
@@ -178,6 +179,11 @@ test('promotion UI loads and refreshes campaigns from Performance API and preser
   [['2026-11-20',10,36]]);
  assert.doesNotMatch(JSON.stringify(database),/fake-secret/);
  assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'10');
+ values=[row('20.11.2026',555,10,36)];
+ await root.querySelector('[data-load-performance]').onclick();
+ assert.match(root.querySelector('[data-daily-results]').textContent,/SKU 444 · Запрошено кампаний 1/);
+ assert.match(root.querySelector('[data-daily-results]').textContent,/В отчётах кампаний есть данные по другим SKU/);
+ assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'—');
  dispose();
  dispose=mount();
  assert.match(root.querySelector('[data-promotion-note="2026-11-20"]').textContent,/Поднял ставку до 10 ₽/);
