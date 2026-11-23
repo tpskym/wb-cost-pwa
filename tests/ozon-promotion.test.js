@@ -108,12 +108,11 @@ test('promotion UI imports and updates a campaign by day and preserves a note in
  dispose();window.close();
 });
 
-test('a Premium period restriction offers one shorter period and accepts phrases copied from the cabinet',async()=>{
+test('search queries load for the selected product over the last week without a date selection or retry button',async()=>{
  const {window}=new JSDOM('<main></main>');
  const root=window.document.querySelector('main');
  const product={...blankProduct(),id:'stand',name:'Подставка',sku:article};
- const filters={productId:product.id,from:'2026-11-10',to:'2026-11-23'};
- const state={filters};
+ const state={filters:{productId:product.id,from:'2026-11-10',to:'2026-11-23'}};
  const database={schema:1,id:'db',products:[product]};
  const requested=[];
  let allowWeek=true;
@@ -124,33 +123,46 @@ test('a Premium period restriction offers one shorter period and accepts phrases
   savePromotion:next=>{database.ozonPromotion=next;validateDB(structuredClone(database));return true;},
   now:()=>new Date('2026-11-23T10:00:00Z'),
   request:async(market,operation,credentials,body)=>{
-   if(operation==='info')return {items:[{offer_id:article,sku:444}]};
-   const period=[body.date_from.slice(0,10),body.date_to.slice(0,10)];
-   requested.push(period);
-   if(allowWeek&&period[0]==='2026-11-16')return {queries:[{sku:444,query:'подставка'}],page_count:1};
+   if(operation==='info'){
+    assert.deepEqual(body.offer_id,[article]);
+    return {items:[{offer_id:article,sku:444},{offer_id:'other',sku:445}]};
+   }
+   assert.deepEqual(body.skus,['444']);
+   requested.push([body.date_from.slice(0,10),body.date_to?.slice(0,10)]);
+   if(allowWeek&&!body.date_to)return {queries:[{
+    sku:444,query:'подставка для часов',unique_search_users:128,order_count:1,gmv:236,currency:'RUB'
+   }],page_count:1,analytics_period:{date_from:'2026-11-16',date_to:'2026-11-22'}};
    throw Object.assign(Error('API OZON: 403 · Analytics for the specified period is available starting from the premium subscription'),{status:403});
   }
  });
  let dispose=mount();
  const $=selector=>root.querySelector(selector);
- await $('[data-load-queries]').onclick();
- assert.match($('[data-query-access-note]').textContent,/требует Premium/);
- assert.equal($('[data-retry-queries]').hidden,false);
- await $('[data-retry-queries]').onclick();
- assert.match($('[data-query-results]').textContent,/16.11.2026 — 22.11.2026/);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.deepEqual(requested,[['2026-11-16','2026-11-22'],['2026-11-16',undefined]]);
+ assert.equal($('[data-promotion-dates]').hidden,true);
+ assert.equal($('[data-query-access-note]').hidden,true);
+ const results=$('[data-query-results]');
+ assert.match(results.textContent,/16.11.2026 — 22.11.2026/);
+ assert.deepEqual([...results.querySelectorAll('thead th')].map(column=>column.textContent),
+  ['Запрос','Покупателей искало','Заказано товаров','Заказано на сумму']);
+ assert.match(results.textContent,/подставка для часов1281236 ₽/);
+ root.querySelector('[data-promotion-tab="daily"]').click();
+ assert.equal($('[data-promotion-dates]').hidden,false);
  assert.equal($('[data-promotion-filters]').elements.from.value,'2026-11-10');
- assert.deepEqual(requested,[['2026-11-10','2026-11-22'],['2026-11-16','2026-11-22']]);
+ root.querySelector('[data-promotion-tab="queries"]').click();
+ assert.equal(requested.length,2);
 
  allowWeek=false;
  await $('[data-load-queries]').onclick();
- await $('[data-retry-queries]').onclick();
- assert.equal($('[data-retry-queries]').hidden,true);
- assert.equal($('[data-manual-queries]').open,true);
+ assert.equal(requested.length,4);
+ assert.equal($('[data-query-access-note]').hidden,false);
+ assert.equal($('[data-query-open-seller]').hidden,false);
+ assert.equal($('[data-manual-queries]').open,false);
  const manualForm=$('[data-manual-query-form]');
  manualForm.elements.phrases.value=' Подставка для часов\nподставка для часов\nДержатель <img>';
  await manualForm.onsubmit({preventDefault(){}});
  assert.deepEqual(database.ozonPromotion.products[0].queryLists,[{
-  from:'2026-11-10',to:'2026-11-23',phrases:['Подставка для часов','Держатель <img>']
+  from:'2026-11-16',to:'2026-11-22',phrases:['Подставка для часов','Держатель <img>']
  }]);
  assert.equal($('[data-manual-query-results] img'),null);
  dispose();

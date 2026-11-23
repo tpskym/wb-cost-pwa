@@ -62,6 +62,23 @@ export async function loadOzonQueries(ids,{from,to},request){
  return {period:period??{from,to},rows};
 }
 
+export const recentQueryPeriod=today=>({from:shiftDay(today,-7),to:shiftDay(today,-1)});
+const subscriptionError=error=>error.status===403&&/premium subscription|подписк[а-яё]*\s+premium/i.test(error.message);
+
+export async function loadRecentOzonQueries(ids,today,request){
+ const period=recentQueryPeriod(today);
+ try{return await loadOzonQueries(ids,period,request);}
+ catch(error){
+  if(!subscriptionError(error))throw error;
+  // Give Ozon the start day and let the API choose its weekly interval.
+  try{return await loadOzonQueries(ids,{from:period.from},request);}
+  catch(weeklyError){
+   if(subscriptionError(weeklyError)||weeklyError.status===400)return null;
+   throw weeklyError;
+  }
+ }
+}
+
 const fields={
  views:/^показы(?: |$)/,clicks:/^клики(?: |$)/,cart:/^(?:в корзину|добавления? в корзину)(?: |$)/,
  expense:/^(?:расход(?:ы)?|затраты)(?: |$)/,orders:/^заказы(?: шт)?$/,
