@@ -183,7 +183,10 @@ export function mountMarketplacePrices({root,database,save,getCredentials,getCos
     if(row)rendered.push(row);
     return cell(row,rowIndex,markets[index],quotes?.[markets[index]],missing);
    }).join('');
-   return `<tr><th scope="row"><div class="table-product-with-photo"><span data-price-photo-sku="${esc(sku)}">${tableProductPhoto({sku,imageUrl:photoRow?.imageUrl},product,photoRow?.market||'wb')}</span><span class="table-product-copy"><span class="sku-with-copy"><strong>${esc(sku).replaceAll('_','_<wbr>')}</strong>${skuCopyButton(sku)}</span><small>${esc(name||'')}</small></span></div></th>${cells}</tr>`;
+   return `<tr><th scope="row"><div class="price-product">
+    <span class="table-product-copy"><span class="sku-with-copy"><strong>${esc(sku).replaceAll('_','_<wbr>')}</strong>${skuCopyButton(sku)}</span><small>${esc(name||'')}</small></span>
+    <span data-price-photo-sku="${esc(sku)}">${tableProductPhoto({sku,imageUrl:photoRow?.imageUrl},product,photoRow?.market||'wb')}</span>
+   </div></th>${cells}</tr>`;
   }).join('')||'<tr><td colspan="'+(markets.length+1)+'">Нет товаров для выбранных фильтров. Измените фильтры или обновите цены.</td></tr>';
   $('#prices-page').textContent=skus.length+' артикулов · '+(page+1)+' / '+pages;
   $('#prices-prev').hidden=$('#prices-next').hidden=pages===1;
