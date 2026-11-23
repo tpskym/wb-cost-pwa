@@ -737,7 +737,7 @@ main[data-workspace]>.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:
 
 .label-primary-actions .label-prompt-action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;width:auto;padding:10px 14px;font-size:14px;line-height:1.4}.label-primary-actions .label-prompt-action svg{width:20px;height:20px;flex:0 0 20px}.label-primary-actions{flex-wrap:wrap}
 
-.api-key-transfer>label{display:block;margin:20px 0}.api-key-transfer textarea{display:block;width:100%;margin-top:10px}.api-key-transfer>.file-actions{margin-top:20px}.api-key-transfer [role="status"]{overflow-wrap:anywhere}
+.api-key-transfer>label{display:block;margin:20px 0}.api-key-transfer textarea{display:block;width:100%;margin-top:10px}.api-key-transfer>.file-actions{margin-top:20px}.api-key-transfer>.file-actions button{min-height:44px;font-size:14px;border-radius:10px}.api-key-transfer [role="status"]{overflow-wrap:anywhere}
 
 .plate-settings{margin-block:20px}
 .plate-settings .file-actions{align-items:center;margin-top:10px}
