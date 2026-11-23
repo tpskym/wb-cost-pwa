@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "start": "python3 -m http.server 4173 --bind 127.0.0.1",
-    "postinstall": "node scripts/prepare-pdfjs.mjs && node scripts/prepare-ozon-workbook.mjs && node scripts/prepare-model-preview.mjs && node scripts/prepare-windows-helper.mjs"
+    "postinstall": "node scripts/prepare-pdfjs.mjs && node scripts/prepare-ozon-report.mjs && node scripts/prepare-model-preview.mjs && node scripts/prepare-windows-helper.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "pdfjs-dist": "^6.4.299",
-    "read-excel-file": "6.0.3",
+    "fflate": "0.8.3",
     "three": "^0.187.0"
   }
 }

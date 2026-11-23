@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Мастерская — Ozon Performance API",
+  "version": "1.0.0",
+  "description": "Загружает статистику «Оплата за клик» из Ozon для Мастерской.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyp4ORJtss+bnBf1bi6ZwZdMJDrukCca+hsQc7tOhi1OpjLzgC9HLbnTJGqC6pepF3iFcqVA3Rr1TTF48byIFJ7Hw9v1qF6VtJnW6kwwDVetxK6cd4llv8NlasIciIc8XSXPF3kGQ7kqSBywq3JWGKvTRMj0AJvqs/eZE5mCnTy0uBVxsqgdpWOSsodjEs1F/gZUJZhs/GTNryQ8fHIf8B1kmG7RTFg5GjqOUsF1P/8FLolMCos4muqbQeYiU6Gx+2qVWAk/v2hzwQ/R9MqR1rQqmKFqyswGD4z5EA5SmlCZFbtMYEFIQbXlKq5i3/c4MnswyWyQpC8D7DE15/bCSgwIDAQAB",
+  "host_permissions": ["https://api-performance.ozon.ru/*"],
+  "externally_connectable": {
+    "matches": ["https://tpskym.github.io/wb-cost-pwa/*"]
+  },
+  "background": {
+    "service_worker": "worker.js",
+    "type": "module"
+  }
+}

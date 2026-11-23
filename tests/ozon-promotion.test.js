@@ -1,19 +1,22 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
+import {strToU8,zipSync} from 'fflate';
+import {loadOzonPerformance} from '../ozon-performance.js';
+import {handleOzonPerformance} from '../ozon-performance-extension/worker.js';
 import {blankProduct,validateDB} from '../calc.js';
 import {marketRequest} from '../marketplace-api.js';
-import {loadOzonQueries,loadRecentOzonQueries,parseOzonPromotion,promotionDays} from '../ozon-promotion.js';
+import {loadOzonQueries,loadRecentOzonQueries,parseOzonPerformanceRows,promotionDays} from '../ozon-promotion.js';
 import {mountOzonPromotion} from '../ozon-promotion-ui.js';
 
 const article='stand-white';
 const dates={from:'2026-11-19',to:'2026-11-21'};
 const row=(date,sku,clicks,expense)=>[date,sku,100,clicks,expense,3,600];
-const workbook=(campaign,rows)=>[{name:'Статистика',rows:[
- [`Кампания по продвижению товаров № ${campaign}, период 19.11.2026–21.11.2026`],
- ['Дата','SKU','Показы','Клики','Расход, ₽, с НДС','Заказы','Продажи, ₽'],
- ...rows
-]}];
+const headers=['Дата','SKU','Показы','Клики','Расход, ₽, с НДС','Заказы','Продажи, ₽'];
+const csv=(rows)=>[headers,...rows].map(row=>'"'+row.join(';')+'"').join('\r\n');
+const uuid='0c159c60-ab92-46d9-9a6b-d225dbf5c7b1';
+const access={id:'test@performance.ozon.ru',secret:'fake-secret'};
+const cpc=(id)=>({id,title:'Подставки',paymentType:'CPC',advObjectType:'SKU'});
 
 test('search queries use the exact Ozon SKU and display the actual reporting period in Moscow',async()=>{
  const credentials={ozonClient:'123',ozonKey:'fake-key'};
@@ -31,27 +34,71 @@ test('search queries use the exact Ozon SKU and display the actual reporting per
   ]});
  }));
  assert.deepEqual(result.period,dates);
+ assert.deepEqual(result.requestedPeriod,dates);
+ assert.deepEqual(result.ids,['444','445']);
  assert.deepEqual(result.rows.map(row=>[row.sku,row.query,row.searches,row.views,row.currency]),
   [['445','подставка',20,null,'₽'],['444','подставка',12,0,'']]);
 });
 
-test('advertising statistics distinguish zero, missing metrics and days without data',()=>{
- const first=parseOzonPromotion(workbook('1000',[
-  row('19.11.2026',444,0,0),row(new Date('2026-11-20'),444,5,'25,00'),
-  row('20.11.2026',555,15,35),row('21.11.2026','Всего',20,60)
- ]),{article,ids:['444']});
- const second=parseOzonPromotion(workbook('2000',[row('20.11.2026',444,10,'37,50')]),{article,ids:['444']});
- const days=promotionDays([...first.rows,...second.rows],dates.from,dates.to);
+test('advertising statistics load a daily archive and distinguish zeros, missing metrics and missing days',async()=>{
+ const requests=[],progress=[];
+ const archive=zipSync({
+  '1000.csv':strToU8(csv([row('19.11.2026',444,0,0),row('20.11.2026',444,5,'25,00'),row('20.11.2026',555,20,35)])),
+  '2000.csv':strToU8(csv([row('20.11.2026',444,10,'37,50')]))
+ });
+ let checks=0;
+ const report=await loadOzonPerformance(['444'],dates,access,async(operation,body,token)=>{
+  requests.push(operation);
+  if(operation==='token'){
+   assert.deepEqual(body,access);
+   return {access_token:'bearer'};
+  }
+  assert.equal(token,'bearer');
+  if(operation==='campaigns')return {list:[cpc('1000'),cpc('2000'),
+   {...cpc('3000'),paymentType:'CPO'},{...cpc('4000'),state:'CAMPAIGN_STATE_ARCHIVED'}]};
+  if(operation==='submit'){
+   assert.deepEqual(body,{campaigns:['1000','2000'],dateFrom:dates.from,dateTo:dates.to});
+   return {UUID:uuid};
+  }
+  assert.equal(body.uuid,uuid);
+  if(operation==='status')return {state:checks++?'OK':'IN_PROGRESS'};
+  assert.equal(operation,'report');
+  return Buffer.from(archive).toString('base64');
+ },{wait:async()=>{},onProgress:(i,total)=>progress.push([i,total])});
+ assert.deepEqual(requests,['token','campaigns','submit','status','status','report']);
+ assert.deepEqual(progress,[[1,1]]);
+ assert.equal(report.archived,1);
+ const days=promotionDays(report.rows,dates.from,dates.to);
  assert.deepEqual(days.map(day=>day.metrics?.clicks??null),[0,15,null]);
  assert.deepEqual(days.map(day=>day.metrics?.expense??null),[0,62.5,null]);
  assert.equal(days[1].metrics.cart,null);
- assert.equal(promotionDays(first.rows,dates.from,dates.to,'2000').every(day=>day.metrics===null),true);
- const aggregate=workbook('1000',[row('19.11.2026',444,5,25)]);
- aggregate[0].rows[1][0]='Дата добавления';
- assert.throws(()=>parseOzonPromotion(aggregate,{article,ids:['444']}),/группировку «По дням»/);
- const rollup=workbook('1000',[row('19.11.2026–21.11.2026',444,5,25)]);
- assert.throws(()=>parseOzonPromotion(rollup,{article,ids:['444']}),/группировку «По дням»/);
- assert.throws(()=>parseOzonPromotion(aggregate,{article,ids:['444'],campaignOverride:'2000'}),/группировку «По дням»/);
+ assert.equal(promotionDays(report.rows,dates.from,dates.to,'2000')[1].metrics.clicks,10);
+ const aggregate=[['Дата добавления',...headers.slice(1)],row('19.11.2026',444,5,25)];
+ assert.throws(()=>parseOzonPerformanceRows(aggregate,{...dates,campaignId:'1000',ids:['444']}),/не совпали с запрошенным/);
+});
+
+test('extension sends credentials only to the documented Performance API operations',async()=>{
+ const type='workshop-ozon-performance';
+ const sender={url:'https://tpskym.github.io/wb-cost-pwa/#analytics',frameId:0};
+ const denied=()=>assert.fail('No network request expected');
+ assert.equal(await handleOzonPerformance({type,operation:'ping'}, {...sender,url:'https://tpskym.github.io/other/'},denied),undefined);
+ assert.equal(await handleOzonPerformance({type,operation:'ping'}, {...sender,frameId:1},denied),undefined);
+ assert.equal((await handleOzonPerformance({type,operation:'submit',token:'bearer',body:{campaigns:['https://invalid']}},sender,denied)).ok,false);
+ const token=await handleOzonPerformance({type,operation:'token',body:access},sender,async(url,options)=>{
+  assert.equal(url,'https://api-performance.ozon.ru/api/client/token');
+  assert.equal(options.redirect,'error');
+  assert.deepEqual(JSON.parse(options.body),{client_id:access.id,client_secret:access.secret,grant_type:'client_credentials'});
+  return Response.json({access_token:'bearer'});
+ });
+ assert.equal(token.data.access_token,'bearer');
+ const submitted=await handleOzonPerformance({type,operation:'submit',token:'bearer',
+  body:{campaigns:['1000'],dateFrom:dates.from,dateTo:dates.to}},sender,async(url,options)=>{
+  assert.equal(url,'https://api-performance.ozon.ru/api/client/statistics');
+  assert.equal(options.headers.Authorization,'Bearer bearer');
+  assert.equal(JSON.parse(options.body).groupBy,'DATE');
+  return Response.json({UUID:uuid});
+ });
+ assert.equal(submitted.data.UUID,uuid);
 });
 
 test('positive sales with a zero count stay unconfirmed when the second response is from a different period',async()=>{
@@ -69,20 +116,32 @@ test('positive sales with a zero count stay unconfirmed when the second response
  assert.deepEqual(result.rows.map(row=>[row.orders,row.sales]),[[null,236],[0,0]]);
 });
 
-test('promotion UI imports and updates a campaign by day and preserves a note in the database',async()=>{
- const {window}=new JSDOM('<main></main>');
+test('promotion UI loads and refreshes campaigns from Performance API and preserves a note',async()=>{
+ const {window}=new JSDOM('<main></main>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
  const doc=window.document,root=doc.querySelector('main');
  window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};
  window.HTMLDialogElement.prototype.close=function(){this.open=false;this.onclose?.();};
  const p={...blankProduct(),id:'p1',sku:article,name:'Подставка'};
  const database={schema:1,id:'db',products:[p]};
- let sheet=workbook('1010',[row('20.11.2026',444,8,24)]);
+ let values=[row('20.11.2026',444,8,24)];
  const calls=[],state={filters:{productId:p.id,...dates}};
  const mount=()=>mountOzonPromotion({
   root,state,getProducts:()=>[p],getSelectedProductId:()=>p.id,hydrateProductImages:()=>{},
   getCredentials:()=>({ozonClient:'123',ozonKey:'fake'}),getPromotion:()=>database.ozonPromotion??{products:[]},
   savePromotion:next=>{database.ozonPromotion=next;validateDB(structuredClone(database));return true;},
-  loadWorkbook:async()=>sheet,now:()=>new Date('2026-11-23T10:00:00Z'),
+  now:()=>new Date('2026-11-23T10:00:00Z'),
+  requestPerformance:async(w,operation)=>{
+   assert.equal(w,window);
+   switch(operation){
+   case 'ping':return {version:1};
+   case 'token':return {access_token:'fake-token'};
+   case 'campaigns':return {list:[cpc('1010')]};
+   case 'submit':return {UUID:uuid};
+   case 'status':return {state:'OK'};
+   case 'report':return Buffer.from(csv(values)).toString('base64');
+   default:assert.fail(operation);
+   }
+  },
   request:async(market,op,credentials,body)=>{
    assert.equal(market,'ozon');calls.push(op);
    if(op==='info'){
@@ -105,17 +164,19 @@ test('promotion UI imports and updates a campaign by day and preserves a note in
  form.elements.time.value='13:40';
  await form.onsubmit({preventDefault(){}});
  assert.match(root.querySelector('[data-promotion-note="2026-11-20"]').textContent,/13:40 МСК.*Поднял ставку/);
- const importFile=async()=>{
-  const input=root.querySelector('[data-promotion-file]');
-  Object.defineProperty(input,'files',{value:[{name:'campaign.xlsx'}],configurable:true});
-  await input.onchange();
- };
- await importFile();
- sheet=workbook('1010',[row('20.11.2026',444,10,36)]);
- await importFile();
+ const credentialsForm=root.querySelector('[data-performance-credentials]');
+ credentialsForm.elements.namedItem('id').value=access.id;
+ credentialsForm.elements.namedItem('secret').value=access.secret;
+ await credentialsForm.onsubmit({preventDefault(){}});
+ values=[row('20.11.2026',444,10,36)];
+ await root.querySelector('[data-load-performance]').onclick();
  assert.deepEqual(calls,['info','productQueries','info','info']);
- assert.deepEqual(database.ozonPromotion.products[0].rows.map(r=>[r.day,r.clicks,r.expense]),
+ assert.equal(root.querySelector('input[type="file"]'),null);
+ assert.match(root.querySelector('[data-daily-results]').textContent,/Ozon Performance API/);
+ assert.match(root.querySelector('[data-promotion-campaign]').textContent,/Подставки · № 1010/);
+ assert.deepEqual(database.ozonPromotion.products[0].performance.rows.map(r=>[r.day,r.clicks,r.expense]),
   [['2026-11-20',10,36]]);
+ assert.doesNotMatch(JSON.stringify(database),/fake-secret/);
  assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'10');
  dispose();
  dispose=mount();
@@ -146,7 +207,7 @@ test('search queries load for the selected product over the last week without a 
    requested.push([body.date_from.slice(0,10),body.date_to?.slice(0,10),body.sort_by]);
    if(allowWeek&&!body.date_to)return {queries:[{
     sku:444,query:'подставка для часов',unique_search_users:128,order_count:body.sort_by==='BY_GMV'?'1':0,gmv:236,currency:'RUB'
-   }],page_count:1,analytics_period:{date_from:'2026-11-16',date_to:'2026-11-22'}};
+   }],page_count:1,analytics_period:{date_from:'16.11.2026',date_to:'0001-01-01T00:00:00Z'}};
    throw Object.assign(Error('API OZON: 403 · Analytics for the specified period is available starting from the premium subscription'),{status:403});
   }
  });
@@ -159,7 +220,8 @@ test('search queries load for the selected product over the last week without a 
  assert.equal($('[data-promotion-dates]').hidden,true);
  assert.equal($('[data-query-access-note]').hidden,true);
  const results=$('[data-query-results]');
- assert.match(results.textContent,/16.11.2026 — 22.11.2026/);
+ assert.match(results.textContent,/Запрос в Seller API с 16\.11\.2026\. В ответе Ozon указал только начало 16\.11\.2026 · SKU Ozon 444/);
+ assert.doesNotMatch(results.textContent,/22\.11\.2026/);
  assert.deepEqual([...results.querySelectorAll('thead th')].map(column=>column.textContent),
   ['Запрос','Покупателей искало','Заказы по запросу','Заказано на сумму']);
  assert.match(results.textContent,/подставка для часов1281236 ₽/);

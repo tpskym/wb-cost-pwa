@@ -1155,6 +1155,8 @@ main[data-workspace="analytics"]{max-width:none;padding-inline:clamp(16px,2vw,28
 .promotion-import-help{margin:12px 0 20px}
 .promotion-import-help label{max-width:320px;margin-bottom:12px}
 .promotion-import-help input{min-height:44px;width:100%;margin:0}
+.promotion-credentials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;max-width:656px}
+.promotion-credentials label{max-width:none;margin:0}
 .promotion-query-entry form{max-width:620px;margin-top:16px}
 .promotion-query-entry label{max-width:none}
 .promotion-query-entry textarea{width:100%;margin:0;font-size:14px;resize:vertical}

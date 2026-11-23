@@ -10,5 +10,6 @@ dist/
 pdfjs/
 model-preview-runtime.js
 ozon-workbook-runtime.js
+ozon-report-zip.js
 workshop-windows.zip
 workshop-macos.zip

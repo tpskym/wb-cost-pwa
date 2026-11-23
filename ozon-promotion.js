@@ -27,13 +27,18 @@ function numberValue(value){
 }
 
 function analyticsDay(value){
- if(validDay(value))return value;
- return typeof value==='string'&&Number.isFinite(Date.parse(value))?dayKey(new Date(value)):'';
+ if(typeof value!=='string')return null;
+ const text=value.trim().replace(/^(\d{2})\.(\d{2})\.(\d{4})$/,'$3-$2-$1');
+ const match=text.match(/^(\d{4}-\d{2}-\d{2})(?:[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/i);
+ const date=match?.[1];
+ if(!validDay(date)||date<'2022-01-01')return null;
+ if(!match[2])return date;
+ return Number.isFinite(Date.parse(text))?dayKey(new Date(text)):null;
 }
 
 export async function loadOzonQueries(ids,{from,to},request,{sortBy='BY_SEARCHES'}={}){
  const queries=new Map(),wanted=new Set(ids);
- let period;
+ const period={from:null,to:null};
  const pageSize=100,perSku=15;
  const maxPages=Math.ceil(ids.length*perSku/pageSize);
  for(let page=0;page<maxPages;page++){
@@ -44,9 +49,14 @@ export async function loadOzonQueries(ids,{from,to},request,{sortBy='BY_SEARCHES
    sort_by:sortBy,sort_dir:'DESCENDING'
   });
   if(!Array.isArray(result.queries))throw Error('Ozon вернул поисковые запросы в неожиданном формате.');
-  const dates=result.analytics_period;
-  const actualFrom=analyticsDay(dates?.date_from),actualTo=analyticsDay(dates?.date_to);
-  if(actualFrom&&actualTo&&actualFrom<=actualTo)period={from:actualFrom,to:actualTo};
+  const dates=result.analytics_period??result.analyticsPeriod;
+  const actualFrom=analyticsDay(dates?.date_from??dates?.dateFrom),actualTo=analyticsDay(dates?.date_to??dates?.dateTo);
+  if((actualFrom&&period.from&&actualFrom!==period.from)||(actualTo&&period.to&&actualTo!==period.to)){
+   throw Error('Ozon вернул разные периоды на страницах отчёта.');
+  }
+  period.from??=actualFrom;
+  period.to??=actualTo;
+  if(period.from&&period.to&&period.from>period.to)throw Error('Ozon вернул некорректные даты отчёта.');
   for(const entry of result.queries){
    const sku=skuId(entry?.sku),query=typeof entry?.query==='string'?entry.query.trim():'';
    if(!wanted.has(sku)||!query)continue;
@@ -61,7 +71,7 @@ export async function loadOzonQueries(ids,{from,to},request,{sortBy='BY_SEARCHES
   if(result.queries.length<pageSize||page+1>=Number(result.page_count))break;
  }
  const rows=[...queries.values()].sort((a,b)=>(b.searches??-1)-(a.searches??-1)||a.query.localeCompare(b.query,'ru'));
- return {period:period??{from,to},rows};
+ return {period,requestedPeriod:{from,to},ids,rows};
 }
 
 export const recentQueryPeriod=today=>({from:shiftDay(today,-7),to:shiftDay(today,-1)});
@@ -108,19 +118,12 @@ const headerKey=value=>String(value??'').toLocaleLowerCase('ru-RU').replace(/ё/
 const headerIndex=(headers,pattern)=>headers.findIndex(value=>pattern.test(value));
 const datePattern=/\d{4}-\d{2}-\d{2}|\d{2}\.\d{2}\.\d{4}/g;
 
-function sheetDate(value){
- if(value instanceof Date)return Number.isFinite(value.getTime())?value.toISOString().slice(0,10):'';
- if(Number.isInteger(value)&&value>=44562&&value<=2958465)return shiftDay('1899-12-30',value);
- const text=String(value??'').trim();
- const date=text.match(/^(\d{4}-\d{2}-\d{2})(?:T.*)?$/)?.[1]??text.match(/^\d{2}\.\d{2}\.\d{4}$/)?.[0].split('.').reverse().join('-');
- return validDay(date)?date:'';
-}
-
 function dayFromCell(value){
- const day=sheetDate(value);
+ const text=String(value??'').trim();
+ const day=analyticsDay(text);
  if(day)return day;
- const dates=(typeof value==='string'?value.match(datePattern):null)?.map(sheetDate);
- return dates?.length&&dates[0]&&dates.every(day=>day===dates[0])?dates[0]:'';
+ const dates=text.match(datePattern)?.map(analyticsDay);
+ return dates?.length&&dates[0]&&dates.every(date=>date===dates[0])?dates[0]:null;
 }
 
 function sumMetrics(entries){
@@ -128,61 +131,31 @@ function sumMetrics(entries){
   entries.reduce((sum,row)=>sum+row[key],0):null]));
 }
 
-export function parseOzonPromotion(sheets,{article,ids=[],campaignOverride='',filename=''}){
- const reportCampaigns=new Set();
- const rows=new Map(),reportedDays=new Set();
- let hasHeader=false,hasDailyData=false;
- for(const sheet of sheets){
-  const sheetRows=sheet.rows;
-  const headerRow=sheetRows.findIndex(row=>{
-   const headers=row.map(headerKey);
-   return headers.some(key=>/^(?:sku|sku ozon|ozon id|артикул ozon|артикул|артикул продавца)$/.test(key))&&
-    headers.some(key=>fields.views.test(key)||fields.clicks.test(key))&&headers.some(key=>fields.expense.test(key));
-  });
-  if(headerRow<0)continue;
-  hasHeader=true;
-  const metadata=sheetRows.slice(0,headerRow).flat().filter(value=>typeof value==='string').join(' ');
-  const campaign=(metadata+' '+filename).match(/(?:кампани[^\d№]{0,45}(?:№|#)?\s*|(?:^|\s)№\s*)(\d{3,20})/i)?.[1];
-  if(campaign)reportCampaigns.add(campaign);
-  const periodText=metadata.match(/(?:период|дата отч[её]та)\s*[:с]?\s*(.*)/i)?.[1]??'';
-  const period=(periodText.match(datePattern)||[]).map(sheetDate).filter(Boolean);
-  const singleDay=period.length&&period.every(day=>day===period[0])?period[0]:'';
-  const headers=sheetRows[headerRow].map(headerKey);
-  const skuIndex=headerIndex(headers,/^(?:sku(?: ozon)?|ozon id|артикул ozon)$/);
-  const articleIndex=headerIndex(headers,/^артикул(?: продавца)?$/);
-  const dateIndex=headerIndex(headers,/^(?:дата|день|период|дата статистики|дата отчета)$/);
-  const columns=Object.fromEntries(fieldKeys.map(key=>[key,headerIndex(headers,fields[key])]));
-  for(const row of sheetRows.slice(headerRow+1)){
-   const sku=skuId(row[skuIndex]);
-   const rowArticle=String(row[articleIndex]??'').trim();
-   if(!sku&&(!rowArticle||/^(?:итого|всего|total)(?:\s|$)/i.test(rowArticle)))continue;
-   const day=dayFromCell(row[dateIndex])||singleDay||sheetDate(sheet.name);
-   if(!day)continue;
-   hasDailyData=true;
-   reportedDays.add(day);
-   if(!ids.includes(sku)&&rowArticle!==article)continue;
-   const metrics=Object.fromEntries(fieldKeys.map(key=>{
-    const value=numberValue(row[columns[key]]);
-    return [key,countFields.has(key)&&!Number.isSafeInteger(value)?null:value];
-   }));
-   if(!Object.values(metrics).some(value=>value!==null))continue;
-   if(!rows.has(day))rows.set(day,[]);
-   rows.get(day).push(metrics);
-  }
+export function parseOzonPerformanceRows(report,{ids,campaignId,from,to}){
+ const wanted=new Set(ids),rows=new Map();
+ const headerRow=report.findIndex(row=>{
+  const headers=row.map(headerKey);
+  return headers.some(key=>/^(?:sku(?: ozon)?|ozon id|артикул ozon)$/.test(key))&&
+   headers.some(key=>fields.views.test(key)||fields.clicks.test(key))&&headers.some(key=>fields.expense.test(key));
+ });
+ if(headerRow<0)throw Error('Ozon вернул неизвестный формат статистики «Оплата за клик».');
+ const headers=report[headerRow].map(headerKey);
+ const skuIndex=headerIndex(headers,/^(?:sku(?: ozon)?|ozon id|артикул ozon)$/);
+ const dateIndex=headerIndex(headers,/^(?:дата|день|период|дата статистики|дата отчета|date)$/);
+ const columns=Object.fromEntries(fieldKeys.map(key=>[key,headerIndex(headers,fields[key])]));
+ for(const row of report.slice(headerRow+1)){
+  if(!wanted.has(skuId(row[skuIndex])))continue;
+  const day=dateIndex<0&&from===to?from:dayFromCell(row[dateIndex]);
+  if(!day||day<from||day>to)throw Error('Даты в отчёте Ozon не совпали с запрошенным периодом.');
+  const metrics=Object.fromEntries(fieldKeys.map(key=>{
+   const value=numberValue(row[columns[key]]);
+   return [key,countFields.has(key)&&!Number.isSafeInteger(value)?null:value];
+  }));
+  if(!Object.values(metrics).some(value=>value!==null))continue;
+  if(!rows.has(day))rows.set(day,[]);
+  rows.get(day).push(metrics);
  }
- if(!hasHeader)throw Error('В файле нет статистики товара из отчёта «Оплата за клик».');
- if(!hasDailyData)throw Error('В файле не нашлись даты статистики. При скачивании отчёта Ozon выберите группировку «По дням».');
- if(!rows.size){
-  const error=Error('В отчёте нет строк по артикулу или SKU выбранного товара.');
-  error.code='OZON_PRODUCT_NOT_FOUND';
-  throw error;
- }
- if(reportCampaigns.size>1)throw Error('Загрузите отдельный XLSX для каждой кампании.');
- const campaign=[...reportCampaigns][0];
- if(campaign&&campaignOverride&&campaign!==campaignOverride)throw Error('Номер кампании в файле отличается от введённого номера.');
- const campaignId=campaign||campaignOverride;
- if(!skuId(campaignId))throw Error('Укажите номер кампании Ozon, чтобы повторный импорт не задвоил показатели.');
- return {campaignId,reportedDays,rows:[...rows].map(([day,entries])=>({campaignId,day,...sumMetrics(entries)}))};
+ return [...rows].map(([day,entries])=>({campaignId,day,...sumMetrics(entries)}));
 }
 
 export function promotionDays(rows,from,to,campaign=''){
@@ -219,14 +192,27 @@ export function validateOzonPromotion(state){
     periods.add(key);
    }
   }
-  const days=new Set(),campaignDays=new Set();
+  const days=new Set();
   for(const note of product.notes){
    if(!note||!validDay(note.day)||days.has(note.day)||typeof note.text!=='string'||!note.text.trim()||
     note.text.length>promotionNoteLimit||!(note.time===''||typeof note.time==='string'&&noteTime(note.time)))invalid();
    days.add(note.day);
   }
-  for(const row of product.rows){
+  validateRows(product.rows);
+  if(product.performance!==undefined){
+   const report=product.performance;
+   if(!report||!validDay(report.from)||!validDay(report.to)||report.from>report.to||
+    typeof report.client!=='string'||!report.client||!Array.isArray(report.rows)||!Array.isArray(report.campaigns)||
+    !Number.isSafeInteger(report.archived)||report.archived<0||
+    report.campaigns.some(c=>!c||typeof c.id!=='string'||!skuId(c.id)||typeof c.title!=='string'))invalid();
+   validateRows(report.rows,report);
+  }
+ }
+ function validateRows(rows,period){
+  const campaignDays=new Set();
+  for(const row of rows){
    if(!row||typeof row.campaignId!=='string'||!skuId(row.campaignId)||!validDay(row.day)||
+    (period&&(row.day<period.from||row.day>period.to))||
     !fieldKeys.every(key=>row[key]===null||Number.isFinite(row[key])&&row[key]>=0))invalid();
    const key=JSON.stringify([row.campaignId,row.day]);
    if(campaignDays.has(key))invalid();
