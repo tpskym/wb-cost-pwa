@@ -5,7 +5,8 @@ export const shiftDay=(day,days)=>new Date(Date.parse(day)+days*dayMs).toISOStri
 const skuId=value=>(typeof value!=='number'||Number.isSafeInteger(value))&&/^\d{1,20}$/.test(String(value??'').trim())?String(value).trim():'';
 const noteTime=value=>/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
 export const promotionNoteLimit=1200;
-export const queryTextLimit=20000;
+export const queryTextLimit=200000;
+export const sellerQueriesPerSku=15;
 
 export function readQueryPhrases(text){
  if(text.length>queryTextLimit)throw Error('Список фраз слишком длинный.');
@@ -26,6 +27,48 @@ function numberValue(value){
  return Number.isFinite(result)?result:null;
 }
 
+const queryColumns={
+ query:/^(?:поисковый )?запрос$/,
+ searches:/^(?:сколько )?покупателей искало$/,
+ views:/^(?:сколько )?покупателей увидело$/,
+ position:/^позиция в поиске$/,
+ orders:/^(?:заказано товаров(?: по запросам)?|заказы по запросу)$/,
+ sales:/^заказано на сумму(?: по запросам)?$/
+};
+const queryMetricKeys=['searches','views','position','orders','sales'];
+const stripRank=phrase=>phrase.replace(/^\d+\.\s+/,'');
+const summaryPhrase=phrase=>/^(?:итого(?: и среднее)?|всего)$/i.test(phrase);
+const copiedMetric=cell=>numberValue(String(cell??'').split(/\r?\n|\s*[+−-]\s*\d[\d,.]*\s*%/,1)[0]);
+
+export function readPastedOzonQueries(text){
+ if(text.length>queryTextLimit)throw Error('Список запросов слишком длинный.');
+ const lines=text.split(/\r?\n/).map(line=>line.split('\t').map(cell=>cell.trim()));
+ const headerAt=lines.findIndex(line=>line.some(cell=>queryColumns.query.test(headerKey(cell)))&&
+  line.some(cell=>queryMetricKeys.some(key=>queryColumns[key].test(headerKey(cell)))));
+ if(headerAt>=0){
+  const header=lines[headerAt].map(headerKey);
+  const columns=Object.fromEntries(Object.entries(queryColumns).map(([key,pattern])=>[key,headerIndex(header,pattern)]));
+  const rows=new Map();
+  for(const line of lines.slice(headerAt+1)){
+   const query=stripRank(line[columns.query]||'');
+   if(!query||summaryPhrase(query)||queryColumns.query.test(headerKey(query)))continue;
+   const metrics=Object.fromEntries(queryMetricKeys.map(key=>[key,copiedMetric(line[columns[key]])]));
+   rows.set(query.toLocaleLowerCase('ru-RU'),{query,...metrics});
+  }
+  if(!rows.size)throw Error('В скопированной таблице нет поисковых запросов.');
+  return {phrases:[...rows.values()].map(row=>row.query),rows:[...rows.values()]};
+ }
+ if(lines.some(line=>line.length>1)){
+  // A selection without headers still identifies queries. Column order can vary in Ozon Seller.
+  const phrases=lines.map(line=>line.map(stripRank).find(cell=>/\p{L}/u.test(cell)&&!summaryPhrase(cell))).filter(Boolean);
+  return {phrases:readQueryPhrases(phrases.join('\n'))};
+ }
+ const phrases=lines.map(([line])=>line).filter(Boolean);
+ const numbered=phrases.flatMap((line,index)=>/^\d+\.\s*$/.test(line)?
+  [phrases[index+1]]:/^\d+\.\s+\S/.test(line)?[stripRank(line)]:[]);
+ return {phrases:readQueryPhrases((numbered.length?numbered:phrases).filter(Boolean).join('\n'))};
+}
+
 function analyticsDay(value){
  if(typeof value!=='string')return null;
  const text=value.trim().replace(/^(\d{2})\.(\d{2})\.(\d{4})$/,'$3-$2-$1');
@@ -39,7 +82,7 @@ function analyticsDay(value){
 export async function loadOzonQueries(ids,{from,to},request,{sortBy='BY_SEARCHES'}={}){
  const queries=new Map(),wanted=new Set(ids);
  const period={from:null,to:null};
- const pageSize=100,perSku=15;
+ const pageSize=100,perSku=sellerQueriesPerSku;
  const maxPages=Math.ceil(ids.length*perSku/pageSize);
  for(let page=0;page<maxPages;page++){
   const result=await request('productQueries',{
@@ -205,6 +248,17 @@ export function validateOzonPromotion(state){
     const key=list.from+'/'+list.to;
     if(periods.has(key))invalid();
     periods.add(key);
+    if(list.rows!==undefined){
+     const phrases=new Set(list.phrases.map(phrase=>phrase.toLocaleLowerCase('ru-RU')));
+     const seen=new Set();
+     if(!Array.isArray(list.rows)||!list.rows.length)invalid();
+     for(const row of list.rows){
+      const query=typeof row?.query==='string'?row.query.toLocaleLowerCase('ru-RU'):'';
+      if(!phrases.has(query)||seen.has(query)||
+       !queryMetricKeys.every(name=>row[name]===null||Number.isFinite(row[name])&&row[name]>=0))invalid();
+      seen.add(query);
+     }
+    }
    }
   }
   const days=new Set();

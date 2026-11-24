@@ -6,7 +6,7 @@ import {loadOzonPerformance} from '../ozon-performance.js';
 import {handleOzonPerformance} from '../ozon-performance-extension/worker.js';
 import {blankProduct,validateDB} from '../calc.js';
 import {marketRequest} from '../marketplace-api.js';
-import {loadOzonQueries,loadRecentOzonQueries,parseOzonPerformanceRows,promotionDays} from '../ozon-promotion.js';
+import {loadOzonQueries,loadRecentOzonQueries,parseOzonPerformanceRows,promotionDays,readPastedOzonQueries} from '../ozon-promotion.js';
 import {mountOzonPromotion} from '../ozon-promotion-ui.js';
 
 const article='stand-white';
@@ -344,4 +344,56 @@ test('search queries load for the selected product over the last week without a 
  dispose=mount();
  assert.equal($('[data-manual-query-results] li').textContent,'Подставка для часов');
  dispose();window.close();
+});
+
+test('search queries accept more than a hundred rows copied from Ozon and merge additional pages',async()=>{
+ const {window}=new JSDOM('<main></main>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
+ const root=window.document.querySelector('main');
+ const product={...blankProduct(),id:'stand',name:'Подставка',sku:article};
+ const database={schema:1,id:'db',products:[product]};
+ const mount=()=>mountOzonPromotion({
+  root,state:{},getProducts:()=>[product],getSelectedProductId:()=>product.id,
+  getCredentials:()=>({ozonClient:'123',ozonKey:'fake'}),
+  getPromotion:()=>database.ozonPromotion??{products:[]},
+  savePromotion:next=>{database.ozonPromotion=next;validateDB(structuredClone(database));return true;},
+  now:()=>new Date('2026-11-23T10:00:00Z'),
+  request:async(_market,operation)=>operation==='info'?{items:[{offer_id:article,sku:444}]}:{
+   page_count:1,queries:Array.from({length:15},(_,index)=>({
+    sku:444,query:'Из API '+index,unique_search_users:30
+   }))
+  }
+ });
+ let dispose=mount();
+ const $=selector=>root.querySelector(selector);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal($('[data-manual-queries]').hidden,false);
+ assert.match($('[data-query-results]').textContent,/Строк из API 15 \(до 15 на SKU\)/);
+
+ const form=$('[data-manual-query-form]'),input=form.elements.phrases;
+ const heading=['Запрос','Сколько покупателей искало','Заказано товаров по запросам','Заказано на сумму по запросам'];
+ const first=Array.from({length:70},(_,index)=>['Фраза '+(index+1),'1 200 +12%',index===0?'1':'0',index===0?'236 ₽':'0 ₽']);
+ const html='<table>'+[heading,['Итого и среднее','2 400','1','236 ₽'],...first].map(row=>
+  '<tr>'+row.map(cell=>'<td>'+cell+'</td>').join('')+'</tr>').join('')+'</table>';
+ let intercepted=false;
+ input.onpaste({clipboardData:{getData:type=>type==='text/html'?html:''},preventDefault(){intercepted=true;}});
+ assert.equal(intercepted,true);
+ await form.onsubmit({preventDefault(){}});
+ assert.equal($('[data-manual-query-results]').querySelectorAll('tbody tr').length,70);
+
+ const second=Array.from({length:60},(_,index)=>['Фраза '+(index+66),'250','0','0 ₽']);
+ input.value=[heading,...second].map(line=>line.join('\t')).join('\n');
+ await form.onsubmit({preventDefault(){}});
+ const results=$('[data-manual-query-results]');
+ assert.equal(results.querySelectorAll('tbody tr').length,125);
+ assert.match(results.textContent,/Запросов 125/);
+ assert.match(results.querySelector('tbody tr').textContent,/Фраза 11\s2001236 ₽/);
+ assert.match(results.querySelector('tbody tr:last-child').textContent,/Фраза 12525000 ₽/);
+ assert.equal($('[data-query-results] details').open,false);
+ dispose();
+
+ dispose=mount();
+ assert.equal($('[data-manual-query-results]').querySelectorAll('tbody tr').length,125);
+ dispose();window.close();
+ assert.deepEqual(readPastedOzonQueries('1.\nподставка для часов\n160\n2. зарядка apple watch\n12'),
+  {phrases:['подставка для часов','зарядка apple watch']});
 });

@@ -1,12 +1,12 @@
 import {printActionIcon} from './print-action-controls.js?v=0.2.392';
-import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.392';
+import {renderQueueStockFreshness,refreshQueueStocks} from './queue-stock-sync.js?v=0.2.430';
 import {skuCopyButton} from './sku-copy.js?v=0.2.392';
 import {mountProductPhotoPicker} from './product-photo-picker.js?v=0.2.392';
-import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.392';
-import {openPrintCompletion} from './print-completion.js?v=0.2.392';
+import {stockSummary,replenishmentPlan} from './warehouse-stocks.js?v=0.2.430';
+import {openPrintCompletion} from './print-completion.js?v=0.2.430';
 import {listFiles} from './attachments.js?v=0.2.392';
 import {tableProductPhoto,bindTablePhotos,productMainPhoto} from './marketplace-metrics.js?v=0.2.392';
-import {blankProduct} from './calc.js?v=0.2.392';
+import {blankProduct} from './calc.js?v=0.2.430';
 import {renderStockAddition,mountStockAdditions,validateAdditionTarget,stockAdditionTarget,pendingAddition,loadQueueAdditionChoices} from './stock-additions.js?v=0.2.392';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 import {movePrintJob,mergeActivePrintJobs,setRequestedQuantity,minimumRequestedQuantity,setPrintingQuantity,enqueuePrint,recordPrinted,queueOutstanding,printedQuantity,remainingQuantity} from './print-queue-state.js?v=0.2.392';

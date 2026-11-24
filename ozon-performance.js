@@ -1,5 +1,5 @@
 import {dateRange,validDay} from './ozon-analytics.js?v=0.2.392';
-import {parseOzonPerformanceRows,parseOzonRecentPerformanceRows,shiftDay} from './ozon-promotion.js?v=0.2.425';
+import {parseOzonPerformanceRows,parseOzonRecentPerformanceRows,shiftDay} from './ozon-promotion.js?v=0.2.430';
 
 const extensionId='fboekfplfoifkgjkninefbfiffngmfdl';
 const storageKey='workshop-ozon-performance-v1';

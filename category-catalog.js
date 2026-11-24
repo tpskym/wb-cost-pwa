@@ -1,4 +1,4 @@
-import {cardClassificationCodes} from './catalogue-status.js?v=0.2.392';
+import {cardClassificationCodes} from './catalogue-status.js?v=0.2.430';
 import {marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.392';
 import {normalizeCategories,categoryOf} from './listing-fields.js?v=0.2.392';
 function openCatalogDB(){return new Promise((resolve,reject)=>{const request=indexedDB.open('workshop-category-catalogs-v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('catalogs',{keyPath:'market'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}

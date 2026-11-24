@@ -1,5 +1,5 @@
 import {validGoogleClientId} from './google-drive-setup.js?v=0.2.392';
-import {performanceCredentials,savePerformanceCredentials} from './ozon-performance.js?v=0.2.425';
+import {performanceCredentials,savePerformanceCredentials} from './ozon-performance.js?v=0.2.430';
 import {skuCopyButton} from './sku-copy.js?v=0.2.392';
 import {mountOzonRichText} from './ozon-rich-text.js?v=0.2.392';
 import {mountListingTemplates} from './listing-templates.js?v=0.2.392';
@@ -8,8 +8,8 @@ import {readOzonPrice} from './price-editor.js?v=0.2.392';
 import {readWBPrice} from './wb-prices.js?v=0.2.392';
 import {loadWBCreationErrors,loadWBStocks,loadOzonStocks,loadOzonQuality} from './marketplace-metrics.js?v=0.2.392';
 import {actionIcon,confirmAction,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes} from './listing-fields.js?v=0.2.392';
-import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.392';
-import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.392';
+import {readCatalog,writeCatalog,fetchCatalog} from './category-catalog.js?v=0.2.430';
+import {mountListingEditor,disposeListingEditor} from './listing-editor.js?v=0.2.430';
 import {differenceFieldEditor,editDifferenceField,listingGroupDifferences,syncLocalListingGroup,readAllWBCards,wbMergeBody,copyListingForProduct,prepareWBContent,marketRequest,uploadWBPhoto,listBody,blankListing,wbUpdateDraft,ozonUpdateDraft,validateListing,redact,describeOzonRoles,ozonAccessSummary} from './marketplace-api.js?v=0.2.392';
 const sharedEditSelections=new Map();
 const CREDENTIALS='workshop-marketplace-keys-v1';

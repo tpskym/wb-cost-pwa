@@ -2,8 +2,8 @@ import {marketRequest,redact} from './marketplace-api.js?v=0.2.418';
 import {dayKey,validDay} from './ozon-analytics.js?v=0.2.392';
 import {openFunnelProductPicker,resolveOzonSkus} from './sales-funnel.js?v=0.2.418';
 import {confirmAction} from './listing-fields.js?v=0.2.392';
-import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readQueryPhrases,recentQueryPeriod,shiftDay} from './ozon-promotion.js?v=0.2.425';
-import {loadOzonPerformance,performanceCredentials,performanceRequest,performanceStart,savePerformanceCredentials} from './ozon-performance.js?v=0.2.425';
+import {loadRecentOzonQueries,promotionDays,promotionNoteLimit,queryTextLimit,readPastedOzonQueries,recentQueryPeriod,sellerQueriesPerSku,shiftDay} from './ozon-promotion.js?v=0.2.430';
+import {loadOzonPerformance,performanceCredentials,performanceRequest,performanceStart,savePerformanceCredentials} from './ozon-performance.js?v=0.2.430';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const formatNumber=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2});
@@ -12,6 +12,7 @@ const display=(value,unit='')=>value==null?'—':formatNumber.format(value)+(uni
 const ratio=(a,b,scale=1)=>a!=null&&b>0?a/b*scale:null;
 const tabLabels={queries:'Поисковые запросы',daily:'Оплата за клик по дням'};
 const queryRange=({from,to})=>to&&to!==from?dateLabel(from)+' — '+dateLabel(to):dateLabel(from);
+const phraseKey=phrase=>phrase.toLocaleLowerCase('ru-RU');
 const sellerSearchUrl='https://seller.ozon.ru/app/analytics-search/search-results/apz';
 const dailyFromKey='workshop-ozon-promotion-from-v1';
 
@@ -38,25 +39,48 @@ function queryMarkup(report){
    period.to?'В ответе Ozon указал только окончание '+dateLabel(period.to):'Ozon вернул данные без дат периода';
   dates='Запрос в Seller API '+requested+'. '+response;
  }
- const summary=`<p class="promotion-caption">${dates} · SKU Ozon ${esc(ids.join(', '))}</p>`;
+ const summary=`<p class="promotion-caption">${dates} · SKU Ozon ${esc(ids.join(', '))} · Строк из API ${display(rows.length)} (до ${sellerQueriesPerSku} на SKU)</p>`;
  if(!rows.length)return summary+'<p class="analytics-empty">Ozon не вернул поисковые запросы за этот период.</p>';
+ const notice=rows.some(row=>row.orders===null&&row.sales>0)?
+  `<p class="promotion-caption">У строк с суммой и прочерком Seller API не подтвердил количество заказов.
+   <a href="${sellerSearchUrl}" target="_blank" rel="noopener noreferrer">Сверить с кабинетом Ozon ↗</a></p>`:'';
+ return summary+notice+queryTable(rows);
+}
+
+function queryTable(rows,currency=''){
  const columns=[
   ['SKU Ozon',row=>row.sku,new Set(rows.map(row=>row.sku)).size>1],
   ['Покупателей искало',row=>display(row.searches),true],
   ['Покупателей увидело',row=>display(row.views),rows.some(row=>row.views!==null)],
   ['Позиция в поиске',row=>display(row.position),rows.some(row=>row.position!==null)],
   ['Заказы по запросу',row=>display(row.orders),true],
-  ['Заказано на сумму',row=>esc(display(row.sales,row.currency)),true]
+  ['Заказано на сумму',row=>esc(display(row.sales,row.currency||currency)),true]
  ].filter(([, ,visible])=>visible);
- const notice=rows.some(row=>row.orders===null&&row.sales>0)?
-  `<p class="promotion-caption">У строк с суммой и прочерком Seller API не подтвердил количество заказов.
-   <a href="${sellerSearchUrl}" target="_blank" rel="noopener noreferrer">Сверить с кабинетом Ozon ↗</a></p>`:'';
- return summary+notice+`<div class="analytics-cluster-results" role="region" aria-label="Поисковые запросы Ozon" tabindex="0">
+ return `<div class="analytics-cluster-results" role="region" aria-label="Поисковые запросы Ozon" tabindex="0">
   <table class="analytics-cluster-table promotion-query-table">
    <thead><tr><th scope="col">Запрос</th>${columns.map(([label])=>`<th scope="col">${label}</th>`).join('')}</tr></thead>
    <tbody>${rows.map(row=>`<tr><th scope="row">${esc(row.query)}</th>${columns.map(([,value])=>`<td>${value(row)}</td>`).join('')}</tr>`).join('')}</tbody>
   </table>
  </div>`;
+}
+
+function clipboardQueryTable(doc,html){
+ if(!html||html.length>queryTextLimit*10)return '';
+ const template=doc.createElement('template');
+ template.innerHTML=html;
+ return [...template.content.querySelectorAll('tr,[role="row"]')].map(row=>[...row.querySelectorAll(
+  ':scope > td,:scope > th,:scope > [role="cell"],:scope > [role="gridcell"],:scope > [role="columnheader"],:scope > [role="rowheader"]'
+ )].map(cell=>cell.textContent.replace(/\s+/g,' ').trim()))
+ .filter(cells=>cells.length>1).map(cells=>cells.join('\t')).join('\n');
+}
+
+function pastedQueryMarkup(list){
+ const byPhrase=new Map(list.rows?.map(row=>[phraseKey(row.query),row]));
+ const content=list.rows?queryTable(list.phrases.map(query=>({
+  searches:null,views:null,position:null,orders:null,sales:null,...byPhrase.get(phraseKey(query)),query
+ })),'₽'):`<ul>${list.phrases.map(phrase=>`<li>${esc(phrase)}</li>`).join('')}</ul>`;
+ return `<section class="promotion-manual-phrases"><h2>Запросы из кабинета Ozon</h2>
+  <p class="promotion-caption">${queryRange(list)} · Запросов ${display(list.phrases.length)}</p>${content}</section>`;
 }
 
 function dailyEmptyReason(report){
@@ -109,7 +133,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
  filters.to=dailyToday;
  const selectedId=getSelectedProductId();
  if(!byId.has(filters.productId))filters.productId=byId.has(selectedId)?selectedId:'';
- let active=state.tab??'queries',campaign='',pending,dialog,disposed=false,manualKey;
+ let active=state.tab??'queries',campaign='',pending,dialog,disposed=false,manualKey,pasted=false;
  let performanceAccess=performanceCredentials(window);
  const attemptedDaily=new Set();
  root.innerHTML=`<section class="panel ozon-analytics promotion-report">
@@ -133,18 +157,18 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
    </p>
    <div class="promotion-actions">
     <button type="button" class="primary" data-load-queries>Загрузить за последние 7 дней</button>
-    <a class="promotion-open-seller" data-query-open-seller href="${sellerSearchUrl}" target="_blank" rel="noopener noreferrer" hidden>Открыть отчёт в Ozon ↗</a>
+    <a class="promotion-open-seller" data-query-open-seller href="${sellerSearchUrl}" target="_blank" rel="noopener noreferrer">Открыть отчёт в Ozon ↗</a>
    </div>
-   <div data-query-results></div>
    <details class="analytics-help promotion-import-help promotion-query-entry" data-manual-queries hidden>
-    <summary>Вставить фразы из кабинета Ozon</summary>
-    <p>Скопируйте фразы своего товара из отчёта Ozon за ${queryRange(latestQueries)}.</p>
+    <summary>Вставить список из кабинета Ozon</summary>
+    <p>Скопируйте запросы выбранного товара за ${queryRange(latestQueries)}. Чтобы сохранить цифры, захватите заголовки столбцов. Если отчёт разбит на страницы, вставляйте их по очереди.</p>
     <form data-manual-query-form>
-     <label>Поисковые фразы<textarea name="phrases" rows="4" maxlength="${queryTextLimit}" required placeholder="Одна фраза на строку"></textarea></label>
-     <button type="submit">Сохранить фразы</button>
+     <label>Запросы Ozon<textarea name="phrases" rows="4" maxlength="${queryTextLimit}" required placeholder="Вставьте таблицу или список фраз"></textarea></label>
+     <button type="submit">Сохранить список</button>
     </form>
    </details>
    <div data-manual-query-results></div>
+   <div data-query-results></div>
   </div>
   <div data-promotion-section="daily" hidden>
    <div class="promotion-actions">
@@ -170,7 +194,6 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
  const $=selector=>root.querySelector(selector);
  const form=$('[data-promotion-filters]'),from=form.elements.from,to=form.elements.to;
  const productButton=$('[data-promotion-product]'),loadButton=$('[data-load-queries]');
- const openSeller=$('[data-query-open-seller]');
  const manualEntry=$('[data-manual-queries]'),manualForm=$('[data-manual-query-form]');
  const manualText=manualForm.elements.phrases,manualSave=manualForm.querySelector('button'),manualResults=$('[data-manual-query-results]');
  const performanceButton=$('[data-load-performance]'),performanceSetup=$('[data-performance-setup]');
@@ -255,19 +278,22 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   }else{
    const key=currentKey(),denied=state.queryDenied===key;
    accessNote.hidden=!denied||Boolean(pending);
-   openSeller.hidden=accessNote.hidden;
-   queryResults.innerHTML=state.queries?.key===key?queryMarkup(state.queries.data):noProduct?
-    `<p class="analytics-empty">${noProduct}</p>`:'';
    const lists=(selected&&record().queryLists)||[];
-   manualEntry.hidden=!selected||(!denied&&!lists.length);
-   const saved=lists.find(samePeriod)?.phrases||[];
+   const saved=lists.find(samePeriod);
+   const apiReport=state.queries?.key===key?state.queries.data:null;
+   const apiOpen=queryResults.querySelector('details')?.open;
+   queryResults.innerHTML=apiReport?(saved?.rows?
+    `<details class="analytics-help promotion-import-help" ${apiOpen?'open':''}>
+     <summary>Данные Seller API · ${display(apiReport.rows.length)} строк</summary>${queryMarkup(apiReport)}</details>`:
+    queryMarkup(apiReport)):noProduct?
+    `<p class="analytics-empty">${noProduct}</p>`:'';
+   manualEntry.hidden=!selected;
    if(manualKey!==key){
     manualKey=key;
-    manualText.value=saved.join('\n');
+    pasted=false;
+    manualText.value=saved?.rows?'':saved?.phrases.join('\n')||'';
    }
-   manualResults.innerHTML=lists.map(list=>
-    `<section class="promotion-manual-phrases"><h2>Фразы из кабинета Ozon</h2>
-     <p class="promotion-caption">${queryRange(list)}</p><ul>${list.phrases.map(phrase=>`<li>${esc(phrase)}</li>`).join('')}</ul></section>`).join('');
+   manualResults.innerHTML=lists.map(pastedQueryMarkup).join('');
   }
  }
  form.onsubmit=event=>event.preventDefault();
@@ -333,16 +359,36 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   }
  }
  loadButton.onclick=fetchQueries;
+ manualText.onpaste=event=>{
+  pasted=true;
+  const table=clipboardQueryTable(root.ownerDocument,event.clipboardData?.getData('text/html'));
+  if(!table||table.length>queryTextLimit)return;
+  event.preventDefault();
+  manualText.value=table;
+ };
  manualForm.onsubmit=event=>{
   event.preventDefault();
-  return run('Сохраняю фразы…',async()=>{
-   const phrases=readQueryPhrases(manualText.value),original=record();
+  return run('Сохраняю запросы…',async()=>{
+   const {phrases,rows}=readPastedOzonQueries(manualText.value),original=record();
+   const prior=original.queryLists?.find(samePeriod);
    const list={...latestQueries,phrases};
+   if(pasted||rows||prior?.rows){
+    const merged=new Map((prior?.phrases??[]).map(phrase=>[phraseKey(phrase),phrase]));
+    for(const phrase of phrases)merged.set(phraseKey(phrase),phrase);
+    list.phrases=[...merged.values()];
+    if(rows||prior?.rows){
+     const byPhrase=new Map(prior?.rows?.map(row=>[phraseKey(row.query),row]));
+     for(const row of rows??[])byPhrase.set(phraseKey(row.query),row);
+     list.rows=[...byPhrase.values()];
+    }
+   }
+   if(list.phrases.join('\n').length>queryTextLimit)throw Error('Список запросов слишком длинный.');
    const queryLists=[...(original.queryLists??[]).filter(entry=>!samePeriod(entry)),list];
    if(!await saveRecord({...original,queryLists})||disposed)return;
-   manualText.value=phrases.join('\n');
+   manualText.value=pasted||list.rows?'':list.phrases.join('\n');
+   pasted=false;
    manualEntry.open=false;
-   message('Список фраз сохранён.');
+   message('Список запросов сохранён.');
   });
  };
 

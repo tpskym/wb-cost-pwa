@@ -1,4 +1,4 @@
-import {loadedListingForSku,normalizeDescriptionBreaks} from './calc.js?v=0.2.392';
+import {loadedListingForSku,normalizeDescriptionBreaks} from './calc.js?v=0.2.430';
 import {listBody,marketRequest,readAllWBCards} from './marketplace-api.js?v=0.2.392';
 import {normalizeCategories,normalizeAttributes,dimensionTriple,splitDimensions,categoryOf} from './listing-fields.js?v=0.2.392';
 // Presence snapshots do not replace editable card drafts or send changes to marketplaces.

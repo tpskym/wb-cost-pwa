@@ -1,6 +1,6 @@
 import {mountPriceEditor} from './price-editor.js?v=0.2.392';
 import {buildDescriptionPrompt,descriptionLength} from './ai-prompt.js?v=0.2.392';
-import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.392';
+import {readCatalog,searchCatalog} from './category-catalog.js?v=0.2.430';
 import {actionIcon,confirmAction,listingItem,dimensionTriple,splitDimensions,joinDimensions,categoryOf,fillOzonTypeAttribute,normalizeCategories,normalizeAttributes,getAttribute,setAttribute,setCategory,validateAttributes,sourcePhoto,sourceMatches,isPhoto,validPublicPhotoURL,attributeReference} from './listing-fields.js?v=0.2.392';
 import {wbBarcodeRemovalErrors,wbUpdateDraft} from './marketplace-api.js?v=0.2.392';
 import {listFiles} from './attachments.js?v=0.2.392';
