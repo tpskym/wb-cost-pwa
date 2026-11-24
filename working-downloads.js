@@ -1,17 +1,42 @@
-import {bindWindowsOpener,windowsOpenerEnabled,windowsFileLink,nativeOpenerPlatform,createMacTransfer,macTransferDownloadName,macTransferLink,requestMacComponent} from './windows-opener.js?v=0.2.392';
+import {bindWindowsOpener,windowsOpenerEnabled,windowsFileLink,nativeOpenerPlatform,createMacTransfer,macTransferDownloadName,macTransferLink,requestMacComponent} from './windows-opener.js?v=0.2.427';
 import {getFile,putFile} from './attachments.js?v=0.2.392';
+import {confirmAction} from './listing-fields.js?v=0.2.392';
 const KEY='__working-downloads-folder';
 export function workingFileName(name,kind){if(kind==='label')return 'label.pdf';const extension=String(name||'').match(/\.(3mf|stl|step|stp|obj|gcode)$/i)?.[1].toLowerCase();if(!extension)throw Error('Неизвестный формат модели. Нужен STL, 3MF, STEP, STP, OBJ или GCODE.');return 'model.'+extension;}
 function browserDownload(blob,name){const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;link.hidden=true;document.body?.append(link);link.click();link.remove();const timer=setTimeout(()=>URL.revokeObjectURL(url),60000);timer.unref?.();}
+function confirmPrintFolderAccess(directory){
+ const view=globalThis.window;
+ if(nativeOpenerPlatform(view)!=='windows'||view.navigator.userActivation?.isActive!==false)return true;
+ return confirmAction(directory
+  ? 'Разрешите браузеру записать файл в папку «'+directory.name+'».'
+  : 'Выберите рабочую папку для сохранения файла. Для открытия через компонент Мастерской выберите папку, указанную при его установке.',{
+  title:directory?'Доступ к рабочей папке':'Рабочая папка для печати',
+  accept:directory?'Разрешить запись':'Выбрать папку',
+  document:view.document
+ });
+}
 export function createWorkingDownloads({read=async()=>await getFile(KEY),write=state=>putFile({id:KEY,owner:'__device-settings',category:'working-downloads',...state}),supported=()=>typeof window!=='undefined'&&typeof window.showDirectoryPicker==='function',pick=()=>window.showDirectoryPicker({id:'workshop-print-files',mode:'readwrite',startIn:'downloads'}),fallback=browserDownload,nativeTransfer=()=>typeof window!=='undefined'&&nativeOpenerPlatform(window)==='macos'?requestMacComponent({document:window.document}):false,onSaved=detail=>{if(typeof window!=='undefined')window.dispatchEvent(new window.CustomEvent('workshop:file-saved',{detail}));},onChange=()=>{if(typeof window!=='undefined')window.dispatchEvent(new window.Event('workshop:working-files'));}}={}){
  let statePromise,tail=Promise.resolve();const state=()=>statePromise??=read().then(value=>value||{},()=>({}));
  const choose=async()=>{if(!supported())throw Error('Замена файлов в папке поддерживается в Chrome и Edge на компьютере. В этом браузере доступно обычное скачивание.');const directory=await pick();const previous=await state(),next={...previous,directory,modelName:null};await write(next);statePromise=Promise.resolve(next);onChange();return directory.name;};
  const status=async()=>{const current=await state();return {supported:supported(),name:current.directory?.name||'',recent:current.recent||{}};};
- const perform=async(blob,name,kind,{onlyIfConfigured=false,notify=()=>{}}={})=>{const filename=workingFileName(name,kind);if(!supported()){if(onlyIfConfigured)return null;const transfer=await nativeTransfer()?createMacTransfer(filename):null;fallback(transfer?new Blob([blob],{type:'application/octet-stream'}):blob,transfer?macTransferDownloadName(transfer):filename);const current=await state(),next={...current,recent:{...current.recent,[kind]:{name:filename,sourceName:name,savedAt:new Date().toISOString(),blob,...(transfer?{transfer}:{})}}};statePromise=Promise.resolve(next);try{await write(next);}catch{}onChange();if(transfer)onSaved({name:filename,sourceName:name,transfer,...(kind==='model'?{downloadModel:()=>fallback(blob,filename)}:{})});notify(transfer?'Файл отправлен на скачивание. Дождитесь завершения и нажмите «Перенести и открыть на Mac».':'Скачан '+filename+'. Чтобы заменять файл без копий, выберите рабочую папку в Chrome или Edge.');return {name:filename,downloaded:true};}
- let current=await state();if(!current.directory){if(onlyIfConfigured)return null;await choose();current=await state();}const directory=current.directory,permission=await directory.queryPermission({mode:'readwrite'});if(permission!=='granted'){if(onlyIfConfigured)return null;if(await directory.requestPermission({mode:'readwrite'})!=='granted')throw Error('Нет доступа к рабочей папке. Нажмите «Папка label / model» и разрешите запись.');}
+ const perform=async(blob,name,kind,{onlyIfConfigured=false,openAfterSave=false,notify=()=>{}}={})=>{const filename=workingFileName(name,kind);if(!supported()){if(onlyIfConfigured)return null;const transfer=await nativeTransfer()?createMacTransfer(filename):null;fallback(transfer?new Blob([blob],{type:'application/octet-stream'}):blob,transfer?macTransferDownloadName(transfer):filename);const current=await state(),next={...current,recent:{...current.recent,[kind]:{name:filename,sourceName:name,savedAt:new Date().toISOString(),blob,...(transfer?{transfer}:{})}}};statePromise=Promise.resolve(next);try{await write(next);}catch{}onChange();if(transfer)onSaved({name:filename,sourceName:name,transfer,...(kind==='model'?{downloadModel:()=>fallback(blob,filename)}:{})});notify(transfer?'Файл отправлен на скачивание. Дождитесь завершения и нажмите «Перенести и открыть на Mac».':'Скачан '+filename+'. Чтобы заменять файл без копий, выберите рабочую папку в Chrome или Edge.');return {name:filename,downloaded:true};}
+ let current=await state();
+ if(!current.directory){
+  if(onlyIfConfigured)return null;
+  if((kind==='model'||openAfterSave)&&!await confirmPrintFolderAccess())return null;
+  await choose();
+  current=await state();
+ }
+ const directory=current.directory;
+ const access={mode:'readwrite'};
+ if(await directory.queryPermission(access)!=='granted'){
+  if(onlyIfConfigured)return null;
+  if((kind==='model'||openAfterSave)&&!await confirmPrintFolderAccess(directory))return null;
+  if(await directory.requestPermission(access)!=='granted')throw Error('Нет доступа к рабочей папке. Нажмите «Папка label / model» и разрешите запись.');
+ }
  const file=await directory.getFileHandle(filename,{create:true}),stream=await file.createWritable();try{await stream.write(blob);await stream.close();}catch(error){try{await stream.abort();}catch{}throw Error('Не удалось сохранить '+filename+': '+error.message);}
  let cleanupWarning='',previous=current.modelName;current={...current,directory,recent:{...current.recent,[kind]:{name:filename,sourceName:name,savedAt:new Date().toISOString(),handle:file,directory}},...(kind==='model'?{modelName:filename}:{})};statePromise=Promise.resolve(current);try{await write(current);}catch{cleanupWarning=' Не удалось запомнить последний файл для следующего запуска.';}if(kind==='model'&&previous&&previous!==filename&&/^model\.(3mf|stl|step|stp|obj|gcode)$/.test(previous))try{await directory.removeEntry(previous);}catch(error){if(error.name!=='NotFoundError')cleanupWarning+=' Не удалось убрать предыдущую модель '+previous+'.';}onChange();
- if(!onlyIfConfigured)onSaved({name:filename,directory:directory.name,sourceName:name,...(kind==='model'?{downloadModel:()=>fallback(blob,filename)}:{})});
+ if(!onlyIfConfigured)onSaved({name:filename,directory:directory.name,sourceName:name,openAfterSave,...(kind==='model'?{downloadModel:()=>fallback(blob,filename)}:{})});
  notify(filename+' обновлён в папке «'+directory.name+'».'+cleanupWarning);return {name:filename,directory:directory.name,warning:cleanupWarning};};
  const save=(...args)=>{const task=tail.then(()=>perform(...args));tail=task.catch(()=>{});return task;};const recent=async kind=>{const item=(await state()).recent?.[kind];if(!item)throw Error('Этот файл ещё не сохранялся');if(item.handle){if(await item.directory.queryPermission({mode:'read'})!=='granted'&&await item.directory.requestPermission({mode:'read'})!=='granted')throw Error('Разрешите доступ к рабочей папке');try{return {file:await item.handle.getFile(),...item};}catch(error){if(error.name==='NotFoundError')throw Error('Файл удалён из рабочей папки. Скачайте его заново.');throw error;}}return {...item,file:new File([item.blob],item.name,{type:item.blob.type})};};return {choose,status,save,recent};
 }
