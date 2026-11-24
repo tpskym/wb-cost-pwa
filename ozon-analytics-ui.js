@@ -1,6 +1,6 @@
 import {marketRequest} from './marketplace-api.js?v=0.2.392';
 import {accrualBreakdownVersion,analyticsGroups,dayKey,dateRange,parseAccrualTypes,fetchAccrualDay,analyticsPeriods,aggregateDays} from './ozon-analytics.js?v=0.2.392';
-import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.427';
+import {mountOzonClusterOrders} from './ozon-cluster-orders.js?v=0.2.428';
 import {mountSalesFunnel} from './sales-funnel.js?v=0.2.418';
 import {mountOzonPromotion} from './ozon-promotion-ui.js?v=0.2.426';
 import {loadWbAccrualDays,requestWbFinanceReport,wbAccrualDays,wbAnalyticsGroups,wbSellerId} from './wb-analytics.js?v=0.2.397';

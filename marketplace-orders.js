@@ -1,4 +1,4 @@
-import {openStockLabelDialog} from './product-labels.js?v=0.2.427';
+import {openStockLabelDialog} from './product-labels.js?v=0.2.428';
 import {skuCopyButton} from './sku-copy.js?v=0.2.392';
 import {renderFreshness,mountFreshness} from './data-freshness.js?v=0.2.392';
 import {marketRequest} from './marketplace-api.js?v=0.2.392';

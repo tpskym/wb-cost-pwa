@@ -984,7 +984,6 @@ button:is(.spread-marketplace-field,#spread-marketplace-profit):hover:not(:disab
 
 
 .working-file-saved>button[data-download-model]{width:100%;margin-bottom:10px}
-.working-file-saved[data-windows-print]>button{min-height:44px;font-size:14px}
 
 main:not([data-workspace="finance"]) .finance-only,
 main[data-workspace="finance"]>.heading,
