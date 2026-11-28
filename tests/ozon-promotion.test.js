@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {strToU8,zipSync} from 'fflate';
-import {loadOzonPerformance} from '../ozon-performance.js';
+import {loadOzonPerformance,savePerformanceCredentials} from '../ozon-performance.js';
 import {handleOzonPerformance} from '../ozon-performance-extension/worker.js';
 import {blankProduct,validateDB} from '../calc.js';
 import {marketRequest} from '../marketplace-api.js';
@@ -215,6 +215,7 @@ test('promotion UI loads and refreshes campaigns from Performance API and preser
  const p={...blankProduct(),id:'p1',sku:article,name:'Подставка'};
  const database={schema:1,id:'db',products:[p]};
  let values=[row('20.11.2026',444,8,24)];
+ let failReport=false;
  const calls=[],state={filters:{productId:p.id,...dates}};
  const mount=()=>mountOzonPromotion({
   root,state,getProducts:()=>[p],getSelectedProductId:()=>p.id,hydrateProductImages:()=>{},
@@ -228,7 +229,7 @@ test('promotion UI loads and refreshes campaigns from Performance API and preser
    case 'token':return {access_token:'fake-token'};
    case 'campaigns':return {list:[cpc('1010')]};
    case 'submit':return {UUID:uuid};
-   case 'status':return {state:'OK'};
+   case 'status':return {state:failReport?'ERROR':'OK'};
    case 'report':return Buffer.from(csv(values)).toString('base64');
    default:assert.fail(operation);
    }
@@ -269,14 +270,79 @@ test('promotion UI loads and refreshes campaigns from Performance API and preser
   [['2026-11-20',10,36]]);
  assert.doesNotMatch(JSON.stringify(database),/fake-secret/);
  assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'10');
+ const saved=database.ozonPromotion;
  values=[row('20.11.2026',555,10,36)];
  await root.querySelector('[data-load-performance]').onclick();
  assert.match(root.querySelector('[data-daily-results]').textContent,/SKU 444 · Запрошено кампаний 1/);
- assert.match(root.querySelector('[data-daily-results]').textContent,/В отчётах кампаний есть данные по другим SKU/);
- assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'—');
+ assert.match(root.querySelector('[data-promotion-status]').textContent,/В отчётах кампаний есть данные по другим SKU.*статистика сохранена/);
+ assert.equal(database.ozonPromotion,saved);
+ assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'10');
+ failReport=true;
+ await root.querySelector('[data-load-performance]').onclick();
+ assert.match(root.querySelector('[data-promotion-status]').textContent,/Ozon не смог сформировать отчёт/);
+ assert.equal(database.ozonPromotion,saved);
+ assert.equal(root.querySelector('.promotion-daily-table tbody tr:nth-child(2) td:nth-child(3)').textContent,'10');
  dispose();
  dispose=mount();
  assert.match(root.querySelector('[data-promotion-note="2026-11-20"]').textContent,/Поднял ставку до 10 ₽/);
+ dispose();window.close();
+});
+
+test('a recent-only Ozon response updates known metrics and keeps historical days and campaigns',async()=>{
+ const {window}=new JSDOM('<main></main>',{url:'https://tpskym.github.io/wb-cost-pwa/'});
+ const root=window.document.querySelector('main');
+ const product={...blankProduct(),id:'stand',sku:article,name:'Подставка'};
+ const earlier={from:'2026-11-21',to:'2026-11-27'};
+ const stored=(campaignId,values)=>parseOzonPerformanceRows([headers,...values],{
+  ...earlier,campaignId,ids:['444']
+ }).rows;
+ const database={schema:1,id:'db',products:[product],ozonPromotion:{products:[{
+  id:product.id,rows:stored('1010',[row('25.11.2026',444,12,30)]),
+  notes:[{day:'2026-11-23',text:'Поднял ставку',time:'17:00'}],
+  performance:{...earlier,client:access.id,archived:0,campaigns:[
+   {id:'1010',title:'Текущая кампания'},{id:'2020',title:'Предыдущая кампания'}
+  ],rows:[
+   ...stored('1010',[row('21.11.2026',444,3,10),row('23.11.2026',444,8,24),row('27.11.2026',444,5,19)]),
+   ...stored('2020',[row('24.11.2026',444,4,20)])
+  ]}
+ }]}};
+ savePerformanceCredentials(window,access);
+ const dispose=mountOzonPromotion({
+  root,state:{tab:'daily',filters:{productId:product.id,from:'2026-11-23'}},getProducts:()=>[product],
+  getSelectedProductId:()=>product.id,getCredentials:()=>({}),
+  getPromotion:()=>database.ozonPromotion,
+  savePromotion:next=>{database.ozonPromotion=next;validateDB(structuredClone(database));return true;},
+  now:()=>new Date('2026-11-28T10:00:00Z'),
+  request:async()=>({items:[{offer_id:article,sku:444}]}),
+  requestPerformance:async(_window,operation)=>{
+   if(operation==='ping')return {version:2};
+   if(operation==='token')return {access_token:'bearer'};
+   if(operation==='campaigns')return {list:[{...cpc('1010'),title:''}]};
+   if(operation==='submit')return {UUID:uuid};
+   if(operation==='status')return {state:'ERROR'};
+   assert.equal(operation,'recent');
+   return {rows:[
+    {campaignId:'1010',date:'2026-11-27',sku:444,clicks:0,expense:22},
+    {campaignId:'1010',date:'2026-11-28',sku:444,clicks:10,expense:60.46}
+   ]};
+  }
+ });
+ await new Promise(resolve=>setImmediate(resolve));
+ const saved=database.ozonPromotion.products[0];
+ assert.equal(saved.performance.from,'2026-11-21');
+ assert.equal(saved.performance.to,'2026-11-28');
+ assert.deepEqual(saved.performance.rows.map(item=>[item.day,item.clicks,item.expense,item.sales]),[
+  ['2026-11-21',3,10,600],
+  ['2026-11-23',8,24,600],
+  ['2026-11-27',0,22,600],
+  ['2026-11-24',4,20,600],
+  ['2026-11-28',10,60.46,null]
+ ]);
+ assert.equal(saved.rows.length,1);
+ assert.match(root.querySelector('[data-promotion-campaign]').textContent,/Текущая кампания.*Предыдущая кампания/);
+ assert.match(root.querySelector('[data-promotion-note="2026-11-23"]').textContent,/Поднял ставку/);
+ const clicks=root.querySelector('.promotion-daily-table tbody tr:nth-child(2)');
+ assert.deepEqual([...clicks.querySelectorAll('td')].map(cell=>cell.textContent),['8','4','12','—','0','10']);
  dispose();window.close();
 });
 

@@ -94,6 +94,32 @@ function dailyEmptyReason(report){
  return 'Ozon вернул строки выбранного товара с пустыми показателями.';
 }
 
+function mergeDailyRows(saved,received){
+ const key=row=>row.campaignId+'/'+row.day;
+ const rows=new Map(saved.map(row=>[key(row),row]));
+ for(const row of received){
+  const id=key(row),previous=rows.get(id);
+  rows.set(id,previous?{...previous,...Object.fromEntries(Object.entries(row).filter(([,value])=>value!==null))}:row);
+ }
+ return [...rows.values()];
+}
+
+function mergeDailyReport(saved,received){
+ if(!saved?.rows.length||saved.client!==received.client)return received;
+ const campaigns=new Map(saved.campaigns.map(item=>[item.id,item]));
+ for(const item of received.campaigns){
+  if(item.title||!campaigns.has(item.id))campaigns.set(item.id,item);
+ }
+ return {
+  ...received,
+  from:saved.from<received.from?saved.from:received.from,
+  to:saved.to>received.to?saved.to:received.to,
+  lastRequest:{from:received.from,to:received.to},
+  rows:mergeDailyRows(saved.rows,received.rows),
+  campaigns:[...campaigns.values()]
+ };
+}
+
 function dailyMarkup(days,notes,source,notices){
  const byDay=new Map(notes.map(note=>[note.day,note]));
  const count=days.filter(day=>day.metrics).length;
@@ -243,7 +269,7 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   if(active==='daily'){
    if(noProduct){dailyResults.innerHTML=`<p class="analytics-empty">${noProduct}</p>`;return;}
    const report=dailyReport(),previous=record();
-   const rows=report?.rows??previous.rows;
+   const rows=report?mergeDailyRows(previous.rows,report.rows):previous.rows;
    const names=new Map((report?.campaigns??[]).map(({id,title})=>[id,title]));
    const campaigns=[...new Set(rows.filter(row=>row.day>=filters.from&&row.day<=filters.to).map(row=>row.campaignId))].sort();
    if(!campaigns.includes(campaign))campaign='';
@@ -259,7 +285,8 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
     const stats=lookup?` · SKU ${lookup.skus.join(', ')} · Запрошено кампаний ${lookup.requested}`:'';
     const source=report?'Ozon Performance API · '+queryRange(report)+stats+archiveNote:rows.length?'Ранее сохранённые данные':'';
     const notices=[];
-    if(report&&report.from<=filters.from&&report.to>=filters.to){
+    const lastRequest=report?.lastRequest??report;
+    if(lastRequest&&lastRequest.from<=filters.from&&lastRequest.to>=filters.to){
      if(!rows.length&&!lookup?.unavailable?.length){
       const reason=dailyEmptyReason(report);
       if(reason)notices.push(reason);
@@ -418,7 +445,16 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
     throw error;
    }
    signal.throwIfAborted();
-   if(!await saveRecord({...record(),performance:report})||disposed)return;
+   const previous=record(),saved=previous.performance;
+   if(!report.rows.length&&(saved?.rows.length||previous.rows.length)){
+    const unavailable=report.lookup?.unavailable;
+    const reason=unavailable?.length
+     ? `Часть статистики недоступна · кампании № ${unavailable.join(', ')}.`
+     : dailyEmptyReason(report);
+    message([reason,'Ранее загруженная статистика сохранена.'].filter(Boolean).join(' '));
+    return;
+   }
+   if(!await saveRecord({...previous,performance:mergeDailyReport(saved,report)})||disposed)return;
    message(report.rows.length?'Статистика Ozon обновлена.':'');
   });
  };
@@ -426,7 +462,8 @@ export function mountOzonPromotion({root,state,getProducts,getSelectedProductId,
   if(active==='queries'){maybeLoadQueries();return;}
   if(disposed||pending||!product()||!performanceAccess.id||!performanceAccess.secret||attemptedDaily.has(dailyKey()))return;
   const report=dailyReport();
-  if(!report||(!report.lookup?.unavailable&&!report.rows.length)||report.from>filters.from||report.to<filters.to)fetchPerformance();
+  const lastRequest=report?.lastRequest??report;
+  if(!report||(!report.lookup?.unavailable&&!report.rows.length)||lastRequest.from>filters.from||lastRequest.to<filters.to)fetchPerformance();
  }
  performanceButton.onclick=fetchPerformance;
  performanceForm.onsubmit=event=>{
